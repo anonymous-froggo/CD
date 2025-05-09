@@ -1,6 +1,10 @@
-package edu.kit.kastel.vads.compiler.backend.aasm;
+package edu.kit.kastel.vads.compiler.regalloc.x86_64;
 
-import edu.kit.kastel.vads.compiler.backend.regalloc.Register;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.AddNode;
 import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
@@ -15,36 +19,32 @@ import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.node.StartNode;
 import edu.kit.kastel.vads.compiler.ir.node.SubNode;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import edu.kit.kastel.vads.compiler.regalloc.IRegister;
+import edu.kit.kastel.vads.compiler.regalloc.IRegisterAllocator;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
-public class CodeGenerator {
-
+public class X8664CodeGenerator {
     public String generateCode(List<IrGraph> program) {
         StringBuilder builder = new StringBuilder();
         for (IrGraph graph : program) {
-            AasmRegisterAllocator allocator = new AasmRegisterAllocator();
-            Map<Node, Register> registers = allocator.allocateRegisters(graph);
+            IRegisterAllocator allocator = new X8664RegisterAllocator(graph);
+            Map<Node, IRegister> registers = allocator.allocateRegisters();
             builder.append("function ")
-                .append(graph.name())
-                .append(" {\n");
+                    .append(graph.name())
+                    .append(" {\n");
             generateForGraph(graph, builder, registers);
             builder.append("}");
         }
         return builder.toString();
     }
 
-    private void generateForGraph(IrGraph graph, StringBuilder builder, Map<Node, Register> registers) {
+    private void generateForGraph(IrGraph graph, StringBuilder builder, Map<Node, IRegister> registers) {
         Set<Node> visited = new HashSet<>();
         scan(graph.endBlock(), visited, builder, registers);
     }
 
-    private void scan(Node node, Set<Node> visited, StringBuilder builder, Map<Node, Register> registers) {
+    private void scan(Node node, Set<Node> visited, StringBuilder builder, Map<Node, IRegister> registers) {
         for (Node predecessor : node.predecessors()) {
             if (visited.add(predecessor)) {
                 scan(predecessor, visited, builder, registers);
@@ -58,13 +58,13 @@ public class CodeGenerator {
             case DivNode div -> binary(builder, registers, div, "div");
             case ModNode mod -> binary(builder, registers, mod, "mod");
             case ReturnNode r -> builder.repeat(" ", 2).append("ret ")
-                .append(registers.get(predecessorSkipProj(r, ReturnNode.RESULT)));
+            .append(registers.get(predecessorSkipProj(r, ReturnNode.RESULT)));
             case ConstIntNode c -> builder.repeat(" ", 2)
-                .append(registers.get(c))
-                .append(" = const ")
-                .append(c.value());
+                    .append(registers.get(c))
+                    .append(" = const ")
+                    .append(c.value());
             case Phi _ -> throw new UnsupportedOperationException("phi");
-            case Block _, ProjNode _, StartNode _ -> {
+            case Block _,ProjNode _,StartNode _ -> {
                 // do nothing, skip line break
                 return;
             }
@@ -73,17 +73,16 @@ public class CodeGenerator {
     }
 
     private static void binary(
-        StringBuilder builder,
-        Map<Node, Register> registers,
-        BinaryOperationNode node,
-        String opcode
-    ) {
+            StringBuilder builder,
+            Map<Node, IRegister> registers,
+            BinaryOperationNode node,
+            String opcode) {
         builder.repeat(" ", 2).append(registers.get(node))
-            .append(" = ")
-            .append(opcode)
-            .append(" ")
-            .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)))
-            .append(" ")
-            .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)));
+                .append(" = ")
+                .append(opcode)
+                .append(" ")
+                .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)))
+                .append(" ")
+                .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)));
     }
 }

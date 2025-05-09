@@ -1,0 +1,9 @@
+function main {
+  %r8 = const 0
+  %r9 = const 10
+  %r10 = sub %r8 %r9
+  %r11 = const 4
+  %r12 = sub %r8 %r11
+  %r13 = mul %r10 %r12
+  ret %r13
+}
