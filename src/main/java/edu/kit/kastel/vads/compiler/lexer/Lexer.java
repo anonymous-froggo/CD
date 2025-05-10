@@ -100,7 +100,7 @@ public class Lexer {
                         } else if (peek(1) == '*') {
                             currentCommentType = CommentType.MULTI_LINE;
                             multiLineCommentDepth++;
-                        } else if (multiLineCommentDepth > 0) {
+                        } else if (currentCommentType == CommentType.MULTI_LINE) {
                             this.pos++;
                             continue;
                         } else {
