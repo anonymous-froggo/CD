@@ -4,6 +4,7 @@ import edu.kit.kastel.vads.compiler.codegen.x86_64.X8664CodeGenerator;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.SsaTranslation;
 import edu.kit.kastel.vads.compiler.ir.optimize.LocalValueNumbering;
+import edu.kit.kastel.vads.compiler.ir.util.YCompPrinter;
 import edu.kit.kastel.vads.compiler.lexer.Lexer;
 import edu.kit.kastel.vads.compiler.parser.ParseException;
 import edu.kit.kastel.vads.compiler.parser.Parser;
@@ -12,7 +13,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.semantic.SemanticAnalysis;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,6 +51,14 @@ public class Main {
         for (FunctionTree functionTree : program.topLevelTrees()) {
             SsaTranslation ssaTranslation = new SsaTranslation(functionTree, new LocalValueNumbering());
             graphs.add(ssaTranslation.translate());
+        }
+
+        if ("vcg".equals(System.getenv("DUMP_GRAPHS")) || "vcg".equals(System.getProperty("dumpGraphs"))) {
+            Path tmp = output.toAbsolutePath().resolveSibling("graphs");
+            Files.createDirectory(tmp);
+            for (IrGraph graph : graphs) {
+                dumpGraph(graph, tmp, "before-codegen");
+            }
         }
 
         String generatedCode = new X8664CodeGenerator().generateCode(graphs);
@@ -104,5 +112,12 @@ public class Main {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void dumpGraph(IrGraph graph, Path path, String key) throws IOException {
+        Files.writeString(
+            path.resolve(graph.name() + "-" + key + ".vcg"),
+            YCompPrinter.print(graph)
+        );
     }
 }
