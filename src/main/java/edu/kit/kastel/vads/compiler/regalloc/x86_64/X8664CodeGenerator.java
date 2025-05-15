@@ -48,13 +48,13 @@ public class X8664CodeGenerator {
         }
 
         switch (node) {
-            case AddNode add -> binary(builder, registers, add, "addq");
-            case SubNode sub -> binary(builder, registers, sub, "subq");
-            case MulNode mul -> binary(builder, registers, mul, "imulq");
-            case DivNode div -> binary(builder, registers, div, "divq");
-            case ModNode mod -> binary(builder, registers, mod, "modq");
+            case AddNode add -> defaultBinary(builder, registers, add, "addq");
+            case SubNode sub -> defaultBinary(builder, registers, sub, "subq");
+            case MulNode mul -> defaultBinary(builder, registers, mul, "imulq");
+            case DivNode div -> divisionBinary(builder, registers, div);
+            case ModNode mod -> divisionBinary(builder, registers, mod);
             case ReturnNode r -> ret(builder, registers, r);
-            case ConstIntNode c -> move(builder, "$" + c.value(), registers.get(c).toString());
+            case ConstIntNode c -> move(builder, "$" + c.value(), registers.get(c));
             case Phi _ -> throw new UnsupportedOperationException("phi");
             case Block _,ProjNode _,StartNode _ -> {
                 // do nothing, skip line break
@@ -64,14 +64,14 @@ public class X8664CodeGenerator {
         builder.append("\n");
     }
 
-    private static void binary(
+    private static void defaultBinary(
             StringBuilder builder,
             Map<Node, IRegister> registers,
             BinaryOperationNode node,
             String opcode) {
         move(builder,
-                registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)).toString(),
-                registers.get(node).toString());
+                registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)),
+                registers.get(node));
 
         builder.append("\n").repeat(" ", 2)
                 .append(opcode)
@@ -81,23 +81,45 @@ public class X8664CodeGenerator {
                 .append(registers.get(node));
     }
 
+    private static void divisionBinary(StringBuilder builder,
+            Map<Node, IRegister> registers,
+            BinaryOperationNode node) {
+        move(builder,
+                registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)),
+                X8664Register.RAX);
+
+        builder.append("\n").repeat(" ", 2)
+                .append("cqto");
+
+        builder.append("\n").repeat(" ", 2)
+                .append("idivq ")
+                .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)))
+                .append("\n");
+
+        move(builder,
+                // The quotient (needed for division) is in rax, the remainder (needed for
+                // modulo) is in rdx
+                node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX,
+                registers.get(node));
+    }
+
     private static void move(
             StringBuilder builder,
-            String src,
-            String dest) {
+            Object src,
+            Object dest) {
         builder.repeat(" ", 2)
                 .append("movq ")
-                .append(src)
+                .append(src.toString())
                 .append(", ")
-                .append(dest);
+                .append(dest.toString());
     }
 
     private static void ret(
             StringBuilder builder,
             Map<Node, IRegister> registers,
-            ReturnNode r) {
-        move(builder, registers.get(predecessorSkipProj(r, ReturnNode.RESULT)).toString(),
-                X8664Register.RAX.toString());
+            ReturnNode node) {
+        move(builder, registers.get(predecessorSkipProj(node, ReturnNode.RESULT)),
+                X8664Register.RAX);
         builder.append("\n").repeat(" ", 2)
                 .append("ret");
     }

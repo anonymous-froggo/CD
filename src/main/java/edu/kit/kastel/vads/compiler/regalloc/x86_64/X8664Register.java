@@ -6,7 +6,7 @@ public record X8664Register(String id) implements IRegister {
     public static final IRegister RAX = new X8664Register("rax");
     public static final IRegister RBX = new X8664Register("rbx");
     public static final IRegister RCX = new X8664Register("rcx");
-    public static final IRegister RDC = new X8664Register("rdx");
+    public static final IRegister RDX = new X8664Register("rdx");
     public static final IRegister RSI = new X8664Register("rsi");
     public static final IRegister RDI = new X8664Register("rdi");
     public static final IRegister RSP = new X8664Register("rsp");
