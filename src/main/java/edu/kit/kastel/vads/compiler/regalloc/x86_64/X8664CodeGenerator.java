@@ -30,11 +30,7 @@ public class X8664CodeGenerator {
         for (IrGraph graph : program) {
             IRegisterAllocator allocator = new X8664RegisterAllocator(graph);
             Map<Node, IRegister> registers = allocator.allocateRegisters();
-            builder.append("function ")
-                    .append(graph.name())
-                    .append(" {\n");
             generateForGraph(graph, builder, registers);
-            builder.append("}");
         }
         return builder.toString();
     }
@@ -52,17 +48,13 @@ public class X8664CodeGenerator {
         }
 
         switch (node) {
-            case AddNode add -> binary(builder, registers, add, "add");
-            case SubNode sub -> binary(builder, registers, sub, "sub");
-            case MulNode mul -> binary(builder, registers, mul, "mul");
-            case DivNode div -> binary(builder, registers, div, "div");
-            case ModNode mod -> binary(builder, registers, mod, "mod");
-            case ReturnNode r -> builder.repeat(" ", 2).append("ret ")
-            .append(registers.get(predecessorSkipProj(r, ReturnNode.RESULT)));
-            case ConstIntNode c -> builder.repeat(" ", 2)
-                    .append(registers.get(c))
-                    .append(" = const ")
-                    .append(c.value());
+            case AddNode add -> binary(builder, registers, add, "addq");
+            case SubNode sub -> binary(builder, registers, sub, "subq");
+            case MulNode mul -> binary(builder, registers, mul, "imulq");
+            case DivNode div -> binary(builder, registers, div, "divq");
+            case ModNode mod -> binary(builder, registers, mod, "modq");
+            case ReturnNode r -> ret(builder, registers, r);
+            case ConstIntNode c -> move(builder, "$" + c.value(), registers.get(c).toString());
             case Phi _ -> throw new UnsupportedOperationException("phi");
             case Block _,ProjNode _,StartNode _ -> {
                 // do nothing, skip line break
@@ -77,12 +69,36 @@ public class X8664CodeGenerator {
             Map<Node, IRegister> registers,
             BinaryOperationNode node,
             String opcode) {
-        builder.repeat(" ", 2).append(registers.get(node))
-                .append(" = ")
+        move(builder,
+                registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)).toString(),
+                registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)).toString());
+
+        builder.append("\n").repeat(" ", 2)
                 .append(opcode)
                 .append(" ")
-                .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)))
-                .append(" ")
-                .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)));
+                .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)))
+                .append(", ")
+                .append(registers.get(node));
+    }
+
+    private static void move(
+            StringBuilder builder,
+            String src,
+            String dest) {
+        builder.repeat(" ", 2)
+                .append("movq ")
+                .append(src)
+                .append(", ")
+                .append(dest);
+    }
+
+    private static void ret(
+            StringBuilder builder,
+            Map<Node, IRegister> registers,
+            ReturnNode r) {
+        move(builder, registers.get(predecessorSkipProj(r, ReturnNode.RESULT)).toString(),
+                X8664Register.RAX.toString());
+        builder.append("\n").repeat(" ", 2)
+                .append("ret");
     }
 }

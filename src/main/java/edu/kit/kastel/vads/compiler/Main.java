@@ -41,10 +41,20 @@ public class Main {
             SsaTranslation translation = new SsaTranslation(function, new LocalValueNumbering());
             graphs.add(translation.translate());
         }
-
-        // TODO: generate assembly and invoke gcc instead of generating abstract assembly
+        
         String s = new X8664CodeGenerator().generateCode(graphs);
-        Files.writeString(output, s);
+        Files.writeString(output, ".global main\n" + //
+                        ".global _main\n" + //
+                        ".text\n" + //
+                        "main:\n" + //
+                        "call _main\n" + //
+                        "# move the return value into the first argument for the syscall\n" + //
+                        "movq %rax, %rdi\n" + //
+                        "# move the exit syscall number into rax\n" + //
+                        "movq $0x3C, %rax\n" + //
+                        "syscall\n" + //
+                        "_main:\n" + //
+                        s);
     }
 
     private static ProgramTree lexAndParse(Path input) throws IOException {
