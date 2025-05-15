@@ -9,12 +9,13 @@ import edu.kit.kastel.vads.compiler.parser.Parser;
 import edu.kit.kastel.vads.compiler.parser.TokenSource;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
-import edu.kit.kastel.vads.compiler.regalloc.aasm.AasmCodeGenerator;
 import edu.kit.kastel.vads.compiler.regalloc.x86_64.X8664CodeGenerator;
 import edu.kit.kastel.vads.compiler.semantic.SemanticAnalysis;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -41,20 +42,40 @@ public class Main {
             SsaTranslation translation = new SsaTranslation(function, new LocalValueNumbering());
             graphs.add(translation.translate());
         }
-        
+
+        Path assembly = Path.of("assembly.S");
         String s = new X8664CodeGenerator().generateCode(graphs);
-        Files.writeString(output, ".global main\n" + //
-                        ".global _main\n" + //
-                        ".text\n" + //
-                        "main:\n" + //
-                        "call _main\n" + //
-                        "# move the return value into the first argument for the syscall\n" + //
-                        "movq %rax, %rdi\n" + //
-                        "# move the exit syscall number into rax\n" + //
-                        "movq $0x3C, %rax\n" + //
-                        "syscall\n" + //
-                        "_main:\n" + //
-                        s);
+        Files.writeString(assembly, ".global main\n" + //
+                ".global _main\n" + //
+                ".text\n" + //
+                "main:\n" + //
+                "call _main\n" + //
+                "# move the return value into the first argument for the syscall\n" + //
+                "movq %rax, %rdi\n" + //
+                "# move the exit syscall number into rax\n" + //
+                "movq $0x3C, %rax\n" + //
+                "syscall\n" + //
+                "_main:\n" + //
+                s);
+
+        // Runtime.getRuntime()
+        // .exec(String.format("/bin/sh -c \"gcc %s -o %s\"", assembly.toAbsolutePath(),
+        // output.toAbsolutePath()));
+
+        // String string;
+        // Process process;
+        // try {
+        // process =
+        Runtime.getRuntime().exec(String.format("gcc %s -o %s", assembly, output));
+        // BufferedReader br = new BufferedReader(
+        // new InputStreamReader(process.getInputStream()));
+        // while ((string = br.readLine()) != null)
+        // System.out.println("line: " + string);
+        // process.waitFor();
+        // System.out.println("exit: " + process.exitValue());
+        // process.destroy();
+        // } catch (Exception e) {
+        // }
     }
 
     private static ProgramTree lexAndParse(Path input) throws IOException {
