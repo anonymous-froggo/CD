@@ -1,26 +1,26 @@
-package edu.kit.kastel.vads.compiler.regalloc.x86_64;
+package edu.kit.kastel.vads.compiler.codegen.x86_64;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.kit.kastel.vads.compiler.codegen.IRegister;
+import edu.kit.kastel.vads.compiler.codegen.IRegisterAllocator;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
-import edu.kit.kastel.vads.compiler.ir.node.AddNode;
 import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
 import edu.kit.kastel.vads.compiler.ir.node.ConstIntNode;
-import edu.kit.kastel.vads.compiler.ir.node.DivNode;
-import edu.kit.kastel.vads.compiler.ir.node.ModNode;
-import edu.kit.kastel.vads.compiler.ir.node.MulNode;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.Phi;
 import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.node.StartNode;
 import edu.kit.kastel.vads.compiler.ir.node.SubNode;
-import edu.kit.kastel.vads.compiler.regalloc.IRegister;
-import edu.kit.kastel.vads.compiler.regalloc.IRegisterAllocator;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.AddNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.MulNode;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
@@ -29,8 +29,8 @@ public class X8664CodeGenerator {
         StringBuilder builder = new StringBuilder();
         for (IrGraph graph : program) {
             IRegisterAllocator allocator = new X8664RegisterAllocator(graph);
-            Map<Node, IRegister> registers = allocator.allocateRegisters();
-            generateForGraph(graph, builder, registers);
+            Map<Node, IRegister> registerAllocation = allocator.allocateRegisters();
+            generateForGraph(graph, builder, registerAllocation);
         }
         return builder.toString();
     }
@@ -66,26 +66,26 @@ public class X8664CodeGenerator {
 
     private static void defaultBinary(
             StringBuilder builder,
-            Map<Node, IRegister> registers,
+            Map<Node, IRegister> registerAllocation,
             BinaryOperationNode node,
             String opcode) {
         move(builder,
-                registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)),
-                registers.get(node));
+                registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)),
+                registerAllocation.get(node));
 
         builder.append("\n").repeat(" ", 2)
                 .append(opcode)
                 .append(" ")
-                .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)))
+                .append(registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)))
                 .append(", ")
-                .append(registers.get(node));
+                .append(registerAllocation.get(node));
     }
 
     private static void divisionBinary(StringBuilder builder,
-            Map<Node, IRegister> registers,
+            Map<Node, IRegister> registerAllocation,
             BinaryOperationNode node) {
         move(builder,
-                registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)),
+                registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)),
                 X8664Register.RAX);
 
         builder.append("\n").repeat(" ", 2)
@@ -93,14 +93,14 @@ public class X8664CodeGenerator {
 
         builder.append("\n").repeat(" ", 2)
                 .append("idivq ")
-                .append(registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)))
+                .append(registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)))
                 .append("\n");
 
         move(builder,
-                // The quotient (needed for division) is in rax, the remainder (needed for
-                // modulo) is in rdx
+                // The quotient (needed for division) is in rax, 
+                // the remainder (needed for modulo) is in rdx
                 node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX,
-                registers.get(node));
+                registerAllocation.get(node));
     }
 
     private static void move(
@@ -116,10 +116,12 @@ public class X8664CodeGenerator {
 
     private static void ret(
             StringBuilder builder,
-            Map<Node, IRegister> registers,
+            Map<Node, IRegister> registerAllocation,
             ReturnNode node) {
-        move(builder, registers.get(predecessorSkipProj(node, ReturnNode.RESULT)),
+        move(builder,
+                registerAllocation.get(predecessorSkipProj(node, ReturnNode.RESULT)),
                 X8664Register.RAX);
+
         builder.append("\n").repeat(" ", 2)
                 .append("ret");
     }

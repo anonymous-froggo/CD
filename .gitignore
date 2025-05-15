@@ -4,3 +4,6 @@
 src/test/input
 src/test/output
 assembly.S
+output.svg
+IrGraph.dot
+.gitignore

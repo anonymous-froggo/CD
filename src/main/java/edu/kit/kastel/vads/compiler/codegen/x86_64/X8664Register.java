@@ -1,6 +1,6 @@
-package edu.kit.kastel.vads.compiler.regalloc.x86_64;
+package edu.kit.kastel.vads.compiler.codegen.x86_64;
 
-import edu.kit.kastel.vads.compiler.regalloc.IRegister;
+import edu.kit.kastel.vads.compiler.codegen.IRegister;
 
 public record X8664Register(String id) implements IRegister {
     public static final IRegister RAX = new X8664Register("rax");

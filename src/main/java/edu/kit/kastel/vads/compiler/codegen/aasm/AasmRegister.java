@@ -1,6 +1,6 @@
-package edu.kit.kastel.vads.compiler.regalloc.aasm;
+package edu.kit.kastel.vads.compiler.codegen.aasm;
 
-import edu.kit.kastel.vads.compiler.regalloc.IRegister;
+import edu.kit.kastel.vads.compiler.codegen.IRegister;
 
 public record AasmRegister(int id) implements IRegister {
     @Override

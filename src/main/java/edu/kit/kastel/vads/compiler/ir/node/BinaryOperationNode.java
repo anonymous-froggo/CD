@@ -1,5 +1,10 @@
 package edu.kit.kastel.vads.compiler.ir.node;
 
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.AddNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.MulNode;
+
 public sealed abstract class BinaryOperationNode extends Node permits AddNode, DivNode, ModNode, MulNode, SubNode {
     public static final int LEFT = 0;
     public static final int RIGHT = 1;

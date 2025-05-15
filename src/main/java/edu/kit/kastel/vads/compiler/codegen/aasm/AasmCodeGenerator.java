@@ -1,20 +1,20 @@
-package edu.kit.kastel.vads.compiler.regalloc.aasm;
+package edu.kit.kastel.vads.compiler.codegen.aasm;
 
+import edu.kit.kastel.vads.compiler.codegen.IRegister;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
-import edu.kit.kastel.vads.compiler.ir.node.AddNode;
 import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
 import edu.kit.kastel.vads.compiler.ir.node.ConstIntNode;
-import edu.kit.kastel.vads.compiler.ir.node.DivNode;
-import edu.kit.kastel.vads.compiler.ir.node.ModNode;
-import edu.kit.kastel.vads.compiler.ir.node.MulNode;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.Phi;
 import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.node.StartNode;
 import edu.kit.kastel.vads.compiler.ir.node.SubNode;
-import edu.kit.kastel.vads.compiler.regalloc.IRegister;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.AddNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.MulNode;
 
 import java.util.HashSet;
 import java.util.List;

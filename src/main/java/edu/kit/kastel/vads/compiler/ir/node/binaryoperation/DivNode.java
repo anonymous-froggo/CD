@@ -1,4 +1,8 @@
-package edu.kit.kastel.vads.compiler.ir.node;
+package edu.kit.kastel.vads.compiler.ir.node.binaryoperation;
+
+import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
+import edu.kit.kastel.vads.compiler.ir.node.Block;
+import edu.kit.kastel.vads.compiler.ir.node.Node;
 
 public final class DivNode extends BinaryOperationNode {
     public static final int SIDE_EFFECT = 2;

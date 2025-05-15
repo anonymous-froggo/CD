@@ -1,10 +1,11 @@
-package edu.kit.kastel.vads.compiler.regalloc.aasm;
+package edu.kit.kastel.vads.compiler.codegen.aasm;
 
+import edu.kit.kastel.vads.compiler.codegen.IRegister;
+import edu.kit.kastel.vads.compiler.codegen.IRegisterAllocator;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
-import edu.kit.kastel.vads.compiler.regalloc.IRegister;
-import edu.kit.kastel.vads.compiler.regalloc.IRegisterAllocator;
-import static edu.kit.kastel.vads.compiler.regalloc.IRegisterAllocator.needsRegister;
+
+import static edu.kit.kastel.vads.compiler.codegen.IRegisterAllocator.needsRegister;
 
 import java.util.HashMap;
 import java.util.HashSet;

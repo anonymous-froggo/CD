@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler;
 
+import edu.kit.kastel.vads.compiler.codegen.x86_64.X8664CodeGenerator;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.SsaTranslation;
 import edu.kit.kastel.vads.compiler.ir.optimize.LocalValueNumbering;
@@ -9,7 +10,6 @@ import edu.kit.kastel.vads.compiler.parser.Parser;
 import edu.kit.kastel.vads.compiler.parser.TokenSource;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
-import edu.kit.kastel.vads.compiler.regalloc.x86_64.X8664CodeGenerator;
 import edu.kit.kastel.vads.compiler.semantic.SemanticAnalysis;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 
@@ -30,6 +30,7 @@ public class Main {
         Path input = Path.of(args[0]);
         Path output = Path.of(args[1]);
         ProgramTree program = lexAndParse(input);
+
         try {
             new SemanticAnalysis(program).analyze();
         } catch (SemanticException e) {
@@ -37,30 +38,16 @@ public class Main {
             System.exit(7);
             return;
         }
+
         List<IrGraph> graphs = new ArrayList<>();
         for (FunctionTree function : program.topLevelTrees()) {
             SsaTranslation translation = new SsaTranslation(function, new LocalValueNumbering());
             graphs.add(translation.translate());
         }
-
-        Path assembly = Path.of("assembly.S");
-        String s = new X8664CodeGenerator().generateCode(graphs);
-        Files.writeString(assembly, ".global main\n" + //
-                ".global _main\n" + //
-                ".text\n" + //
-                "main:\n" + //
-                "call _main\n" + //
-                "# move the return value into the first argument for the syscall\n" + //
-                "movq %rax, %rdi\n" + //
-                "# move the exit syscall number into rax\n" + //
-                "movq $0x3C, %rax\n" + //
-                "syscall\n" + //
-                "_main:\n" + //
-                s);
-
-        Runtime.getRuntime().exec(new String[] {
-                "gcc", assembly.toString(), "-o", output.toString()
-        });
+        
+        String generatedCode = new X8664CodeGenerator().generateCode(graphs);
+        
+        assembleAndLink(generatedCode, output);
     }
 
     private static ProgramTree lexAndParse(Path input) throws IOException {
@@ -74,5 +61,25 @@ public class Main {
             System.exit(42);
             throw new AssertionError("unreachable");
         }
+    }
+
+    private static void assembleAndLink(String generatedCode, Path output) throws IOException {
+        Path assemblyPath = Path.of("assembly.S");
+        Files.writeString(assemblyPath, ".global main\n" + //
+                ".global _main\n" + //
+                ".text\n" + //
+                "main:\n" + //
+                "call _main\n" + //
+                "# move the return value into the first argument for the syscall\n" + //
+                "movq %rax, %rdi\n" + //
+                "# move the exit syscall number into rax\n" + //
+                "movq $0x3C, %rax\n" + //
+                "syscall\n" + //
+                "_main:\n" + //
+                generatedCode);
+
+        Runtime.getRuntime().exec(new String[] {
+                "gcc", assemblyPath.toString(), "-o", output.toString()
+        });
     }
 }

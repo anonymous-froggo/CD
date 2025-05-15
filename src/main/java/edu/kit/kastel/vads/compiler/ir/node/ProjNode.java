@@ -14,6 +14,10 @@ public final class ProjNode extends Node {
         return this.projectionInfo.toString();
     }
 
+    public ProjectionInfo getProjectionInfo() {
+        return this.projectionInfo;
+    }
+
     public sealed interface ProjectionInfo {
 
     }

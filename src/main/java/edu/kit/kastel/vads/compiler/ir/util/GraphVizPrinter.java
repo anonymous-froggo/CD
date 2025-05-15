@@ -5,6 +5,9 @@ import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,6 +30,19 @@ public class GraphVizPrinter {
         this.graph = graph;
     }
 
+    public static void generateSvg(IrGraph graph) {
+        String graphAsDotString = print(graph);
+        try {
+            Path dotPath = Path.of("IrGraph.dot");
+            Files.writeString(dotPath, graphAsDotString);
+            Runtime.getRuntime().exec(new String[] {
+                    "dot", "-Tsvg", dotPath.toString(), "-o", "IrGraph.svg"
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static String print(IrGraph graph) {
         GraphVizPrinter printer = new GraphVizPrinter(graph);
         printer.prepare(graph.endBlock(), new HashSet<>());
@@ -41,7 +57,7 @@ public class GraphVizPrinter {
 
         if (!(node instanceof Block)) {
             this.clusters.computeIfAbsent(node.block(), _ -> Collections.newSetFromMap(new IdentityHashMap<>()))
-                .add(node);
+                    .add(node);
         }
         int idx = 0;
         for (Node predecessor : node.predecessors()) {
@@ -55,40 +71,40 @@ public class GraphVizPrinter {
 
     private void print() {
         this.builder.append("digraph \"")
-            .append(this.graph.name())
-            .append("\"")
-            .append("""
-                 {
-                    compound=true;
-                    layout=dot;
-                    node [shape=box];
-                    splines=ortho;
-                    overlap=false;
-                
-                """);
+                .append(this.graph.name())
+                .append("\"")
+                .append("""
+                         {
+                            compound=true;
+                            layout=dot;
+                            node [shape=box];
+                            splines=ortho;
+                            overlap=false;
+
+                        """);
 
         this.clusters.forEach((block, nodes) -> {
             this.builder.append("    subgraph cluster_")
-                .append(idFor(block))
-                .append(" {\n")
-                .repeat(" ", 8)
-                .append("c_").append(idFor(block))
-                .append(" [width=0, height=0, fixedsize=true, style=invis];\n");
+                    .append(idFor(block))
+                    .append(" {\n")
+                    .repeat(" ", 8)
+                    .append("c_").append(idFor(block))
+                    .append(" [width=0, height=0, fixedsize=true, style=invis];\n");
             if (block == this.graph.endBlock()) {
                 this.builder.repeat(" ", 8)
-                    .append("label=End;\n");
+                        .append("label=End;\n");
             }
             for (Node node : nodes) {
                 this.builder.repeat(" ", 8)
-                    .append(idFor(node))
-                    .append(" [label=\"")
-                    .append(labelFor(node))
-                    .append("\"");
+                        .append(idFor(node))
+                        .append(" [label=\"")
+                        .append(labelFor(node))
+                        .append("\"");
                 if (node.debugInfo() instanceof DebugInfo.SourceInfo(Span span)) {
                     this.builder.append(", tooltip=\"")
-                        .append("source span: ")
-                        .append(span)
-                        .append("\"");
+                            .append("source span: ")
+                            .append(span)
+                            .append("\"");
                 }
                 this.builder.append("];\n");
             }
@@ -97,24 +113,24 @@ public class GraphVizPrinter {
 
         for (Edge edge : this.edges) {
             this.builder.repeat(" ", 4)
-                .append(nameFor(edge.from()))
-                .append(" -> ")
-                .append(nameFor(edge.to()))
-                .append(" [")
-                .append("label=")
-                .append(edge.idx());
+                    .append(nameFor(edge.from()))
+                    .append(" -> ")
+                    .append(nameFor(edge.to()))
+                    .append(" [")
+                    .append("label=")
+                    .append(edge.idx());
 
             if (edge.from() instanceof Block b) {
                 this.builder.append(", ")
-                    .append("ltail=")
-                    .append("cluster_")
-                    .append(idFor(b));
+                        .append("ltail=")
+                        .append("cluster_")
+                        .append(idFor(b));
             }
             if (edge.to() instanceof Block b) {
                 this.builder.append(", ")
-                    .append("lhead=")
-                    .append("cluster_")
-                    .append(idFor(b));
+                        .append("lhead=")
+                        .append("cluster_")
+                        .append(idFor(b));
             }
 
             this.builder.append("];\n");

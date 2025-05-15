@@ -1,37 +1,37 @@
-package edu.kit.kastel.vads.compiler.regalloc.x86_64;
+package edu.kit.kastel.vads.compiler.codegen.x86_64;
+
+import static edu.kit.kastel.vads.compiler.codegen.IRegisterAllocator.needsRegister;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import edu.kit.kastel.vads.compiler.codegen.IRegister;
+import edu.kit.kastel.vads.compiler.codegen.IRegisterAllocator;
+import edu.kit.kastel.vads.compiler.codegen.LivenessAnalysis;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
-import edu.kit.kastel.vads.compiler.regalloc.IRegister;
-import edu.kit.kastel.vads.compiler.regalloc.IRegisterAllocator;
-import edu.kit.kastel.vads.compiler.regalloc.aasm.AasmRegister;
-
-import static edu.kit.kastel.vads.compiler.regalloc.IRegisterAllocator.needsRegister;
 
 public class X8664RegisterAllocator implements IRegisterAllocator {
     private int id = 0;
 
     private IRegister[] registers;
-    private final IrGraph inputIrGraph;
+    private final IrGraph irGraph;
     private final Map<Node, IRegister> registerAllocation = new HashMap<>();
 
-    public X8664RegisterAllocator(IrGraph inputIrGraph) {
+    public X8664RegisterAllocator(IrGraph irGraph) {
         this.registers = X8664Register.getGeneralPurposeRegisters();
-        this.inputIrGraph = inputIrGraph;
+        this.irGraph = irGraph;
     }
 
-    //TODO: this is just a dummy implementation, should implement liveness analysis + graph coloring for regalloc
     @Override
     public Map<Node, IRegister> allocateRegisters() {
+        LivenessAnalysis.analyze(irGraph);
         Set<Node> visited = new HashSet<>();
-        visited.add(inputIrGraph.endBlock());
-        scan(inputIrGraph.endBlock(), visited);
+        visited.add(irGraph.endBlock());
+        scan(irGraph.endBlock(), visited);
         return Map.copyOf(this.registerAllocation);
     }
 
@@ -42,7 +42,7 @@ public class X8664RegisterAllocator implements IRegisterAllocator {
             }
         }
         if (needsRegister(node)) {
-            this.registerAllocation.put(node, this.registers[this.id++]);
+            this.registerAllocation.put(node, this.registers[(this.id++) % this.registers.length]);
         }
     }
 }
