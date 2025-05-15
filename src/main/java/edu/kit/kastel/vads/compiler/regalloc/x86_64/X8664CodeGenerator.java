@@ -71,7 +71,7 @@ public class X8664CodeGenerator {
             String opcode) {
         move(builder,
                 registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)).toString(),
-                registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)).toString());
+                registers.get(node).toString());
 
         builder.append("\n").repeat(" ", 2)
                 .append(opcode)

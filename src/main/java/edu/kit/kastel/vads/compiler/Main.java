@@ -58,24 +58,9 @@ public class Main {
                 "_main:\n" + //
                 s);
 
-        // Runtime.getRuntime()
-        // .exec(String.format("/bin/sh -c \"gcc %s -o %s\"", assembly.toAbsolutePath(),
-        // output.toAbsolutePath()));
-
-        // String string;
-        // Process process;
-        // try {
-        // process =
-        Runtime.getRuntime().exec(String.format("gcc %s -o %s", assembly, output));
-        // BufferedReader br = new BufferedReader(
-        // new InputStreamReader(process.getInputStream()));
-        // while ((string = br.readLine()) != null)
-        // System.out.println("line: " + string);
-        // process.waitFor();
-        // System.out.println("exit: " + process.exitValue());
-        // process.destroy();
-        // } catch (Exception e) {
-        // }
+        Runtime.getRuntime().exec(new String[] {
+                "gcc", assembly.toString(), "-o", output.toString()
+        });
     }
 
     private static ProgramTree lexAndParse(Path input) throws IOException {
