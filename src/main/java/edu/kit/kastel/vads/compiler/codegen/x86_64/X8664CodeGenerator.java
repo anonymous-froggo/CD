@@ -73,17 +73,23 @@ public class X8664CodeGenerator {
         IRegister rightRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
         IRegister destRegister = registerAllocation.get(node);
 
-        if (destRegister == leftRegister) { // l = l - r
+        if (destRegister == leftRegister) {
             sourceDest(builder, opcode, rightRegister, destRegister);
-        } else if (destRegister == rightRegister) { // r = l - r
+        } else if (destRegister == rightRegister) {
             if (!(node instanceof SubNode)) {
                 sourceDest(builder, opcode, leftRegister, destRegister);
                 return;
             }
-            // This is of the form rightRegister = leftRegister - rightRegister            
-            sourceDest(builder, opcode, leftRegister, destRegister);    
-        } else { // d = l - r
+            // This is of the form rightRegister = leftRegister - rightRegister, needs %eax
+            // as temp register
+            move(builder, leftRegister, X8664Register.RAX);
+            builder.append("\n");
+            sourceDest(builder, opcode, rightRegister, X8664Register.RAX);
+            builder.append("\n");
+            move(builder, X8664Register.RAX, destRegister);
+        } else {
             move(builder, leftRegister, destRegister);
+            builder.append("\n");
             sourceDest(builder, opcode, rightRegister, destRegister);
         }
     }
@@ -136,7 +142,7 @@ public class X8664CodeGenerator {
 
     private static void sourceDest(StringBuilder builder, String opcode, IRegister sourceRegister,
             IRegister destRegister) {
-        builder.append("\n").repeat(" ", 2)
+        builder.repeat(" ", 2)
                 .append(opcode)
                 .append(" ")
                 .append(sourceRegister)
