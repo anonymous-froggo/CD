@@ -13,20 +13,24 @@ import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.semantic.SemanticAnalysis;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
+    public static boolean GENERATE_IR_GRAPH = false;
+
     public static void main(String[] args) throws IOException {
-        if (args.length != 2) {
+        if (args.length < 2) {
             System.err.println("Invalid arguments: Expected one input file and one output file");
             System.exit(3);
         }
+        if (args.length > 2 && args[2].equals("-IrGraph")) {
+            GENERATE_IR_GRAPH = true;
+        }
+
         Path input = Path.of(args[0]);
         Path output = Path.of(args[1]);
         ProgramTree program = lexAndParse(input);
@@ -45,7 +49,7 @@ public class Main {
             graphs.add(translation.translate());
         }
         
-        String generatedCode = new X8664CodeGenerator().generateCode(graphs);
+        String generatedCode = X8664CodeGenerator.generateCode(graphs);
         
         assembleAndLink(generatedCode, output);
     }

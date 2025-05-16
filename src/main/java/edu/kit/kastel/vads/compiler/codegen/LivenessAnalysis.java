@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.ConstIntNode;
@@ -25,15 +26,24 @@ public class LivenessAnalysis {
     private static Set<Node> visited = new HashSet<>();
     private static Node lastNodeNeedingSucc;
 
-    public static void analyze(IrGraph irGraph) {
-        GraphVizPrinter.generateSvg(irGraph);
+    public static Map<Node, Integer> calculateNodeColors(IrGraph irGraph) {
+        InterferenceGraph interferenceGraph = calculateInterferenceGraph(irGraph);
+        interferenceGraph.color();
+        return interferenceGraph.getNodeColors();
+    }
+
+    private static InterferenceGraph calculateInterferenceGraph(IrGraph irGraph) {
+        // TODO: generate IR-Graph for each graph in the program
+        if (Main.GENERATE_IR_GRAPH) {
+            GraphVizPrinter.generateSvg(irGraph);
+        }
 
         visited.add(irGraph.endBlock());
-        scan(irGraph.endBlock());
+        scanForJRules(irGraph.endBlock());
 
-        System.out.println(def);
-        System.out.println(use);
-        System.out.println(succ);
+        // System.out.println(def);
+        // System.out.println(use);
+        // System.out.println(succ);
 
         for (Node l : use.keySet()) {
             K1(l);
@@ -45,13 +55,17 @@ public class LivenessAnalysis {
             }
         } while (liveChanged);
 
-        System.out.println(live);
+        System.out.println("live: " + live);
+
+        InterferenceGraph interferenceGraph = new InterferenceGraph(live);
+
+        return interferenceGraph;
     }
 
-    private static void scan(Node node) {
+    private static void scanForJRules(Node node) {
         for (Node predecessor : node.predecessors()) {
             if (visited.add(predecessor)) {
-                scan(predecessor);
+                scanForJRules(predecessor);
             }
         }
 
@@ -110,12 +124,6 @@ public class LivenessAnalysis {
     private static void J5() {
 
     }
-
-    // private static void J6(ProjNode projNode) {
-    // if (projNode.getProjectionInfo() == ProjNode.SimpleProjectionInfo.RESULT) {
-    // addFact(succ, projNode, visited.peek());
-    // }
-    // }
 
     private static void K1(Node l) {
         for (Node x : use.get(l)) {

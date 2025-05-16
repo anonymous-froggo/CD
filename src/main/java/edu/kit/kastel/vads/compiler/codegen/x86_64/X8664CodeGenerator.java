@@ -25,7 +25,7 @@ import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.MulNode;
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
 public class X8664CodeGenerator {
-    public String generateCode(List<IrGraph> program) {
+    public static String generateCode(List<IrGraph> program) {
         StringBuilder builder = new StringBuilder();
         for (IrGraph graph : program) {
             IRegisterAllocator allocator = new X8664RegisterAllocator(graph);
@@ -35,12 +35,12 @@ public class X8664CodeGenerator {
         return builder.toString();
     }
 
-    private void generateForGraph(IrGraph graph, StringBuilder builder, Map<Node, IRegister> registers) {
+    private static void generateForGraph(IrGraph graph, StringBuilder builder, Map<Node, IRegister> registers) {
         Set<Node> visited = new HashSet<>();
         scan(graph.endBlock(), visited, builder, registers);
     }
 
-    private void scan(Node node, Set<Node> visited, StringBuilder builder, Map<Node, IRegister> registers) {
+    private static void scan(Node node, Set<Node> visited, StringBuilder builder, Map<Node, IRegister> registers) {
         for (Node predecessor : node.predecessors()) {
             if (visited.add(predecessor)) {
                 scan(predecessor, visited, builder, registers);

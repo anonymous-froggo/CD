@@ -31,14 +31,19 @@ public class GraphVizPrinter {
     }
 
     public static void generateSvg(IrGraph graph) {
+        System.out.println("Generating IR-Graph...");
         String graphAsDotString = print(graph);
         try {
             Path dotPath = Path.of("IrGraph.dot");
             Files.writeString(dotPath, graphAsDotString);
-            Runtime.getRuntime().exec(new String[] {
+            Process process = Runtime.getRuntime().exec(new String[] {
                     "dot", "-Tsvg", dotPath.toString(), "-o", "IrGraph.svg"
             });
+            process.waitFor();
+            System.out.println(String.format("GraphViz exited with code %s", process.exitValue()));
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
