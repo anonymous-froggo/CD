@@ -1,9 +1,10 @@
 /build/
 /.idea/
 /.gradle/
-src/test/input
+src/test/input.l1
 src/test/output
 assembly.S
 output.svg
 IrGraph.dot
 .gitignore
+IrGraph.svg

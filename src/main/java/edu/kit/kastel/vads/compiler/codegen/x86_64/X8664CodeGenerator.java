@@ -69,16 +69,34 @@ public class X8664CodeGenerator {
             Map<Node, IRegister> registerAllocation,
             BinaryOperationNode node,
             String opcode) {
-        move(builder,
-                registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)),
-                registerAllocation.get(node));
+        IRegister registerLeft = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        IRegister registerRight = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        IRegister registerDest = registerAllocation.get(node);
 
-        builder.append("\n").repeat(" ", 2)
-                .append(opcode)
-                .append(" ")
-                .append(registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)))
-                .append(", ")
-                .append(registerAllocation.get(node));
+        if (registerLeft == registerDest) {
+            builder.repeat(" ", 2)
+                    .append(opcode)
+                    .append(" ")
+                    .append(registerRight)
+                    .append(", ")
+                    .append(registerDest);
+        } else if (registerRight == registerDest) {
+            builder.repeat(" ", 2)
+                    .append(opcode)
+                    .append(" ")
+                    .append(registerLeft)
+                    .append(", ")
+                    .append(registerDest);
+        } else {
+            move(builder, registerLeft, registerDest);
+
+            builder.append("\n").repeat(" ", 2)
+                    .append(opcode)
+                    .append(" ")
+                    .append(registerRight)
+                    .append(", ")
+                    .append(registerDest);
+        }
     }
 
     private static void divisionBinary(StringBuilder builder,
@@ -97,7 +115,7 @@ public class X8664CodeGenerator {
                 .append("\n");
 
         move(builder,
-                // The quotient (needed for division) is in rax, 
+                // The quotient (needed for division) is in rax,
                 // the remainder (needed for modulo) is in rdx
                 node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX,
                 registerAllocation.get(node));
