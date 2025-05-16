@@ -2,17 +2,22 @@ package edu.kit.kastel.vads.compiler.codegen;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
+import edu.kit.kastel.vads.compiler.ir.node.Block;
 import edu.kit.kastel.vads.compiler.ir.node.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
+import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.node.StartNode;
 import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
 
 public class LivenessAnalysis {
@@ -24,7 +29,7 @@ public class LivenessAnalysis {
     private static boolean liveChanged;
 
     private static Set<Node> visited = new HashSet<>();
-    private static Node lastNodeNeedingSucc;
+    private static List<Node> schedule = new ArrayList<>();
 
     public static Map<Node, Integer> calculateNodeColors(IrGraph irGraph) {
         InterferenceGraph interferenceGraph = calculateInterferenceGraph(irGraph);
@@ -39,11 +44,25 @@ public class LivenessAnalysis {
         }
 
         visited.add(irGraph.endBlock());
-        scanForJRules(irGraph.endBlock());
+        scan(irGraph.endBlock());
+        System.out.println(schedule);
 
-        // System.out.println(def);
-        // System.out.println(use);
-        // System.out.println(succ);
+        for (int l = schedule.size() - 1; l >= 0; l--) {
+            Node node = schedule.get(l);
+            System.out.println(node);
+            switch (node) {
+                case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
+                case ReturnNode returnNode -> J2(returnNode);
+                case ConstIntNode constIntNode -> J3(constIntNode, schedule.get(l + 1));
+                case ProjNode projNode -> J6(projNode, schedule.get(l + 1));
+                default -> {
+                }
+            }
+        }
+
+        // System.out.println("def: " + def);
+        System.out.println("use: " + use);
+        System.out.println("succ: " + succ);
 
         for (Node l : use.keySet()) {
             K1(l);
@@ -62,32 +81,17 @@ public class LivenessAnalysis {
         return interferenceGraph;
     }
 
-    private static void scanForJRules(Node node) {
+    private static void scan(Node node) {
         for (Node predecessor : node.predecessors()) {
             if (visited.add(predecessor)) {
-                scanForJRules(predecessor);
+                scan(predecessor);
             }
         }
 
-        switch (node) {
-            case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode);
-            case ReturnNode returnNode -> J2(returnNode);
-            case ConstIntNode constIntNode -> J3(constIntNode);
-            default -> {
-                return;
-            }
-        }
-
-        if (lastNodeNeedingSucc != null) {
-            addFact(succ, lastNodeNeedingSucc, node);
-        }
-
-        if (node instanceof BinaryOperationNode || node instanceof ConstIntNode) {
-            lastNodeNeedingSucc = node;
-        }
+        schedule.add(node);
     }
 
-    private static void J1(BinaryOperationNode binaryOperationNode) {
+    private static void J1(BinaryOperationNode binaryOperationNode, Node lPlusOne) {
         Node l = binaryOperationNode;
 
         Node x = binaryOperationNode;
@@ -97,6 +101,7 @@ public class LivenessAnalysis {
         addFact(def, l, x);
         addFact(use, l, y);
         addFact(use, l, z);
+        addFact(succ, l, lPlusOne);
     }
 
     private static void J2(ReturnNode returnNode) {
@@ -107,12 +112,13 @@ public class LivenessAnalysis {
         addFact(use, l, x);
     }
 
-    private static void J3(ConstIntNode constIntNode) {
+    private static void J3(ConstIntNode constIntNode, Node lPlusOne) {
         Node l = constIntNode;
 
         Node x = constIntNode;
 
         addFact(def, l, x);
+        addFact(succ, l, lPlusOne);
     }
 
     // Not yet necessary
@@ -123,6 +129,16 @@ public class LivenessAnalysis {
     // Not yet necessary
     private static void J5() {
 
+    }
+
+    // Additional rule needed for projNodes
+    private static void J6(ProjNode projNode, Node lPlusOne) {
+        Node l = projNode;
+
+        Node x = projNode.predecessor(ProjNode.IN);
+
+        addFact(use, l, x);
+        addFact(succ, l, lPlusOne);
     }
 
     private static void K1(Node l) {

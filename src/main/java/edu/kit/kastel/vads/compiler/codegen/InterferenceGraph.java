@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.ir.node.Node;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 
 public class InterferenceGraph {
     // TODO implementing the interference graph using neighborhoods might not
@@ -25,6 +26,7 @@ public class InterferenceGraph {
         this.neighborhoods = new HashMap<>();
 
         for (Set<Node> clique : live.values()) {
+            System.out.println(clique);
             numberOfColors = Math.max(clique.size(), numberOfColors);
             this.addClique(clique);
         }

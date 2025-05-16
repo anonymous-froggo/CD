@@ -69,67 +69,45 @@ public class X8664CodeGenerator {
             Map<Node, IRegister> registerAllocation,
             BinaryOperationNode node,
             String opcode) {
-        IRegister registerLeft = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
-        IRegister registerRight = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
-        IRegister registerDest = registerAllocation.get(node);
+        IRegister leftRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        IRegister rightRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        IRegister destRegister = registerAllocation.get(node);
 
-        if (registerLeft == registerDest) {
-            builder.repeat(" ", 2)
-                    .append(opcode)
-                    .append(" ")
-                    .append(registerRight)
-                    .append(", ")
-                    .append(registerDest);
-        } else if (registerRight == registerDest) {
-            builder.repeat(" ", 2)
-                    .append(opcode)
-                    .append(" ")
-                    .append(registerLeft)
-                    .append(", ")
-                    .append(registerDest);
-        } else {
-            move(builder, registerLeft, registerDest);
-
-            builder.append("\n").repeat(" ", 2)
-                    .append(opcode)
-                    .append(" ")
-                    .append(registerRight)
-                    .append(", ")
-                    .append(registerDest);
+        if (destRegister == leftRegister) { // l = l - r
+            sourceDest(builder, opcode, rightRegister, destRegister);
+        } else if (destRegister == rightRegister) { // r = l - r
+            if (!(node instanceof SubNode)) {
+                sourceDest(builder, opcode, leftRegister, destRegister);
+                return;
+            }
+            // This is of the form rightRegister = leftRegister - rightRegister            
+            sourceDest(builder, opcode, leftRegister, destRegister);    
+        } else { // d = l - r
+            move(builder, leftRegister, destRegister);
+            sourceDest(builder, opcode, rightRegister, destRegister);
         }
     }
 
     private static void divisionBinary(StringBuilder builder,
             Map<Node, IRegister> registerAllocation,
             BinaryOperationNode node) {
-        move(builder,
-                registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT)),
-                X8664Register.RAX);
+        IRegister leftRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        IRegister rightRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        IRegister destRegister = registerAllocation.get(node);
+
+        move(builder, leftRegister, X8664Register.RAX);
 
         builder.append("\n").repeat(" ", 2)
                 .append("cqto");
 
         builder.append("\n").repeat(" ", 2)
                 .append("idivq ")
-                .append(registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT)))
+                .append(rightRegister)
                 .append("\n");
 
-        move(builder,
-                // The quotient (needed for division) is in rax,
-                // the remainder (needed for modulo) is in rdx
-                node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX,
-                registerAllocation.get(node));
-    }
-
-    private static void move(
-            StringBuilder builder,
-            Object src,
-            Object dest) {
-        builder.repeat(" ", 2)
-                .append("movq ")
-                .append(src.toString())
-                .append(", ")
-                .append(dest.toString());
+        // The quotient (needed for division) is in rax,
+        // the remainder (needed for modulo) is in rdx
+        move(builder, node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX, destRegister);
     }
 
     private static void ret(
@@ -142,5 +120,27 @@ public class X8664CodeGenerator {
 
         builder.append("\n").repeat(" ", 2)
                 .append("ret");
+    }
+
+    private static void move(
+            StringBuilder builder,
+            Object src,
+            Object dest) {
+
+        builder.repeat(" ", 2)
+                .append("movq ")
+                .append(src.toString())
+                .append(", ")
+                .append(dest.toString());
+    }
+
+    private static void sourceDest(StringBuilder builder, String opcode, IRegister sourceRegister,
+            IRegister destRegister) {
+        builder.append("\n").repeat(" ", 2)
+                .append(opcode)
+                .append(" ")
+                .append(sourceRegister)
+                .append(", ")
+                .append(destRegister);
     }
 }
