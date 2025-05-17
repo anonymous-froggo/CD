@@ -20,6 +20,7 @@ import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.node.StartNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.AddNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
 
 public class LivenessAnalysis {
@@ -112,6 +113,14 @@ public class LivenessAnalysis {
         addFact(use, l, y);
         addFact(use, l, z);
         addFact(succ, l, lPlusOne);
+
+        if (binaryOperationNode instanceof DivNode ) {
+            Node sideEffect = predecessorSkipProj(binaryOperationNode, DivNode.SIDE_EFFECT);
+            addFact(use, l, sideEffect); 
+        } else if (binaryOperationNode instanceof ModNode ) {
+            Node sideEffect = predecessorSkipProj(binaryOperationNode, ModNode.SIDE_EFFECT);
+            addFact(use, l, sideEffect); 
+        }
     }
 
     private static void J2(ReturnNode returnNode) {
