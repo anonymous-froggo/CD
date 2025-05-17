@@ -18,6 +18,8 @@ import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.node.StartNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.AddNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
 import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
 
 public class LivenessAnalysis {
@@ -39,13 +41,14 @@ public class LivenessAnalysis {
 
     private static InterferenceGraph calculateInterferenceGraph(IrGraph irGraph) {
         // TODO: generate IR-Graph for each graph in the program
-        if (Main.GENERATE_IR_GRAPH) {
+        if (Main.DEBUG) {
             GraphVizPrinter.generateSvg(irGraph);
         }
 
         visited.add(irGraph.endBlock());
         scan(irGraph.endBlock());
-        System.out.println("schedule: " + schedule);
+        if (Main.DEBUG)
+            System.out.println("schedule: " + schedule);
 
         for (int l = schedule.size() - 1; l >= 0; l--) {
             Node node = schedule.get(l);
@@ -53,15 +56,18 @@ public class LivenessAnalysis {
                 case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
                 case ReturnNode returnNode -> J2(returnNode);
                 case ConstIntNode constIntNode -> J3(constIntNode, schedule.get(l + 1));
-                case ProjNode projNode -> J6(projNode, schedule.get(l + 1));
+                // case ProjNode projNode -> J6(projNode, schedule.get(l + 1));
                 default -> {
                 }
             }
         }
 
-        System.out.println("def: " + def);
-        System.out.println("use: " + use);
-        System.out.println("succ: " + succ);
+        if (Main.DEBUG)
+            System.out.println("def: " + def);
+        if (Main.DEBUG)
+            System.out.println("use: " + use);
+        if (Main.DEBUG)
+            System.out.println("succ: " + succ);
 
         for (Node l : use.keySet()) {
             K1(l);
@@ -73,7 +79,8 @@ public class LivenessAnalysis {
             }
         } while (liveChanged);
 
-        System.out.println("live: " + live);
+        if (Main.DEBUG)
+            System.out.println("live: " + live);
 
         InterferenceGraph interferenceGraph = new InterferenceGraph(live);
 
@@ -87,17 +94,19 @@ public class LivenessAnalysis {
             }
         }
 
-        schedule.add(node);
+        if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block)) {
+            schedule.add(node);
+        }
     }
 
     private static void J1(BinaryOperationNode binaryOperationNode, Node lPlusOne) {
         Node l = binaryOperationNode;
 
         Node x = binaryOperationNode;
-        // Node y = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.LEFT);
-        // Node z = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.RIGHT);
-        Node y = binaryOperationNode.predecessor(BinaryOperationNode.LEFT);
-        Node z = binaryOperationNode.predecessor(BinaryOperationNode.RIGHT);
+        Node y = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.LEFT);
+        Node z = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.RIGHT);
+        // Node y = binaryOperationNode.predecessor(BinaryOperationNode.LEFT);
+        // Node z = binaryOperationNode.predecessor(BinaryOperationNode.RIGHT);
 
         addFact(def, l, x);
         addFact(use, l, y);
@@ -108,10 +117,13 @@ public class LivenessAnalysis {
     private static void J2(ReturnNode returnNode) {
         Node l = returnNode;
 
-        // Node x = predecessorSkipProj(returnNode, ReturnNode.RESULT);
-        Node x = returnNode.predecessor(ReturnNode.RESULT);
+        Node x = predecessorSkipProj(returnNode, ReturnNode.RESULT);
 
         addFact(use, l, x);
+
+        // I don't know if this is needed
+        Node sideEffect = predecessorSkipProj(returnNode, ReturnNode.SIDE_EFFECT);
+        addFact(use, l, sideEffect);
     }
 
     private static void J3(ConstIntNode constIntNode, Node lPlusOne) {
@@ -134,14 +146,14 @@ public class LivenessAnalysis {
     }
 
     // Additional rule needed for projNodes
-    private static void J6(ProjNode projNode, Node lPlusOne) {
-        Node l = projNode;
+    // private static void J6(ProjNode projNode, Node lPlusOne) {
+    // Node l = projNode;
 
-        Node x = projNode.predecessor(ProjNode.IN);
+    // Node x = projNode.predecessor(ProjNode.IN);
 
-        addFact(use, l, x);
-        addFact(succ, l, lPlusOne);
-    }
+    // addFact(use, l, x);
+    // addFact(succ, l, lPlusOne);
+    // }
 
     private static void K1(Node l) {
         for (Node x : use.get(l)) {

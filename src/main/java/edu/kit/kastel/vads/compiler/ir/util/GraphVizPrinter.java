@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler.ir.util;
 
+import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
@@ -31,7 +32,7 @@ public class GraphVizPrinter {
     }
 
     public static void generateSvg(IrGraph graph) {
-        System.out.println("Generating IR-Graph...");
+        if (Main.DEBUG) System.out.println("Generating IR-Graph...");
         String graphAsDotString = print(graph);
         try {
             Path dotPath = Path.of("IrGraph.dot");
@@ -40,7 +41,7 @@ public class GraphVizPrinter {
                     "dot", "-Tsvg", dotPath.toString(), "-o", "IrGraph.svg"
             });
             process.waitFor();
-            System.out.println(String.format("GraphViz exited with code %s", process.exitValue()));
+            if (Main.DEBUG) System.out.println(String.format("GraphViz exited with code %s", process.exitValue()));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

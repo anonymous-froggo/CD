@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 
@@ -39,9 +40,9 @@ public class InterferenceGraph {
     public void color() {
         // Input: G = (V, E) and ordered sequence v1, . . . , vn of nodes.
         List<Node> simplicialEliminationOrdering = this.maximumCardinalitySearch();
-        System.out.println("simplicialEliminationOrdering: " + simplicialEliminationOrdering);
-        System.out.println("numberOfColors: " + this.numberOfColors);
-        System.out.println("neighborhoods: " + this.neighborhoods);
+        if (Main.DEBUG) System.out.println("simplicialEliminationOrdering: " + simplicialEliminationOrdering);
+        if (Main.DEBUG) System.out.println("numberOfColors: " + this.numberOfColors);
+        if (Main.DEBUG) System.out.println("neighborhoods: " + this.neighborhoods);
 
         // Output: Assignment col : V → {0, ..., ∆(G)}.
         this.nodeColors = new HashMap<>(simplicialEliminationOrdering.size());
@@ -73,20 +74,20 @@ public class InterferenceGraph {
             this.nodeColors.put(vi, c);
         }
 
-        System.out.println("nodeColors: " + nodeColors);
+        if (Main.DEBUG) System.out.println("nodeColors: " + nodeColors);
 
         // for (Node node : this.neighborhoods.keySet()) {
-        //     System.out.println(node + "=" + this.colors.get(node) + ": ");
+        //     if (Main.DEBUG) System.out.println(node + "=" + this.colors.get(node) + ": ");
         //     for (Node neighbor : this.neighborhoods.get(node)) {
-        //         System.out.println("\t" + neighbor + "=" + this.colors.get(neighbor));
+        //         if (Main.DEBUG) System.out.println("\t" + neighbor + "=" + this.colors.get(neighbor));
         //     }
         // }
 
-        // System.out.println("---------");
+        // if (Main.DEBUG) System.out.println("---------");
         // for (Node l : this.live.keySet()) {
-        //     System.out.println("Clique of " + l);
+        //     if (Main.DEBUG) System.out.println("Clique of " + l);
         //     for (Node node : this.live.get(l)) {
-        //         System.out.println("\t" + node + "=" + this.colors.get(node));
+        //         if (Main.DEBUG) System.out.println("\t" + node + "=" + this.colors.get(node));
         //     }
         // }
     }

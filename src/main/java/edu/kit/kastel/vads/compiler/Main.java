@@ -20,15 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    public static boolean GENERATE_IR_GRAPH = false;
+    public static boolean DEBUG = true;
 
     public static void main(String[] args) throws IOException {
         if (args.length < 2) {
             System.err.println("Invalid arguments: Expected one input file and one output file");
             System.exit(3);
         }
-        if (args.length > 2 && args[2].equals("-IrGraph")) {
-            GENERATE_IR_GRAPH = true;
+        if (args.length > 2 && args[2].equals("-d")) {
+            DEBUG = true;
         }
 
         Path input = Path.of(args[0]);
