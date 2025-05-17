@@ -134,7 +134,7 @@ public class X8664CodeGenerator {
             Object dest) {
 
         builder.repeat(" ", 2)
-                .append("movq ")
+                .append("mov ")
                 .append(src.toString())
                 .append(", ")
                 .append(dest.toString());

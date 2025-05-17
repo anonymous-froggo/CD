@@ -82,22 +82,22 @@ public class Main {
                 "_main:\n" + //
                 generatedCode);
 
-        Runtime.getRuntime().exec(new String[] {
-                "gcc", assemblyPath.toString(), "-o", output.toString()
-        });
-
-        if (Main.DEBUG) {
-            Process outputExecution = Runtime.getRuntime().exec(new String[] {
-                    "./" + output.toString()
+        try {
+            Process gccProcess = Runtime.getRuntime().exec(new String[] {
+                    "gcc", assemblyPath.toString(), "-o", output.toString()
             });
+            gccProcess.waitFor();
 
-            try {
-                outputExecution.waitFor();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (Main.DEBUG) {
+                Process outputProcess = Runtime.getRuntime().exec(new String[] {
+                        "./" + output.toString()
+                });
+                outputProcess.waitFor();
+
+                System.out.println("Output exited with code " + outputProcess.exitValue());
             }
-
-            System.out.println("Output exited with code " + outputExecution.exitValue());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }
