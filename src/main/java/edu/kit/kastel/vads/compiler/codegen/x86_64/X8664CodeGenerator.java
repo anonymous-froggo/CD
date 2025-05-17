@@ -48,9 +48,9 @@ public class X8664CodeGenerator {
         }
 
         switch (node) {
-            case AddNode add -> defaultBinary(builder, registers, add, "addq");
-            case SubNode sub -> defaultBinary(builder, registers, sub, "subq");
-            case MulNode mul -> defaultBinary(builder, registers, mul, "imulq");
+            case AddNode add -> defaultBinary(builder, registers, add, "add");
+            case SubNode sub -> defaultBinary(builder, registers, sub, "sub");
+            case MulNode mul -> defaultBinary(builder, registers, mul, "imul");
             case DivNode div -> divisionBinary(builder, registers, div);
             case ModNode mod -> divisionBinary(builder, registers, mod);
             case ReturnNode r -> ret(builder, registers, r);
@@ -104,10 +104,10 @@ public class X8664CodeGenerator {
         move(builder, leftRegister, X8664Register.RAX);
 
         builder.append("\n").repeat(" ", 2)
-                .append("cqto");
+                .append("cdq");
 
         builder.append("\n").repeat(" ", 2)
-                .append("idivq ")
+                .append("idiv ")
                 .append(rightRegister)
                 .append("\n");
 

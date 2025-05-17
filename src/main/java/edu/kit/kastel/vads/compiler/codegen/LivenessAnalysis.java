@@ -106,8 +106,6 @@ public class LivenessAnalysis {
         Node x = binaryOperationNode;
         Node y = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.LEFT);
         Node z = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.RIGHT);
-        // Node y = binaryOperationNode.predecessor(BinaryOperationNode.LEFT);
-        // Node z = binaryOperationNode.predecessor(BinaryOperationNode.RIGHT);
 
         addFact(def, l, x);
         addFact(use, l, y);
@@ -116,10 +114,10 @@ public class LivenessAnalysis {
 
         if (binaryOperationNode instanceof DivNode ) {
             Node sideEffect = predecessorSkipProj(binaryOperationNode, DivNode.SIDE_EFFECT);
-            addFact(use, l, sideEffect); 
+            addSideEffectUse(l, sideEffect); 
         } else if (binaryOperationNode instanceof ModNode ) {
             Node sideEffect = predecessorSkipProj(binaryOperationNode, ModNode.SIDE_EFFECT);
-            addFact(use, l, sideEffect); 
+            addSideEffectUse(l, sideEffect); 
         }
     }
 
@@ -132,7 +130,7 @@ public class LivenessAnalysis {
 
         // I don't know if this is needed
         Node sideEffect = predecessorSkipProj(returnNode, ReturnNode.SIDE_EFFECT);
-        addFact(use, l, sideEffect);
+        addSideEffectUse(l, sideEffect);
     }
 
     private static void J3(ConstIntNode constIntNode, Node lPlusOne) {
@@ -153,16 +151,6 @@ public class LivenessAnalysis {
     private static void J5() {
 
     }
-
-    // Additional rule needed for projNodes
-    // private static void J6(ProjNode projNode, Node lPlusOne) {
-    // Node l = projNode;
-
-    // Node x = projNode.predecessor(ProjNode.IN);
-
-    // addFact(use, l, x);
-    // addFact(succ, l, lPlusOne);
-    // }
 
     private static void K1(Node l) {
         for (Node x : use.get(l)) {
@@ -190,5 +178,13 @@ public class LivenessAnalysis {
         }
 
         return predicate.get(line).add(subject);
+    }
+
+    private static void addSideEffectUse(Node l, Node sideEffect) {
+        if (sideEffect instanceof StartNode) {
+            return;
+        }
+
+        addFact(use, l, sideEffect);
     }
 }

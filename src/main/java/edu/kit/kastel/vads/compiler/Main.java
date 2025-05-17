@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    public static boolean DEBUG = true;
+    public static boolean DEBUG = false;
 
     public static void main(String[] args) throws IOException {
         if (args.length < 2) {
@@ -48,9 +48,9 @@ public class Main {
             SsaTranslation translation = new SsaTranslation(function, new LocalValueNumbering());
             graphs.add(translation.translate());
         }
-        
+
         String generatedCode = X8664CodeGenerator.generateCode(graphs);
-        
+
         assembleAndLink(generatedCode, output);
     }
 
@@ -85,5 +85,19 @@ public class Main {
         Runtime.getRuntime().exec(new String[] {
                 "gcc", assemblyPath.toString(), "-o", output.toString()
         });
+
+        if (Main.DEBUG) {
+            Process outputExecution = Runtime.getRuntime().exec(new String[] {
+                    "./" + output.toString()
+            });
+
+            try {
+                outputExecution.waitFor();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("Output exited with code " + outputExecution.exitValue());
+        }
     }
 }

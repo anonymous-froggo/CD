@@ -40,9 +40,9 @@ public class InterferenceGraph {
     public void color() {
         // Input: G = (V, E) and ordered sequence v1, . . . , vn of nodes.
         List<Node> simplicialEliminationOrdering = this.maximumCardinalitySearch();
-        if (Main.DEBUG) System.out.println("simplicialEliminationOrdering: " + simplicialEliminationOrdering);
-        if (Main.DEBUG) System.out.println("numberOfColors: " + this.numberOfColors);
-        if (Main.DEBUG) System.out.println("neighborhoods: " + this.neighborhoods);
+        // if (Main.DEBUG) System.out.println("simplicialEliminationOrdering: " + simplicialEliminationOrdering);
+        // if (Main.DEBUG) System.out.println("numberOfColors: " + this.numberOfColors);
+        // if (Main.DEBUG) System.out.println("neighborhoods: " + this.neighborhoods);
 
         // Output: Assignment col : V → {0, ..., ∆(G)}.
         this.nodeColors = new HashMap<>(simplicialEliminationOrdering.size());

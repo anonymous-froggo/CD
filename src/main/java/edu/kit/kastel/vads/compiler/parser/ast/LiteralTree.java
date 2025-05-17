@@ -29,9 +29,11 @@ public record LiteralTree(String value, int base, Span span) implements Expressi
         } catch (NumberFormatException _) {
             return OptionalLong.empty();
         }
+
         if (l < 0 || l > Integer.toUnsignedLong(Integer.MIN_VALUE)) {
             return OptionalLong.empty();
         }
+        
         return OptionalLong.of(l);
     }
 

@@ -1,7 +1,5 @@
 int main() {
-  int bahnhof = (-2147483648) / (-1);
-  int x = 1;
-  int y = 100 / 0;
-  int a = 5 % y;
-  return 0;
+  int a = -1;
+  int b = -0x80000000;
+  return b / a;
 }
