@@ -26,7 +26,6 @@ public class InterferenceGraph {
         this.neighborhoods = new HashMap<>();
 
         for (Set<Node> clique : live.values()) {
-            System.out.println(clique);
             numberOfColors = Math.max(clique.size(), numberOfColors);
             this.addClique(clique);
         }

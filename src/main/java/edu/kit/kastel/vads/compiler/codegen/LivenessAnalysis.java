@@ -45,11 +45,10 @@ public class LivenessAnalysis {
 
         visited.add(irGraph.endBlock());
         scan(irGraph.endBlock());
-        System.out.println(schedule);
+        System.out.println("schedule: " + schedule);
 
         for (int l = schedule.size() - 1; l >= 0; l--) {
             Node node = schedule.get(l);
-            System.out.println(node);
             switch (node) {
                 case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
                 case ReturnNode returnNode -> J2(returnNode);
@@ -60,7 +59,7 @@ public class LivenessAnalysis {
             }
         }
 
-        // System.out.println("def: " + def);
+        System.out.println("def: " + def);
         System.out.println("use: " + use);
         System.out.println("succ: " + succ);
 
@@ -95,8 +94,10 @@ public class LivenessAnalysis {
         Node l = binaryOperationNode;
 
         Node x = binaryOperationNode;
-        Node y = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.LEFT);
-        Node z = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.RIGHT);
+        // Node y = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.LEFT);
+        // Node z = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.RIGHT);
+        Node y = binaryOperationNode.predecessor(BinaryOperationNode.LEFT);
+        Node z = binaryOperationNode.predecessor(BinaryOperationNode.RIGHT);
 
         addFact(def, l, x);
         addFact(use, l, y);
@@ -107,7 +108,8 @@ public class LivenessAnalysis {
     private static void J2(ReturnNode returnNode) {
         Node l = returnNode;
 
-        Node x = predecessorSkipProj(returnNode, ReturnNode.RESULT);
+        // Node x = predecessorSkipProj(returnNode, ReturnNode.RESULT);
+        Node x = returnNode.predecessor(ReturnNode.RESULT);
 
         addFact(use, l, x);
     }
