@@ -39,17 +39,16 @@ public class Parser {
         this.tokenSource = tokenSource;
     }
 
-    public ProgramTree parseProgram() {
+    public ProgramTree parseProgram() throws ParseException {
         ProgramTree programTree = new ProgramTree(List.of(parseFunction()));
         if (this.tokenSource.hasMore()) {
             throw new ParseException("expected end of input but got " + this.tokenSource.peek());
         }
-        
+
         // TODO: refactor this once multiple functions are supported
-        boolean mainFound = false;
         for (FunctionTree functionTree : programTree.topLevelTrees()) {
             if (functionTree.name().name().asString().equals("main")) {
-        return programTree;
+                return programTree;
             }
         }
 
@@ -64,10 +63,9 @@ public class Parser {
         this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
         BlockTree body = parseBlock();
         return new FunctionTree(
-            new TypeTree(BasicType.INT, returnType.span()),
-            name(identifier),
-            body
-        );
+                new TypeTree(BasicType.INT, returnType.span()),
+                name(identifier),
+                body);
     }
 
     private BlockTree parseBlock() {
@@ -145,7 +143,7 @@ public class Parser {
         ExpressionTree lhs = parseTerm();
         while (true) {
             if (this.tokenSource.peek() instanceof Operator(var type, _)
-                && (type == OperatorType.PLUS || type == OperatorType.MINUS)) {
+                    && (type == OperatorType.PLUS || type == OperatorType.MINUS)) {
                 this.tokenSource.consume();
                 lhs = new BinaryOperationTree(lhs, parseTerm(), type);
             } else {
@@ -158,7 +156,7 @@ public class Parser {
         ExpressionTree lhs = parseFactor();
         while (true) {
             if (this.tokenSource.peek() instanceof Operator(var type, _)
-                && (type == OperatorType.MUL || type == OperatorType.DIV || type == OperatorType.MOD)) {
+                    && (type == OperatorType.MUL || type == OperatorType.DIV || type == OperatorType.MOD)) {
                 this.tokenSource.consume();
                 lhs = new BinaryOperationTree(lhs, parseFactor(), type);
             } else {
