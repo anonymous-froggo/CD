@@ -1,7 +1,1 @@
-int main() {
-    /* /* */
-    return 1;
-    // */
-    return 2;
-    return 3;
-}
+int maid () { return 0; }

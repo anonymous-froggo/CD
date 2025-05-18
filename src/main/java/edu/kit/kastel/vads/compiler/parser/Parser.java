@@ -44,7 +44,17 @@ public class Parser {
         if (this.tokenSource.hasMore()) {
             throw new ParseException("expected end of input but got " + this.tokenSource.peek());
         }
+        
+        // TODO: refactor this once multiple functions are supported
+        boolean mainFound = false;
+        for (FunctionTree functionTree : programTree.topLevelTrees()) {
+            if (functionTree.name().name().asString().equals("main")) {
         return programTree;
+            }
+        }
+
+        // No main function found :(
+        throw new ParseException("No main function provided.");
     }
 
     private FunctionTree parseFunction() {
