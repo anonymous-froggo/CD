@@ -74,7 +74,8 @@ public class InterferenceGraph {
             this.nodeColors.put(vi, c);
         }
 
-        if (Main.DEBUG) System.out.println("nodeColors: " + nodeColors);
+        if (Main.DEBUG) System.out.println("numberOfColors: " + this.numberOfColors);
+        if (Main.DEBUG) System.out.println("nodeColors: " + this.nodeColors);
 
         // for (Node node : this.neighborhoods.keySet()) {
         //     if (Main.DEBUG) System.out.println(node + "=" + this.colors.get(node) + ": ");
@@ -146,6 +147,10 @@ public class InterferenceGraph {
 
             this.neighborhoods.get(node).addAll(clique);
         }
+    }
+
+    public int getNumberOfColors() {
+        return this.numberOfColors;
     }
 
     public Map<Node, Integer> getNodeColors() {

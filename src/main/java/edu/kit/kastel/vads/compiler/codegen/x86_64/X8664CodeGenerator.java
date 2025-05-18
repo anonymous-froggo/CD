@@ -25,11 +25,17 @@ import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.MulNode;
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
 public class X8664CodeGenerator {
+    private static int numberOfStackRegisters;
+
     public static String generateCode(List<IrGraph> program) {
         StringBuilder builder = new StringBuilder();
         for (IrGraph graph : program) {
-            IRegisterAllocator allocator = new X8664RegisterAllocator(graph);
+            X8664RegisterAllocator allocator = new X8664RegisterAllocator(graph);
             Map<Node, IRegister> registerAllocation = allocator.allocateRegisters();
+            numberOfStackRegisters = allocator.getNumberOfStackRegisters();
+
+            moveStackPointer(builder, -numberOfStackRegisters * 8, X8664Register.RSP);
+            builder.append("\n");
             generateForGraph(graph, builder, registerAllocation);
         }
         return builder.toString();
@@ -48,9 +54,9 @@ public class X8664CodeGenerator {
         }
 
         switch (node) {
-            case AddNode add -> defaultBinary(builder, registers, add, "add");
-            case SubNode sub -> defaultBinary(builder, registers, sub, "sub");
-            case MulNode mul -> defaultBinary(builder, registers, mul, "imul");
+            case AddNode add -> defaultBinary(builder, registers, add, "addl");
+            case SubNode sub -> defaultBinary(builder, registers, sub, "subl");
+            case MulNode mul -> defaultBinary(builder, registers, mul, "imull");
             case DivNode div -> divisionBinary(builder, registers, div);
             case ModNode mod -> divisionBinary(builder, registers, mod);
             case ReturnNode r -> ret(builder, registers, r);
@@ -73,25 +79,39 @@ public class X8664CodeGenerator {
         IRegister rightRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
         IRegister destRegister = registerAllocation.get(node);
 
-        if (destRegister == leftRegister) {
-            sourceDest(builder, opcode, rightRegister, destRegister);
-        } else if (destRegister == rightRegister) {
-            if (!(node instanceof SubNode)) {
-                sourceDest(builder, opcode, leftRegister, destRegister);
-                return;
-            }
-            // This is of the form rightRegister = leftRegister - rightRegister, needs %eax
-            // as temp register
+        if (destRegister instanceof X8664StackRegister) {
             move(builder, leftRegister, X8664Register.RAX);
             builder.append("\n");
             sourceDest(builder, opcode, rightRegister, X8664Register.RAX);
             builder.append("\n");
             move(builder, X8664Register.RAX, destRegister);
+            return;
+        }
+
+        if (destRegister == leftRegister) {
+            sourceDest(builder, opcode, rightRegister, destRegister);
+        } else if (destRegister == rightRegister) {
+            if (node instanceof SubNode) {
+                // This is of the form rightRegister = leftRegister - rightRegister, needs %eax
+                // as temp register
+                specialSub(builder, leftRegister, destRegister);
+                return;
+            }
+
+            sourceDest(builder, opcode, leftRegister, destRegister);
         } else {
             move(builder, leftRegister, destRegister);
             builder.append("\n");
             sourceDest(builder, opcode, rightRegister, destRegister);
         }
+    }
+
+    private static void specialSub(StringBuilder builder, IRegister srcRegister, IRegister destRegister) {
+        move(builder, srcRegister, X8664Register.RAX);
+        builder.append("\n");
+        sourceDest(builder, "subl", destRegister, X8664Register.RAX);
+        builder.append("\n");
+        move(builder, X8664Register.RAX, destRegister);
     }
 
     private static void divisionBinary(StringBuilder builder,
@@ -107,7 +127,7 @@ public class X8664CodeGenerator {
                 .append("cdq");
 
         builder.append("\n").repeat(" ", 2)
-                .append("idiv ")
+                .append("idivl ")
                 .append(rightRegister)
                 .append("\n");
 
@@ -123,6 +143,7 @@ public class X8664CodeGenerator {
         move(builder,
                 registerAllocation.get(predecessorSkipProj(node, ReturnNode.RESULT)),
                 X8664Register.RAX);
+        moveStackPointer(builder, numberOfStackRegisters * 8, X8664Register.RSP);
 
         builder.append("\n").repeat(" ", 2)
                 .append("ret");
@@ -134,7 +155,7 @@ public class X8664CodeGenerator {
             Object dest) {
 
         builder.repeat(" ", 2)
-                .append("mov ")
+                .append("movl ")
                 .append(src.toString())
                 .append(", ")
                 .append(dest.toString());
@@ -142,11 +163,31 @@ public class X8664CodeGenerator {
 
     private static void sourceDest(StringBuilder builder, String opcode, IRegister sourceRegister,
             IRegister destRegister) {
+        // TODO replace String.equals() with better stuff (generalize to all mul-ops).
+        // Maybe needs to happen at a different point entirely, since we don't want to
+        // move stuff to registers only to move them to eax
+        // if (destRegister instanceof X8664StackRegister) {
+        // move(builder, destRegister, X8664Register.RAX);
+        // builder.append("\n");
+        // sourceDest(builder, opcode, sourceRegister, X8664Register.RAX);
+        // builder.append("\n");
+        // move(builder, X8664Register.RAX, destRegister);
+        // return;
+        // }
+
         builder.repeat(" ", 2)
                 .append(opcode)
                 .append(" ")
                 .append(sourceRegister)
                 .append(", ")
                 .append(destRegister);
+    }
+
+    private static void moveStackPointer(StringBuilder builder, int offset, IRegister stackPointer) {
+        builder.append("\n").repeat(" ", 2)
+                .append("add $")
+                .append(offset)
+                .append(", ")
+                .append(stackPointer);
     }
 }

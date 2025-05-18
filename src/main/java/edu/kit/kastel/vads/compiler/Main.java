@@ -79,7 +79,7 @@ public class Main {
                 "# move the exit syscall number into rax\n" + //
                 "movq $0x3C, %rax\n" + //
                 "syscall\n" + //
-                "_main:\n" + //
+                "_main:" + //
                 generatedCode);
 
         try {

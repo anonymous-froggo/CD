@@ -34,13 +34,7 @@ public class LivenessAnalysis {
     private static Set<Node> visited = new HashSet<>();
     private static List<Node> schedule = new ArrayList<>();
 
-    public static Map<Node, Integer> calculateNodeColors(IrGraph irGraph) {
-        InterferenceGraph interferenceGraph = calculateInterferenceGraph(irGraph);
-        interferenceGraph.color();
-        return interferenceGraph.getNodeColors();
-    }
-
-    private static InterferenceGraph calculateInterferenceGraph(IrGraph irGraph) {
+    public static InterferenceGraph calculateInterferenceGraph(IrGraph irGraph) {
         // TODO: generate IR-Graph for each graph in the program
         if (Main.DEBUG) {
             GraphVizPrinter.generateSvg(irGraph);
@@ -57,7 +51,6 @@ public class LivenessAnalysis {
                 case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
                 case ReturnNode returnNode -> J2(returnNode);
                 case ConstIntNode constIntNode -> J3(constIntNode, schedule.get(l + 1));
-                // case ProjNode projNode -> J6(projNode, schedule.get(l + 1));
                 default -> {
                 }
             }
@@ -84,7 +77,6 @@ public class LivenessAnalysis {
             System.out.println("live: " + live);
 
         InterferenceGraph interferenceGraph = new InterferenceGraph(live);
-
         return interferenceGraph;
     }
 
