@@ -154,7 +154,7 @@ public class Parser {
     }
 
     private Operator parseAssignmentOperator() {
-        Token token = this.tokenSource.peek();
+        Token token = this.tokenSource.consume();
 
         if (token instanceof Operator operator && token.isAssignmentOperator()) {
             return operator;
@@ -248,14 +248,12 @@ public class Parser {
                 yield new IdentExpressionTree(name(ident));
             }
             case
-
                 NumberLiteral(String value, int base, Span span) -> {
                 this.tokenSource.consume();
                 yield new LiteralTree(value, base, span);
             }
             case Token t -> throw new ParseException("invalid factor " + t);
         };
-
     }
 
     private static NameTree name(Identifier ident) {
