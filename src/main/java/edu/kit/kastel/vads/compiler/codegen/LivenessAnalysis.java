@@ -48,11 +48,11 @@ public class LivenessAnalysis {
         for (int l = schedule.size() - 1; l >= 0; l--) {
             Node node = schedule.get(l);
             switch (node) {
-            case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
-            case ReturnNode returnNode -> J2(returnNode);
-            case ConstIntNode constIntNode -> J3(constIntNode, schedule.get(l + 1));
-            default -> {
-            }
+                case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
+                case ReturnNode returnNode -> J2(returnNode);
+                case ConstIntNode constIntNode -> J3(constIntNode, schedule.get(l + 1));
+                default -> {
+                }
             }
         }
 

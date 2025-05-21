@@ -164,7 +164,7 @@ public class Parser {
 
     private StatementTree parseControl() {
         Token token = this.tokenSource.peek();
-        
+
         if (token instanceof Keyword keyword) {
             return switch (keyword.type()) {
                 case IF -> parseIf();

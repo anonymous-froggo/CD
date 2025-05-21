@@ -53,18 +53,18 @@ public class X8664CodeGenerator {
         }
 
         switch (node) {
-        case AddNode add -> defaultBinary(builder, registers, add, "addl");
-        case SubNode sub -> defaultBinary(builder, registers, sub, "subl");
-        case MulNode mul -> defaultBinary(builder, registers, mul, "imull");
-        case DivNode div -> divisionBinary(builder, registers, div);
-        case ModNode mod -> divisionBinary(builder, registers, mod);
-        case ReturnNode r -> ret(builder, registers, r);
-        case ConstIntNode c -> move(builder, "$" + c.value(), registers.get(c));
-        case Phi _ -> throw new UnsupportedOperationException("phi");
-        case Block _,ProjNode _,StartNode _ -> {
-            // do nothing, skip line break
-            return;
-        }
+            case AddNode add -> defaultBinary(builder, registers, add, "addl");
+            case SubNode sub -> defaultBinary(builder, registers, sub, "subl");
+            case MulNode mul -> defaultBinary(builder, registers, mul, "imull");
+            case DivNode div -> divisionBinary(builder, registers, div);
+            case ModNode mod -> divisionBinary(builder, registers, mod);
+            case ReturnNode r -> ret(builder, registers, r);
+            case ConstIntNode c -> move(builder, "$" + c.value(), registers.get(c));
+            case Phi _ -> throw new UnsupportedOperationException("phi");
+            case Block _,ProjNode _,StartNode _ -> {
+                // do nothing, skip line break
+                return;
+            }
         }
         builder.append("\n");
     }

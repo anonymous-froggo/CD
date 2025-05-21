@@ -57,7 +57,7 @@ public record Keyword(KeywordType type, Span span) implements Token {
             BREAK,
             RETURN
         );
-        
+
         public static final List<KeywordType> TYPE_KEYWORDS = List.of(
             INT,
             BOOL

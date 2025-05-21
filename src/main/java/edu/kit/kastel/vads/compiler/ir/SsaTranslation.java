@@ -84,23 +84,25 @@ public class SsaTranslation {
         public Optional<Node> visit(AssignmentTree assignmentTree, SsaTranslation data) {
             pushSpan(assignmentTree);
             BinaryOperator<Node> desugar = switch (assignmentTree.operator().type()) {
-            case ASSIGN_MINUS -> data.constructor::newSub;
-            case ASSIGN_PLUS -> data.constructor::newAdd;
-            case ASSIGN_MUL -> data.constructor::newMul;
-            case ASSIGN_DIV -> (lhs, rhs) -> projResultDivMod(data, data.constructor.newDiv(lhs, rhs));
-            case ASSIGN_MOD -> (lhs, rhs) -> projResultDivMod(data, data.constructor.newMod(lhs, rhs));
-            case ASSIGN -> null;
-            default -> throw new IllegalArgumentException("not an assignment operator " + assignmentTree.operator());
+                case ASSIGN_MINUS -> data.constructor::newSub;
+                case ASSIGN_PLUS -> data.constructor::newAdd;
+                case ASSIGN_MUL -> data.constructor::newMul;
+                case ASSIGN_DIV -> (lhs, rhs) -> projResultDivMod(data, data.constructor.newDiv(lhs, rhs));
+                case ASSIGN_MOD -> (lhs, rhs) -> projResultDivMod(data, data.constructor.newMod(lhs, rhs));
+                case ASSIGN -> null;
+                default -> throw new IllegalArgumentException(
+                    "not an assignment operator " + assignmentTree.operator()
+                );
             };
 
             switch (assignmentTree.lValue()) {
-            case LValueIdentTree(var name) -> {
-                Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
-                if (desugar != null) {
-                    rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
+                case LValueIdentTree(var name) -> {
+                    Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
+                    if (desugar != null) {
+                        rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
+                    }
+                    data.writeVariable(name.name(), data.currentBlock(), rhs);
                 }
-                data.writeVariable(name.name(), data.currentBlock(), rhs);
-            }
             }
             popSpan();
             return NOT_AN_EXPRESSION;
@@ -112,14 +114,14 @@ public class SsaTranslation {
             Node lhs = binaryOperationTree.lhs().accept(this, data).orElseThrow();
             Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
             Node res = switch (binaryOperationTree.operatorType()) {
-            case MINUS -> data.constructor.newSub(lhs, rhs);
-            case PLUS -> data.constructor.newAdd(lhs, rhs);
-            case MUL -> data.constructor.newMul(lhs, rhs);
-            case DIV -> projResultDivMod(data, data.constructor.newDiv(lhs, rhs));
-            case MOD -> projResultDivMod(data, data.constructor.newMod(lhs, rhs));
-            default -> throw new IllegalArgumentException(
-                "not a binary expression operator " + binaryOperationTree.operatorType()
-            );
+                case MINUS -> data.constructor.newSub(lhs, rhs);
+                case PLUS -> data.constructor.newAdd(lhs, rhs);
+                case MUL -> data.constructor.newMul(lhs, rhs);
+                case DIV -> projResultDivMod(data, data.constructor.newDiv(lhs, rhs));
+                case MOD -> projResultDivMod(data, data.constructor.newMod(lhs, rhs));
+                default -> throw new IllegalArgumentException(
+                    "not a binary expression operator " + binaryOperationTree.operatorType()
+                );
             };
             popSpan();
             return Optional.of(res);

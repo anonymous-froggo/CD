@@ -1,6 +1,6 @@
 package edu.kit.kastel.vads.compiler.parser.symbol;
 
-import edu.kit.kastel.vads.compiler.lexer.KeywordType;
+import edu.kit.kastel.vads.compiler.lexer.Keyword.KeywordType;
 
 record KeywordName(KeywordType type) implements Name {
     @Override
