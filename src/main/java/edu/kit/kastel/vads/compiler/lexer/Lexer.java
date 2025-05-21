@@ -140,7 +140,7 @@ public class Lexer {
             off++;
         }
         String id = this.source.substring(this.pos, this.pos + off);
-        // This is a naive solution. Using a better data structure (hashmap, trie)
+        // TODO: This is a naive solution. Using a better data structure (hashmap, trie)
         // likely performs better.
         for (KeywordType value : KeywordType.values()) {
             if (value.keyword().equals(id)) {

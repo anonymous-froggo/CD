@@ -81,6 +81,7 @@ public class Parser {
 
     private StatementTree parseStatement() {
         Token token = this.tokenSource.peek();
+        System.out.println(token.asString());
         StatementTree statement;
 
         if (token.isSeparator(SeparatorType.BRACE_OPEN)) {
@@ -199,6 +200,7 @@ public class Parser {
     private StatementTree parseReturn() {
         Keyword ret = this.tokenSource.expectKeyword(KeywordType.RETURN);
         ExpressionTree expression = parseExpression();
+        this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
         return new ReturnTree(expression, ret.span().start());
     }
 
