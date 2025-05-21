@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.codegen.IRegister;
-import edu.kit.kastel.vads.compiler.codegen.IRegisterAllocator;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
@@ -176,17 +175,6 @@ public class X8664CodeGenerator {
         StringBuilder builder, String opcode, IRegister sourceRegister,
         IRegister destRegister
     ) {
-        // TODO replace String.equals() with better stuff (generalize to all mul-ops).
-        // Maybe needs to happen at a different point entirely, since we don't want to
-        // move stuff to registers only to move them to eax
-        // if (destRegister instanceof X8664StackRegister) {
-        // move(builder, destRegister, X8664Register.RAX);
-        // builder.append("\n");
-        // sourceDest(builder, opcode, sourceRegister, X8664Register.RAX);
-        // builder.append("\n");
-        // move(builder, X8664Register.RAX, destRegister);
-        // return;
-        // }
 
         builder.repeat(" ", 2)
             .append(opcode)

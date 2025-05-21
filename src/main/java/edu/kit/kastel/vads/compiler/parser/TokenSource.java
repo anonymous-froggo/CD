@@ -2,7 +2,7 @@ package edu.kit.kastel.vads.compiler.parser;
 
 import edu.kit.kastel.vads.compiler.lexer.Identifier;
 import edu.kit.kastel.vads.compiler.lexer.Keyword;
-import edu.kit.kastel.vads.compiler.lexer.KeywordType;
+import edu.kit.kastel.vads.compiler.lexer.Keyword.KeywordType;
 import edu.kit.kastel.vads.compiler.lexer.Lexer;
 import edu.kit.kastel.vads.compiler.lexer.Operator;
 import edu.kit.kastel.vads.compiler.lexer.Operator.OperatorType;
@@ -38,6 +38,15 @@ public class TokenSource {
         Token token = peek();
         if (!(token instanceof Keyword kw) || kw.type() != type) {
             throw new ParseException("expected keyword '" + type + "' but got " + token);
+        }
+        this.idx++;
+        return kw;
+    }
+
+    public Keyword expectKeyword() {
+        Token token = peek();
+        if (!(token instanceof Keyword kw)) {
+            throw new ParseException("expected a keyword but got " + token);
         }
         this.idx++;
         return kw;

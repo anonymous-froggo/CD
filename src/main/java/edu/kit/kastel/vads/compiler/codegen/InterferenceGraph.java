@@ -14,7 +14,7 @@ import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 
 public class InterferenceGraph {
-    // TODO implementing the interference graph using neighborhoods might not
+    // TODO: implementing the interference graph using neighborhoods might not
     // be the most efficient approach, maybe try other stuff
     public static final int UNCOLORED = -1;
 
