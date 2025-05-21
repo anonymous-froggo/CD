@@ -52,22 +52,22 @@ public class AasmCodeGenerator {
         }
 
         switch (node) {
-            case AddNode add -> binary(builder, registers, add, "add");
-            case SubNode sub -> binary(builder, registers, sub, "sub");
-            case MulNode mul -> binary(builder, registers, mul, "mul");
-            case DivNode div -> binary(builder, registers, div, "div");
-            case ModNode mod -> binary(builder, registers, mod, "mod");
-            case ReturnNode r -> builder.repeat(" ", 2).append("ret ")
-                .append(registers.get(predecessorSkipProj(r, ReturnNode.RESULT)));
-            case ConstIntNode c -> builder.repeat(" ", 2)
-                .append(registers.get(c))
-                .append(" = const ")
-                .append(c.value());
-            case Phi _ -> throw new UnsupportedOperationException("phi");
-            case Block _, ProjNode _, StartNode _ -> {
-                // do nothing, skip line break
-                return;
-            }
+        case AddNode add -> binary(builder, registers, add, "add");
+        case SubNode sub -> binary(builder, registers, sub, "sub");
+        case MulNode mul -> binary(builder, registers, mul, "mul");
+        case DivNode div -> binary(builder, registers, div, "div");
+        case ModNode mod -> binary(builder, registers, mod, "mod");
+        case ReturnNode r -> builder.repeat(" ", 2).append("ret ")
+            .append(registers.get(predecessorSkipProj(r, ReturnNode.RESULT)));
+        case ConstIntNode c -> builder.repeat(" ", 2)
+            .append(registers.get(c))
+            .append(" = const ")
+            .append(c.value());
+        case Phi _ -> throw new UnsupportedOperationException("phi");
+        case Block _,ProjNode _,StartNode _ -> {
+            // do nothing, skip line break
+            return;
+        }
         }
         builder.append("\n");
     }

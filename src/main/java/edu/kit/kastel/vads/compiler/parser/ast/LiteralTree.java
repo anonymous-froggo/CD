@@ -16,9 +16,9 @@ public record LiteralTree(String value, int base, Span span) implements Expressi
     public OptionalLong parseValue() {
         int end = value.length();
         return switch (base) {
-            case 16 -> parseHex(end);
-            case 10 -> parseDec(end);
-            default -> throw new IllegalArgumentException("unexpected base " + base);
+        case 16 -> parseHex(end);
+        case 10 -> parseDec(end);
+        default -> throw new IllegalArgumentException("unexpected base " + base);
         };
     }
 
@@ -33,7 +33,7 @@ public record LiteralTree(String value, int base, Span span) implements Expressi
         if (l < 0 || l > Integer.toUnsignedLong(Integer.MIN_VALUE)) {
             return OptionalLong.empty();
         }
-        
+
         return OptionalLong.of(l);
     }
 

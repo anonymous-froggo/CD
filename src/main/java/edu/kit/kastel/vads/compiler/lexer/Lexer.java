@@ -31,26 +31,26 @@ public class Lexer {
             return Optional.empty();
         }
         Token t = switch (peek()) {
-            case '(' -> separator(SeparatorType.PAREN_OPEN);
-            case ')' -> separator(SeparatorType.PAREN_CLOSE);
-            case '{' -> separator(SeparatorType.BRACE_OPEN);
-            case '}' -> separator(SeparatorType.BRACE_CLOSE);
-            case ';' -> separator(SeparatorType.SEMICOLON);
-            case '-' -> singleOrAssign(OperatorType.MINUS, OperatorType.ASSIGN_MINUS);
-            case '+' -> singleOrAssign(OperatorType.PLUS, OperatorType.ASSIGN_PLUS);
-            case '*' -> singleOrAssign(OperatorType.MUL, OperatorType.ASSIGN_MUL);
-            case '/' -> singleOrAssign(OperatorType.DIV, OperatorType.ASSIGN_DIV);
-            case '%' -> singleOrAssign(OperatorType.MOD, OperatorType.ASSIGN_MOD);
-            case '=' -> new Operator(OperatorType.ASSIGN, buildSpan(1));
-            default -> {
-                if (isIdentifierChar(peek())) {
-                    if (isNumeric(peek())) {
-                        yield lexNumber();
-                    }
-                    yield lexIdentifierOrKeyword();
+        case '(' -> separator(SeparatorType.PAREN_OPEN);
+        case ')' -> separator(SeparatorType.PAREN_CLOSE);
+        case '{' -> separator(SeparatorType.BRACE_OPEN);
+        case '}' -> separator(SeparatorType.BRACE_CLOSE);
+        case ';' -> separator(SeparatorType.SEMICOLON);
+        case '-' -> singleOrAssign(OperatorType.MINUS, OperatorType.ASSIGN_MINUS);
+        case '+' -> singleOrAssign(OperatorType.PLUS, OperatorType.ASSIGN_PLUS);
+        case '*' -> singleOrAssign(OperatorType.MUL, OperatorType.ASSIGN_MUL);
+        case '/' -> singleOrAssign(OperatorType.DIV, OperatorType.ASSIGN_DIV);
+        case '%' -> singleOrAssign(OperatorType.MOD, OperatorType.ASSIGN_MOD);
+        case '=' -> new Operator(OperatorType.ASSIGN, buildSpan(1));
+        default -> {
+            if (isIdentifierChar(peek())) {
+                if (isNumeric(peek())) {
+                    yield lexNumber();
                 }
-                yield new ErrorToken(String.valueOf(peek()), buildSpan(1));
+                yield lexIdentifierOrKeyword();
             }
+            yield new ErrorToken(String.valueOf(peek()), buildSpan(1));
+        }
         };
 
         return Optional.of(t);
@@ -66,61 +66,61 @@ public class Lexer {
         int commentStart = -1;
         while (hasMore(0)) {
             switch (peek()) {
-                case ' ', '\t' -> this.pos++;
-                case '\n', '\r' -> {
+            case ' ', '\t' -> this.pos++;
+            case '\n', '\r' -> {
+                this.pos++;
+                this.lineStart = this.pos;
+                this.line++;
+                if (currentCommentType == CommentType.SINGLE_LINE) {
+                    currentCommentType = null;
+                }
+            }
+            case '/' -> {
+                System.out.println("\\");
+                if (currentCommentType == CommentType.SINGLE_LINE) {
                     this.pos++;
-                    this.lineStart = this.pos;
-                    this.line++;
-                    if (currentCommentType == CommentType.SINGLE_LINE) {
-                        currentCommentType = null;
-                    }
+                    continue;
                 }
-                case '/' -> {
-                    System.out.println("\\");
-                    if (currentCommentType == CommentType.SINGLE_LINE) {
+                if (hasMore(1)) {
+                    if (peek(1) == '/' && currentCommentType == null) {
+                        currentCommentType = CommentType.SINGLE_LINE;
+                    } else if (peek(1) == '*') {
+                        currentCommentType = CommentType.MULTI_LINE;
+                        multiLineCommentDepth++;
+                    } else if (multiLineCommentDepth > 0) {
                         this.pos++;
                         continue;
+                    } else {
+                        return null;
                     }
-                    if (hasMore(1)) {
-                        if (peek(1) == '/' && currentCommentType == null) {
-                            currentCommentType = CommentType.SINGLE_LINE;
-                        } else if (peek(1) == '*') {
-                            currentCommentType = CommentType.MULTI_LINE;
-                            multiLineCommentDepth++;
-                        } else if (multiLineCommentDepth > 0){
-                            this.pos++;
-                            continue;
-                        } else {
-                            return null;
-                        }
 
-                        commentStart = this.pos;
+                    commentStart = this.pos;
+                    this.pos += 2;
+                    continue;
+                }
+                // are we in a multi line comment of any depth?
+                if (multiLineCommentDepth > 0) {
+                    this.pos++;
+                    continue;
+                }
+                return null;
+            }
+            default -> {
+                if (currentCommentType == CommentType.MULTI_LINE) {
+                    if (peek() == '*' && hasMore(1) && peek(1) == '/') {
                         this.pos += 2;
-                        continue;
-                    }
-                    // are we in a multi line comment of any depth?
-                    if (multiLineCommentDepth > 0) {
+                        multiLineCommentDepth--;
+                        currentCommentType = multiLineCommentDepth == 0 ? null : CommentType.MULTI_LINE;
+                    } else {
                         this.pos++;
-                        continue;
                     }
-                    return null;
+                    continue;
+                } else if (currentCommentType == CommentType.SINGLE_LINE) {
+                    this.pos++;
+                    continue;
                 }
-                default -> {
-                    if (currentCommentType == CommentType.MULTI_LINE) {
-                        if (peek() == '*' && hasMore(1) && peek(1) == '/') {
-                            this.pos += 2;
-                            multiLineCommentDepth--;
-                            currentCommentType = multiLineCommentDepth == 0 ? null : CommentType.MULTI_LINE;
-                        } else {
-                            this.pos++;
-                        }
-                        continue;
-                    } else if (currentCommentType == CommentType.SINGLE_LINE) {
-                        this.pos++;
-                        continue;
-                    }
-                    return null;
-                }
+                return null;
+            }
             }
         }
         if (!hasMore(0) && currentCommentType == CommentType.MULTI_LINE) {
@@ -139,7 +139,8 @@ public class Lexer {
             off++;
         }
         String id = this.source.substring(this.pos, this.pos + off);
-        // This is a naive solution. Using a better data structure (hashmap, trie) likely performs better.
+        // This is a naive solution. Using a better data structure (hashmap, trie)
+        // likely performs better.
         for (KeywordType value : KeywordType.values()) {
             if (value.keyword().equals(id)) {
                 return new Keyword(value, buildSpan(off));

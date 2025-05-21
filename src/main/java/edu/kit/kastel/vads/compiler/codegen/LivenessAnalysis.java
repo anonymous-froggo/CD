@@ -48,11 +48,11 @@ public class LivenessAnalysis {
         for (int l = schedule.size() - 1; l >= 0; l--) {
             Node node = schedule.get(l);
             switch (node) {
-                case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
-                case ReturnNode returnNode -> J2(returnNode);
-                case ConstIntNode constIntNode -> J3(constIntNode, schedule.get(l + 1));
-                default -> {
-                }
+            case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
+            case ReturnNode returnNode -> J2(returnNode);
+            case ConstIntNode constIntNode -> J3(constIntNode, schedule.get(l + 1));
+            default -> {
+            }
             }
         }
 
@@ -104,12 +104,12 @@ public class LivenessAnalysis {
         addFact(use, l, z);
         addFact(succ, l, lPlusOne);
 
-        if (binaryOperationNode instanceof DivNode ) {
+        if (binaryOperationNode instanceof DivNode) {
             Node sideEffect = predecessorSkipProj(binaryOperationNode, DivNode.SIDE_EFFECT);
-            addSideEffectUse(l, sideEffect); 
-        } else if (binaryOperationNode instanceof ModNode ) {
+            addSideEffectUse(l, sideEffect);
+        } else if (binaryOperationNode instanceof ModNode) {
             Node sideEffect = predecessorSkipProj(binaryOperationNode, ModNode.SIDE_EFFECT);
-            addSideEffectUse(l, sideEffect); 
+            addSideEffectUse(l, sideEffect);
         }
     }
 

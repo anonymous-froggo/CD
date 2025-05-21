@@ -53,7 +53,7 @@ public class Parser {
         }
 
         // No main function found :(
-        throw new ParseException("No main function provided.");
+        throw new ParseException("no main function provided");
     }
 
     private FunctionTree parseFunction() {
@@ -63,9 +63,10 @@ public class Parser {
         this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
         BlockTree body = parseBlock();
         return new FunctionTree(
-                new TypeTree(BasicType.INT, returnType.span()),
-                name(identifier),
-                body);
+            new TypeTree(BasicType.INT, returnType.span()),
+            name(identifier),
+            body
+        );
     }
 
     private BlockTree parseBlock() {
@@ -112,11 +113,11 @@ public class Parser {
     private Operator parseAssignmentOperator() {
         if (this.tokenSource.peek() instanceof Operator op) {
             return switch (op.type()) {
-                case ASSIGN, ASSIGN_DIV, ASSIGN_MINUS, ASSIGN_MOD, ASSIGN_MUL, ASSIGN_PLUS -> {
-                    this.tokenSource.consume();
-                    yield op;
-                }
-                default -> throw new ParseException("expected assignment but got " + op.type());
+            case ASSIGN, ASSIGN_DIV, ASSIGN_MINUS, ASSIGN_MOD, ASSIGN_MUL, ASSIGN_PLUS -> {
+                this.tokenSource.consume();
+                yield op;
+            }
+            default -> throw new ParseException("expected assignment but got " + op.type());
             };
         }
         throw new ParseException("expected assignment but got " + this.tokenSource.peek());
@@ -143,7 +144,7 @@ public class Parser {
         ExpressionTree lhs = parseTerm();
         while (true) {
             if (this.tokenSource.peek() instanceof Operator(var type, _)
-                    && (type == OperatorType.PLUS || type == OperatorType.MINUS)) {
+                && (type == OperatorType.PLUS || type == OperatorType.MINUS)) {
                 this.tokenSource.consume();
                 lhs = new BinaryOperationTree(lhs, parseTerm(), type);
             } else {
@@ -156,7 +157,7 @@ public class Parser {
         ExpressionTree lhs = parseFactor();
         while (true) {
             if (this.tokenSource.peek() instanceof Operator(var type, _)
-                    && (type == OperatorType.MUL || type == OperatorType.DIV || type == OperatorType.MOD)) {
+                && (type == OperatorType.MUL || type == OperatorType.DIV || type == OperatorType.MOD)) {
                 this.tokenSource.consume();
                 lhs = new BinaryOperationTree(lhs, parseFactor(), type);
             } else {
@@ -167,25 +168,25 @@ public class Parser {
 
     private ExpressionTree parseFactor() {
         return switch (this.tokenSource.peek()) {
-            case Separator(var type, _) when type == SeparatorType.PAREN_OPEN -> {
-                this.tokenSource.consume();
-                ExpressionTree expression = parseExpression();
-                this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
-                yield expression;
-            }
-            case Operator(var type, _) when type == OperatorType.MINUS -> {
-                Span span = this.tokenSource.consume().span();
-                yield new NegateTree(parseFactor(), span);
-            }
-            case Identifier ident -> {
-                this.tokenSource.consume();
-                yield new IdentExpressionTree(name(ident));
-            }
-            case NumberLiteral(String value, int base, Span span) -> {
-                this.tokenSource.consume();
-                yield new LiteralTree(value, base, span);
-            }
-            case Token t -> throw new ParseException("invalid factor " + t);
+        case Separator(var type, _) when type == SeparatorType.PAREN_OPEN -> {
+            this.tokenSource.consume();
+            ExpressionTree expression = parseExpression();
+            this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
+            yield expression;
+        }
+        case Operator(var type, _) when type == OperatorType.MINUS -> {
+            Span span = this.tokenSource.consume().span();
+            yield new NegateTree(parseFactor(), span);
+        }
+        case Identifier ident -> {
+            this.tokenSource.consume();
+            yield new IdentExpressionTree(name(ident));
+        }
+        case NumberLiteral(String value, int base, Span span) -> {
+            this.tokenSource.consume();
+            yield new LiteralTree(value, base, span);
+        }
+        case Token t -> throw new ParseException("invalid factor " + t);
         };
     }
 

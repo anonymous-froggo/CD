@@ -69,7 +69,8 @@ public class Main {
 
     private static void assembleAndLink(String generatedCode, Path output) throws IOException {
         Path assemblyPath = Path.of("assembly.S");
-        Files.writeString(assemblyPath, ".global main\n" + //
+        Files.writeString(
+            assemblyPath, ".global main\n" + //
                 ".global _main\n" + //
                 ".text\n" + //
                 "main:\n" + //
@@ -80,7 +81,8 @@ public class Main {
                 "movq $0x3C, %rax\n" + //
                 "syscall\n" + //
                 "_main:" + //
-                generatedCode);
+                generatedCode
+        );
 
         try {
             Process gccProcess = Runtime.getRuntime().exec(new String[] {

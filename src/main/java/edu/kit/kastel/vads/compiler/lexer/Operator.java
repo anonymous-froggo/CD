@@ -27,7 +27,7 @@ public record Operator(OperatorType type, Span span) implements Token {
         ASSIGN_MOD("%="),
         MOD("%"),
         ASSIGN("="),
-        
+
         // L2
         LOGICAL_NOT("!"),
         BITWISE_NOT("~"),

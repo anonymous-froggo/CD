@@ -21,14 +21,14 @@ class VariableStatusAnalysis implements NoOpVisitor<Namespace<VariableStatusAnal
     @Override
     public Unit visit(AssignmentTree assignmentTree, Namespace<VariableStatus> data) {
         switch (assignmentTree.lValue()) {
-            case LValueIdentTree(var name) -> {
-                VariableStatus status = data.get(name);
-                checkDeclared(name, status);
-                if (status != VariableStatus.INITIALIZED) {
-                    // only update when needed, reassignment is totally fine
-                    updateStatus(data, VariableStatus.INITIALIZED, name);
-                }
+        case LValueIdentTree(var name) -> {
+            VariableStatus status = data.get(name);
+            checkDeclared(name, status);
+            if (status != VariableStatus.INITIALIZED) {
+                // only update when needed, reassignment is totally fine
+                updateStatus(data, VariableStatus.INITIALIZED, name);
             }
+        }
         }
         return NoOpVisitor.super.visit(assignmentTree, data);
     }
@@ -64,7 +64,9 @@ class VariableStatusAnalysis implements NoOpVisitor<Namespace<VariableStatusAnal
     private static void updateStatus(Namespace<VariableStatus> data, VariableStatus status, NameTree name) {
         data.put(name, status, (existing, replacement) -> {
             if (existing.ordinal() >= replacement.ordinal()) {
-                throw new SemanticException("variable is already " + existing + ". Cannot be " + replacement + " here.");
+                throw new SemanticException(
+                    "variable is already " + existing + ". Cannot be " + replacement + " here."
+                );
             }
             return replacement;
         });

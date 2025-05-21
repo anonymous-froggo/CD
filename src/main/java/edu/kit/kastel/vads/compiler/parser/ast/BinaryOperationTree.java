@@ -5,8 +5,7 @@ import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record BinaryOperationTree(
-    ExpressionTree lhs, ExpressionTree rhs, Operator.OperatorType operatorType
-) implements ExpressionTree {
+    ExpressionTree lhs, ExpressionTree rhs, Operator.OperatorType operatorType) implements ExpressionTree {
     @Override
     public Span span() {
         return lhs().span().merge(rhs().span());

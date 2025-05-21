@@ -47,6 +47,7 @@ class GraphConstructor {
     public Node newAdd(Node left, Node right) {
         return this.optimizer.transform(new AddNode(currentBlock(), left, right));
     }
+
     public Node newSub(Node left, Node right) {
         return this.optimizer.transform(new SubNode(currentBlock(), left, right));
     }
@@ -105,7 +106,6 @@ class GraphConstructor {
         }
         return readVariableRecursive(variable, block);
     }
-
 
     private Node readVariableRecursive(Name variable, Block block) {
         Node val;

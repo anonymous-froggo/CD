@@ -6,6 +6,7 @@ import edu.kit.kastel.vads.compiler.ir.node.Node;
 
 public final class ModNode extends BinaryOperationNode {
     public static final int SIDE_EFFECT = 2;
+
     public ModNode(Block block, Node left, Node right, Node sideEffect) {
         super(block, left, right, sideEffect);
     }

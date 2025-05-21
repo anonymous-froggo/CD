@@ -40,7 +40,8 @@ public class InterferenceGraph {
     public void color() {
         // Input: G = (V, E) and ordered sequence v1, . . . , vn of nodes.
         List<Node> simplicialEliminationOrdering = this.maximumCardinalitySearch();
-        // if (Main.DEBUG) System.out.println("simplicialEliminationOrdering: " + simplicialEliminationOrdering);
+        // if (Main.DEBUG) System.out.println("simplicialEliminationOrdering: " +
+        // simplicialEliminationOrdering);
         // if (Main.DEBUG) System.out.println("numberOfColors: " + this.numberOfColors);
         // if (Main.DEBUG) System.out.println("neighborhoods: " + this.neighborhoods);
 
@@ -74,22 +75,27 @@ public class InterferenceGraph {
             this.nodeColors.put(vi, c);
         }
 
-        if (Main.DEBUG) System.out.println("numberOfColors: " + this.numberOfColors);
-        if (Main.DEBUG) System.out.println("nodeColors: " + this.nodeColors);
+        if (Main.DEBUG)
+            System.out.println("numberOfColors: " + this.numberOfColors);
+        if (Main.DEBUG)
+            System.out.println("nodeColors: " + this.nodeColors);
 
         // for (Node node : this.neighborhoods.keySet()) {
-        //     if (Main.DEBUG) System.out.println(node + "=" + this.colors.get(node) + ": ");
-        //     for (Node neighbor : this.neighborhoods.get(node)) {
-        //         if (Main.DEBUG) System.out.println("\t" + neighbor + "=" + this.colors.get(neighbor));
-        //     }
+        // if (Main.DEBUG) System.out.println(node + "=" + this.colors.get(node) + ":
+        // ");
+        // for (Node neighbor : this.neighborhoods.get(node)) {
+        // if (Main.DEBUG) System.out.println("\t" + neighbor + "=" +
+        // this.colors.get(neighbor));
+        // }
         // }
 
         // if (Main.DEBUG) System.out.println("---------");
         // for (Node l : this.live.keySet()) {
-        //     if (Main.DEBUG) System.out.println("Clique of " + l);
-        //     for (Node node : this.live.get(l)) {
-        //         if (Main.DEBUG) System.out.println("\t" + node + "=" + this.colors.get(node));
-        //     }
+        // if (Main.DEBUG) System.out.println("Clique of " + l);
+        // for (Node node : this.live.get(l)) {
+        // if (Main.DEBUG) System.out.println("\t" + node + "=" +
+        // this.colors.get(node));
+        // }
         // }
     }
 
