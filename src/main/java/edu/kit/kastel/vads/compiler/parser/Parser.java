@@ -81,7 +81,6 @@ public class Parser {
 
     private StatementTree parseStatement() {
         Token token = this.tokenSource.peek();
-        System.out.println(token.asString());
         StatementTree statement;
 
         if (token.isSeparator(SeparatorType.BRACE_OPEN)) {
@@ -172,8 +171,8 @@ public class Parser {
                 case WHILE -> parseWhile();
                 case FOR -> parseFor();
                 // TODO: implement continue, break
-                case CONTINUE -> null;
-                case BREAK -> null;
+                case CONTINUE -> throw new ParseException("not implemented");
+                case BREAK -> throw new ParseException("not implemented");
                 case RETURN -> parseReturn();
                 default -> throw new ParseException("expected control keyword but got " + keyword);
             };
@@ -184,17 +183,17 @@ public class Parser {
 
     private StatementTree parseIf() {
         // TODO: implement
-        return null;
+        throw new ParseException("not implemented");
     }
 
     private StatementTree parseWhile() {
         // TODO: implement
-        return null;
+        throw new ParseException("not implemented");
     }
 
     private StatementTree parseFor() {
         // TODO: implement
-        return null;
+        throw new ParseException("not implemented");
     }
 
     private StatementTree parseReturn() {
@@ -247,8 +246,7 @@ public class Parser {
                 this.tokenSource.consume();
                 yield new IdentExpressionTree(name(ident));
             }
-            case
-                NumberLiteral(String value, int base, Span span) -> {
+            case NumberLiteral(String value, int base, Span span) -> {
                 this.tokenSource.consume();
                 yield new LiteralTree(value, base, span);
             }
