@@ -20,6 +20,9 @@ import java.util.Set;
 
 /// Outputs a DOT format string to visualize an [IrGraph].
 public class GraphVizPrinter {
+    public static final Path IR_GRAPH_DOT_FILE = Main.OUTPUT_FOLDER.resolve("ir-graph.dot");
+    public static final Path IR_GRAPH_SVG_FILE = Main.OUTPUT_FOLDER.resolve("ir-graph.svg");
+
     private final Map<Block, Set<Node>> clusters = new HashMap<>();
     private final List<Edge> edges = new ArrayList<>();
     private final Map<Node, Integer> ids = new HashMap<>();
@@ -36,14 +39,13 @@ public class GraphVizPrinter {
             System.out.println("Generating IR-Graph...");
         String graphAsDotString = print(graph);
         try {
-            Path dotPath = Path.of("IrGraph.dot");
-            Files.writeString(dotPath, graphAsDotString);
-            Process process = Runtime.getRuntime().exec(new String[] {
-                    "dot", "-Tsvg", dotPath.toString(), "-o", "IrGraph.svg"
+            Files.writeString(IR_GRAPH_DOT_FILE, graphAsDotString);
+            Process dotProcess = Runtime.getRuntime().exec(new String[] {
+                    "dot", "-Tsvg", IR_GRAPH_DOT_FILE.toString(), "-o", IR_GRAPH_SVG_FILE.toString()
             });
-            process.waitFor();
+            dotProcess.waitFor();
             if (Main.DEBUG)
-                System.out.println(String.format("GraphViz exited with code %s", process.exitValue()));
+                System.out.println(String.format("dot exited with code %s", dotProcess.exitValue()));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

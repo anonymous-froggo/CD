@@ -1,5 +1,5 @@
-/build/
-/.idea/
 /.gradle/
-assembly.S
-/src/test/
+/.vscode/
+/build/
+/output/**
+/src/test/**
