@@ -18,7 +18,6 @@ import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.node.StartNode;
-import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.AddNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
@@ -42,8 +41,9 @@ public class LivenessAnalysis {
 
         visited.add(irGraph.endBlock());
         scan(irGraph.endBlock());
-        if (Main.DEBUG)
+        if (Main.DEBUG) {
             System.out.println("schedule: " + schedule);
+        }
 
         for (int l = schedule.size() - 1; l >= 0; l--) {
             Node node = schedule.get(l);
@@ -56,12 +56,11 @@ public class LivenessAnalysis {
             }
         }
 
-        if (Main.DEBUG)
+        if (Main.DEBUG) {
             System.out.println("def: " + def);
-        if (Main.DEBUG)
             System.out.println("use: " + use);
-        if (Main.DEBUG)
             System.out.println("succ: " + succ);
+        }
 
         for (Node l : use.keySet()) {
             K1(l);
@@ -73,8 +72,9 @@ public class LivenessAnalysis {
             }
         } while (liveChanged);
 
-        if (Main.DEBUG)
+        if (Main.DEBUG) {
             System.out.println("live: " + live);
+        }
 
         InterferenceGraph interferenceGraph = new InterferenceGraph(live);
         return interferenceGraph;

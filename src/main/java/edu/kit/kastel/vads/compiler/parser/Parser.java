@@ -13,6 +13,7 @@ import edu.kit.kastel.vads.compiler.lexer.Token;
 import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
@@ -44,15 +45,17 @@ public class Parser {
         if (this.tokenSource.hasMore()) {
             throw new ParseException("expected end of input but got " + this.tokenSource.peek());
         }
+        System.out.println(Printer.print(programTree));
 
         // TODO: refactor this once multiple functions are supported
         for (FunctionTree functionTree : programTree.topLevelTrees()) {
             if (functionTree.name().name().asString().equals("main")) {
+                // found main function
                 return programTree;
             }
         }
 
-        // No main function found :(
+        // no main function :(
         throw new ParseException("no main function provided");
     }
 
@@ -170,9 +173,13 @@ public class Parser {
                 case IF -> parseIf();
                 case WHILE -> parseWhile();
                 case FOR -> parseFor();
-                // TODO: implement continue, break
+                // TODO: implement continue
                 case CONTINUE -> throw new ParseException("not implemented");
-                case BREAK -> throw new ParseException("not implemented");
+                case BREAK -> {
+                    this.tokenSource.consume();
+                    this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
+                    yield new BreakTree(keyword.span());
+                }
                 case RETURN -> parseReturn();
                 default -> throw new ParseException("expected control keyword but got " + keyword);
             };

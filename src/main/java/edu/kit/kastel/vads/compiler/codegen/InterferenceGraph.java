@@ -2,7 +2,6 @@ package edu.kit.kastel.vads.compiler.codegen;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
-import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 
 public class InterferenceGraph {
     // TODO: implementing the interference graph using neighborhoods might not

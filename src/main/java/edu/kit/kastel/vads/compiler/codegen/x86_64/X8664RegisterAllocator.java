@@ -1,14 +1,10 @@
 package edu.kit.kastel.vads.compiler.codegen.x86_64;
 
-import static edu.kit.kastel.vads.compiler.codegen.IRegisterAllocator.needsRegister;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.codegen.IRegister;
 import edu.kit.kastel.vads.compiler.codegen.IRegisterAllocator;

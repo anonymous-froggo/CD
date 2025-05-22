@@ -77,7 +77,6 @@ public class Lexer {
                     }
                 }
                 case '/' -> {
-                    System.out.println("\\");
                     if (currentCommentType == CommentType.SINGLE_LINE) {
                         this.pos++;
                         continue;

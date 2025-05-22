@@ -3,6 +3,7 @@ package edu.kit.kastel.vads.compiler.parser;
 import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LiteralTree;
@@ -42,32 +43,14 @@ public class Printer {
 
     private void printTree(Tree tree) {
         switch (tree) {
-            case BlockTree(List<StatementTree> statements, _) -> {
-                print("{");
-                lineBreak();
-                this.indentDepth++;
-                for (StatementTree statement : statements) {
-                    printTree(statement);
-                }
-                this.indentDepth--;
-                print("}");
-            }
-            case FunctionTree(var returnType, var name, var body) -> {
-                printTree(returnType);
+            case AssignmentTree(var lValue, var op, var expression) -> {
+                printTree(lValue);
                 space();
-                printTree(name);
-                print("()");
+                this.builder.append(op);
                 space();
-                printTree(body);
+                printTree(expression);
+                semicolon();
             }
-            case NameTree(var name, _) -> print(name.asString());
-            case ProgramTree(var topLevelTrees) -> {
-                for (FunctionTree function : topLevelTrees) {
-                    printTree(function);
-                    lineBreak();
-                }
-            }
-            case TypeTree(var type, _) -> print(type.asString());
             case BinaryOperationTree(var lhs, var rhs, var op) -> {
                 print("(");
                 printTree(lhs);
@@ -79,18 +62,18 @@ public class Printer {
                 printTree(rhs);
                 print(")");
             }
-            case LiteralTree(var value, _, _) -> this.builder.append(value);
-            case NegateTree(var expression, _) -> {
-                print("-(");
-                printTree(expression);
-                print(")");
+            case BlockTree(List<StatementTree> statements, _) -> {
+                print("{");
+                lineBreak();
+                this.indentDepth++;
+                for (StatementTree statement : statements) {
+                    printTree(statement);
+                }
+                this.indentDepth--;
+                print("}");
             }
-            case AssignmentTree(var lValue, var op, var expression) -> {
-                printTree(lValue);
-                space();
-                this.builder.append(op);
-                space();
-                printTree(expression);
+            case BreakTree(_) -> {
+                print("break");
                 semicolon();
             }
             case DeclarationTree(var type, var name, var initializer) -> {
@@ -103,13 +86,35 @@ public class Printer {
                 }
                 semicolon();
             }
+            case FunctionTree(var returnType, var name, var body) -> {
+                printTree(returnType);
+                space();
+                printTree(name);
+                print("()");
+                space();
+                printTree(body);
+            }
+            case IdentExpressionTree(var name) -> printTree(name);
+            case LiteralTree(var value, _, _) -> this.builder.append(value);
+            case LValueIdentTree(var name) -> printTree(name);
+            case NameTree(var name, _) -> print(name.asString());
+            case NegateTree(var expression, _) -> {
+                print("-(");
+                printTree(expression);
+                print(")");
+            }
+            case ProgramTree(var topLevelTrees) -> {
+                for (FunctionTree function : topLevelTrees) {
+                    printTree(function);
+                    lineBreak();
+                }
+            }
             case ReturnTree(var expr, _) -> {
                 print("return ");
                 printTree(expr);
                 semicolon();
             }
-            case LValueIdentTree(var name) -> printTree(name);
-            case IdentExpressionTree(var name) -> printTree(name);
+            case TypeTree(var type, _) -> print(type.asString());
         }
     }
 

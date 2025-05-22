@@ -3,6 +3,7 @@ package edu.kit.kastel.vads.compiler.parser.visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
@@ -21,6 +22,8 @@ public interface Visitor<T, R> {
     R visit(BinaryOperationTree binaryOperationTree, T data);
 
     R visit(BlockTree blockTree, T data);
+
+    R visit(BreakTree breakTree, T data);
 
     R visit(DeclarationTree declarationTree, T data);
 

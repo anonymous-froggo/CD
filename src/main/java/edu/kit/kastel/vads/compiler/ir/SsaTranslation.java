@@ -10,6 +10,7 @@ import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
 import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
@@ -96,7 +97,9 @@ public class SsaTranslation {
             };
 
             switch (assignmentTree.lValue()) {
-                case LValueIdentTree(var name) -> {
+                case
+
+                    LValueIdentTree(var name) -> {
                     Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
                     if (desugar != null) {
                         rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
@@ -104,6 +107,7 @@ public class SsaTranslation {
                     data.writeVariable(name.name(), data.currentBlock(), rhs);
                 }
             }
+
             popSpan();
             return NOT_AN_EXPRESSION;
         }
@@ -139,6 +143,12 @@ public class SsaTranslation {
             }
             popSpan();
             return NOT_AN_EXPRESSION;
+        }
+
+        @Override
+        public Optional<Node> visit(BreakTree breakTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
 
         @Override
@@ -227,6 +237,6 @@ public class SsaTranslation {
             data.constructor.writeCurrentSideEffect(projSideEffect);
             return data.constructor.newResultProj(divMod);
         }
-    }
 
+    }
 }
