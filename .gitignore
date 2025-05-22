@@ -2,8 +2,4 @@
 /.idea/
 /.gradle/
 assembly.S
-output.svg
-IrGraph.dot
-.gitignore
-IrGraph.svg
 /src/test/
