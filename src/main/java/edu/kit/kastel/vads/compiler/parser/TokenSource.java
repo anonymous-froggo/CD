@@ -24,7 +24,7 @@ public class TokenSource {
             .map(Optional::orElseThrow)
             .toList();
     }
-
+ 
     TokenSource(List<Token> tokens) {
         this.tokens = List.copyOf(tokens);
     }
@@ -61,10 +61,28 @@ public class TokenSource {
         return sep;
     }
 
+    public Separator expectSeparator() {
+        Token token = peek();
+        if (!(token instanceof Separator sep)) {
+            throw new ParseException("expected a separator but got " + token);
+        }
+        this.idx++;
+        return sep;
+    }
+
     public Operator expectOperator(OperatorType type) {
         Token token = peek();
         if (!(token instanceof Operator op) || op.type() != type) {
             throw new ParseException("expected operator '" + type + "' but got " + token);
+        }
+        this.idx++;
+        return op;
+    }
+
+    public Operator expectOperator() {
+        Token token = peek();
+        if (!(token instanceof Operator op)) {
+            throw new ParseException("expected an operator but got " + token);
         }
         this.idx++;
         return op;
