@@ -285,10 +285,10 @@ public class Parser {
             atom = new LiteralTree(numberLiteral.value(), numberLiteral.base(), numberLiteral.span());
         } else if (token instanceof UnaryOperator operator) {
             // ⟨unop⟩ ⟨exp⟩
-            atom = new UnaryOperationTree(operator, parseExpression());
+            atom = new UnaryOperationTree(operator, parseAtom());
         } else if (token instanceof BinaryOperator operator && token.isOperator(BinaryOperatorType.MINUS)) {
             // In this case BinaryOperatorType.MINUS is actually a unary minus
-            atom = new UnaryOperationTree(operator, parseExpression());
+            atom = new UnaryOperationTree(operator, parseAtom());
         }else {
             throw new ParseException("unexpected token '" + token + "'");
         }

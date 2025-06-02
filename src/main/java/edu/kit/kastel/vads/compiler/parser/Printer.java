@@ -116,7 +116,7 @@ public class Printer {
                 semicolon();
             }
             case TypeTree(var type, _) -> print(type.asString());
-            default -> throw new UnsupportedOperationException("not implemented");
+            default -> throw new UnsupportedOperationException("printing '" + tree.getClass() + "' is not implemented");
         }
     }
 
