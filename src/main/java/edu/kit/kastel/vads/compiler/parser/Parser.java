@@ -11,6 +11,7 @@ import edu.kit.kastel.vads.compiler.lexer.Operator.Associativity;
 import edu.kit.kastel.vads.compiler.lexer.Operator.OperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Separator;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
+import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.lexer.Token;
 import edu.kit.kastel.vads.compiler.lexer.UnaryOperator;
@@ -56,7 +57,10 @@ public class Parser {
         if (this.tokenSource.hasMore()) {
             throw new ParseException("expected end of input but got " + this.tokenSource.peek());
         }
-        System.out.println(Printer.print(programTree));
+
+        if (Main.DEBUG) {
+            System.out.println(Printer.print(programTree));
+        }
 
         // TODO: refactor this once multiple functions are supported
         for (FunctionTree functionTree : programTree.topLevelTrees()) {
@@ -126,10 +130,12 @@ public class Parser {
         Identifier ident = this.tokenSource.expectIdentifier();
         ExpressionTree expr = null;
 
+        System.out.println("parsing decl " + this.tokenSource.peek());
         if (this.tokenSource.peek().isOperator(AssignmentOperatorType.ASSIGN)) {
+            System.out.println("Assignment found");
             // ⟨type⟩ ident = ⟨exp⟩
-            this.tokenSource.expectOperator(AssignmentOperatorType.ASSIGN);
-            expr = parseExpression(1);
+            this.tokenSource.consume();
+            expr = parseExpression();
         }
 
         return new DeclarationTree(
@@ -147,7 +153,7 @@ public class Parser {
         AssignmentOperator assignmentOperator = parseAssignmentOperator();
 
         // ⟨exp⟩
-        ExpressionTree expression = parseExpression(0);
+        ExpressionTree expression = parseExpression();
 
         return new AssignmentTree(lValue, assignmentOperator, expression);
     }
@@ -219,13 +225,16 @@ public class Parser {
 
     private StatementTree parseReturn() {
         Keyword ret = this.tokenSource.expectKeyword(KeywordType.RETURN);
-        ExpressionTree expression = parseExpression(0);
+        ExpressionTree expression = parseExpression();
         this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
         return new ReturnTree(expression, ret.span().start());
     }
 
-    private ExpressionTree parseExpression(int minPrecedence) {
-        // TODO: implement true, false, ternary and bool ops using precedence climbing
+    private ExpressionTree parseExpression() {
+        return precedenceClimbing(0);
+    }
+
+    private ExpressionTree precedenceClimbing(int minPrecedence) {
         ExpressionTree result = parseAtom();
 
         int precedence;
@@ -247,7 +256,7 @@ public class Parser {
                 }
             };
 
-            ExpressionTree rhs = parseExpression(nextMinPrecedence);
+            ExpressionTree rhs = precedenceClimbing(nextMinPrecedence);
             result = new BinaryOperationTree(result, rhs, operator.type());
         }
 
@@ -269,14 +278,14 @@ public class Parser {
             atom = new IdentExpressionTree(name(identifier));
         } else if (token.isSeparator(SeparatorType.PAREN_OPEN)) {
             // ( ⟨exp⟩ )
-            atom = parseExpression(0);
+            atom = parseExpression();
             this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
         } else if (token instanceof NumberLiteral numberLiteral) {
             // ⟨intconst⟩
             atom = new LiteralTree(numberLiteral.value(), numberLiteral.base(), numberLiteral.span());
         } else if (token instanceof UnaryOperator operator) {
             // ⟨unop⟩ ⟨exp⟩
-            atom = new UnaryOperationTree(operator, parseExpression(0));
+            atom = new UnaryOperationTree(operator, parseExpression());
         } else {
             throw new ParseException("unexpected token '" + token + "'");
         }
