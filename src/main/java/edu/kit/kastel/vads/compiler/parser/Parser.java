@@ -16,6 +16,7 @@ import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.lexer.Token;
 import edu.kit.kastel.vads.compiler.lexer.UnaryOperator;
 import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator.AssignmentOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.BinaryOperator.BinaryOperatorType;
 import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
@@ -285,7 +286,10 @@ public class Parser {
         } else if (token instanceof UnaryOperator operator) {
             // ⟨unop⟩ ⟨exp⟩
             atom = new UnaryOperationTree(operator, parseExpression());
-        } else {
+        } else if (token instanceof BinaryOperator operator && token.isOperator(BinaryOperatorType.MINUS)) {
+            // In this case BinaryOperatorType.MINUS is actually a unary minus
+            atom = new UnaryOperationTree(operator, parseExpression());
+        }else {
             throw new ParseException("unexpected token '" + token + "'");
         }
 

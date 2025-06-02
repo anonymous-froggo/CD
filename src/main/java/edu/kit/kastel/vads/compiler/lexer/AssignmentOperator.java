@@ -22,28 +22,14 @@ public record AssignmentOperator(AssignmentOperatorType type, Span span) impleme
         ASSIGN_SHIFT_RIGHT(">>=");
 
         private final String value;
-        private final int precedence;
-        private final Associativity associativity;
 
         AssignmentOperatorType(String value) {
             this.value = value;
-            this.precedence = 0;
-            this.associativity = Associativity.RIGHT;
         }
 
         @Override
         public String toString() {
             return this.value;
-        }
-
-        @Override
-        public int getPrecedence() {
-            return this.precedence;
-        }
-
-        @Override
-        public Associativity getAssociativity() {
-            return this.associativity;
         }
     }
 }

@@ -9,33 +9,19 @@ public record UnaryOperator(UnaryOperatorType type, Span span) implements Operat
     }
 
     public enum UnaryOperatorType implements OperatorType {
-        LOGICAL_NOT("!", 12),
-        BITWISE_NOT("~", 12),
-        UNARY_MINUS("-", 12);
+        LOGICAL_NOT("!"),
+        BITWISE_NOT("~");
+        // unary minus is implemented in {BinaryOperator}
 
         private final String value;
-        private final int precedence;
-        private final Associativity associativity;
 
-        UnaryOperatorType(String value, int precedence) {
+        UnaryOperatorType(String value) {
             this.value = value;
-            this.precedence = precedence;
-            this.associativity = Associativity.RIGHT;
         }
 
         @Override
         public String toString() {
             return this.value;
-        }
-
-        @Override
-        public int getPrecedence() {
-            return this.precedence;
-        }
-
-        @Override
-        public Associativity getAssociativity() {
-            return this.associativity;
         }
     }
 }

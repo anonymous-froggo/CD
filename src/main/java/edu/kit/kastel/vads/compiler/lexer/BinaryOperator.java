@@ -3,7 +3,6 @@ package edu.kit.kastel.vads.compiler.lexer;
 import edu.kit.kastel.vads.compiler.Span;
 
 public record BinaryOperator(BinaryOperatorType type, Span span) implements Operator {
-
     @Override
     public String asString() {
         return type().toString();
@@ -15,7 +14,7 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
         MOD("%", 11),
 
         PLUS("+", 10),
-        MINUS("-", 10),
+        MINUS("-", 10), // may also be a unary minus if it is at the beginning of an atom
 
         SHIFT_LEFT("<<", 9),
         SHIFT_RIGHT(">>", 9),
@@ -53,12 +52,10 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
             return this.value;
         }
 
-        @Override
         public int getPrecedence() {
             return this.precedence;
         }
 
-        @Override
         public Associativity getAssociativity() {
             return this.associativity;
         }
