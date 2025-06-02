@@ -23,7 +23,7 @@ public class Main {
     public static boolean DEBUG = false;
 
     public static final Path OUTPUT_FOLDER = Path.of("output");
-    public static final Path ASSEMBLY_FILE = OUTPUT_FOLDER.resolve("assembly.S");
+    public static final Path ASSEMBLY_FILE = Path.of("assembly.S");
 
     public static void main(String[] args) throws IOException {
         if (args.length < 2) {
