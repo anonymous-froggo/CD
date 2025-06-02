@@ -1,13 +1,14 @@
 package edu.kit.kastel.vads.compiler.parser.ast;
 
-import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public record AssignmentTree(LValueTree lValue, AssignmentOperator operator, ExpressionTree expression) implements StatementTree {
+public record WhileTree() implements StatementTree {
+
     @Override
     public Span span() {
-        return lValue().span().merge(expression().span());
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'span'");
     }
 
     @Override

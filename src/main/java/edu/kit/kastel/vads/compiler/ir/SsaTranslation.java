@@ -11,18 +11,24 @@ import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
+import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
+import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
-import edu.kit.kastel.vads.compiler.parser.ast.NegateTree;
+import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
+import edu.kit.kastel.vads.compiler.parser.ast.TrueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
+import edu.kit.kastel.vads.compiler.parser.ast.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
@@ -152,6 +158,12 @@ public class SsaTranslation {
         }
 
         @Override
+        public Optional<Node> visit(ContinueTree continueTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        }
+
+        @Override
         public Optional<Node> visit(DeclarationTree declarationTree, SsaTranslation data) {
             pushSpan(declarationTree);
             if (declarationTree.initializer() != null) {
@@ -160,6 +172,12 @@ public class SsaTranslation {
             }
             popSpan();
             return NOT_AN_EXPRESSION;
+        }
+
+        @Override
+        public Optional<Node> visit(ForTree forTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
 
         @Override
@@ -181,6 +199,12 @@ public class SsaTranslation {
         }
 
         @Override
+        public Optional<Node> visit(IfTree ifTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        }
+
+        @Override
         public Optional<Node> visit(LiteralTree literalTree, SsaTranslation data) {
             pushSpan(literalTree);
             Node node = data.constructor.newConstInt((int) literalTree.parseValue().orElseThrow());
@@ -199,7 +223,7 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(NegateTree negateTree, SsaTranslation data) {
+        public Optional<Node> visit(UnaryOperationTree negateTree, SsaTranslation data) {
             pushSpan(negateTree);
             Node node = negateTree.expression().accept(this, data).orElseThrow();
             Node res = data.constructor.newSub(data.constructor.newConstInt(0), node);
@@ -236,6 +260,24 @@ public class SsaTranslation {
             Node projSideEffect = data.constructor.newSideEffectProj(divMod);
             data.constructor.writeCurrentSideEffect(projSideEffect);
             return data.constructor.newResultProj(divMod);
+        }
+
+        @Override
+        public Optional<Node> visit(WhileTree whileTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        }
+
+        @Override
+        public Optional<Node> visit(FalseTree falseTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        }
+
+        @Override
+        public Optional<Node> visit(TrueTree trueTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
 
     }

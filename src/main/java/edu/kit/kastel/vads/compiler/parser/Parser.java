@@ -1,32 +1,43 @@
 package edu.kit.kastel.vads.compiler.parser;
 
+import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator;
+import edu.kit.kastel.vads.compiler.lexer.BinaryOperator;
 import edu.kit.kastel.vads.compiler.lexer.Identifier;
 import edu.kit.kastel.vads.compiler.lexer.Keyword;
 import edu.kit.kastel.vads.compiler.lexer.Keyword.KeywordType;
 import edu.kit.kastel.vads.compiler.lexer.NumberLiteral;
 import edu.kit.kastel.vads.compiler.lexer.Operator;
+import edu.kit.kastel.vads.compiler.lexer.Operator.Associativity;
 import edu.kit.kastel.vads.compiler.lexer.Operator.OperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Separator;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.lexer.Token;
+import edu.kit.kastel.vads.compiler.lexer.UnaryOperator;
+import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
+import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
+import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
-import edu.kit.kastel.vads.compiler.parser.ast.NegateTree;
+import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
+import edu.kit.kastel.vads.compiler.parser.ast.TrueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
+import edu.kit.kastel.vads.compiler.parser.ast.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 import edu.kit.kastel.vads.compiler.parser.type.BasicType;
 
@@ -115,10 +126,10 @@ public class Parser {
         Identifier ident = this.tokenSource.expectIdentifier();
         ExpressionTree expr = null;
 
-        if (this.tokenSource.peek().isOperator(OperatorType.ASSIGN)) {
+        if (this.tokenSource.peek().isOperator(AssignmentOperatorType.ASSIGN)) {
             // ⟨type⟩ ident = ⟨exp⟩
-            this.tokenSource.expectOperator(OperatorType.ASSIGN);
-            expr = parseExpression();
+            this.tokenSource.expectOperator(AssignmentOperatorType.ASSIGN);
+            expr = parseExpression(1);
         }
 
         return new DeclarationTree(
@@ -133,10 +144,10 @@ public class Parser {
         LValueTree lValue = parseLValue();
 
         // ⟨asnop⟩
-        Operator assignmentOperator = parseAssignmentOperator();
+        AssignmentOperator assignmentOperator = parseAssignmentOperator();
 
         // ⟨exp⟩
-        ExpressionTree expression = parseExpression();
+        ExpressionTree expression = parseExpression(0);
 
         return new AssignmentTree(lValue, assignmentOperator, expression);
     }
@@ -155,11 +166,11 @@ public class Parser {
         return new LValueIdentTree(name(identifier));
     }
 
-    private Operator parseAssignmentOperator() {
+    private AssignmentOperator parseAssignmentOperator() {
         Token token = this.tokenSource.consume();
 
-        if (token instanceof Operator operator && token.isAssignmentOperator()) {
-            return operator;
+        if (token instanceof AssignmentOperator assignmentOperator) {
+            return assignmentOperator;
         }
 
         throw new ParseException("expected assignment but got " + token);
@@ -173,8 +184,11 @@ public class Parser {
                 case IF -> parseIf();
                 case WHILE -> parseWhile();
                 case FOR -> parseFor();
-                // TODO: implement continue
-                case CONTINUE -> throw new ParseException("not implemented");
+                case CONTINUE -> {
+                    this.tokenSource.consume();
+                    this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
+                    yield new ContinueTree(keyword.span());
+                }
                 case BREAK -> {
                     this.tokenSource.consume();
                     this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
@@ -190,75 +204,84 @@ public class Parser {
 
     private StatementTree parseIf() {
         // TODO: implement
-        throw new ParseException("not implemented");
+        return new IfTree();
     }
 
     private StatementTree parseWhile() {
         // TODO: implement
-        throw new ParseException("not implemented");
+        return new WhileTree();
     }
 
     private StatementTree parseFor() {
         // TODO: implement
-        throw new ParseException("not implemented");
+        return new ForTree();
     }
 
     private StatementTree parseReturn() {
         Keyword ret = this.tokenSource.expectKeyword(KeywordType.RETURN);
-        ExpressionTree expression = parseExpression();
+        ExpressionTree expression = parseExpression(0);
         this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
         return new ReturnTree(expression, ret.span().start());
     }
 
-    private ExpressionTree parseExpression() {
-        // TODO: implement true, false, ternary
-        ExpressionTree lhs = parseTerm();
-        while (true) {
-            if (this.tokenSource.peek() instanceof Operator(var type, _)
-                && (type == OperatorType.PLUS || type == OperatorType.MINUS)) {
-                this.tokenSource.consume();
-                lhs = new BinaryOperationTree(lhs, parseTerm(), type);
-            } else {
-                return lhs;
-            }
+    private ExpressionTree parseExpression(int minPrecedence) {
+        // TODO: implement true, false, ternary and bool ops using precedence climbing
+        ExpressionTree result = parseAtom();
+
+        int precedence;
+        Associativity associativity;
+
+        int nextMinPrecedence;
+
+        while (this.tokenSource.peek() instanceof BinaryOperator operator
+            && operator.type().getPrecedence() >= minPrecedence) {
+            precedence = operator.type().getPrecedence();
+            associativity = operator.type().getAssociativity();
+
+            nextMinPrecedence = switch (associativity) {
+                case LEFT: {
+                    yield precedence + 1;
+                }
+                case RIGHT: {
+                    yield precedence;
+                }
+            };
+
+            ExpressionTree rhs = parseExpression(nextMinPrecedence);
+            result = new BinaryOperationTree(result, rhs, operator.type());
         }
+
+        return result;
     }
 
-    private ExpressionTree parseTerm() {
-        ExpressionTree lhs = parseFactor();
-        while (true) {
-            if (this.tokenSource.peek() instanceof Operator(var type, _)
-                && (type == OperatorType.MUL || type == OperatorType.DIV || type == OperatorType.MOD)) {
-                this.tokenSource.consume();
-                lhs = new BinaryOperationTree(lhs, parseFactor(), type);
-            } else {
-                return lhs;
-            }
-        }
-    }
+    private ExpressionTree parseAtom() {
+        Token token = this.tokenSource.consume();
+        ExpressionTree atom;
 
-    private ExpressionTree parseFactor() {
-        return switch (this.tokenSource.peek()) {
-            case Separator(var type, _) when type == SeparatorType.PAREN_OPEN -> {
-                this.tokenSource.consume();
-                ExpressionTree expression = parseExpression();
-                this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
-                yield expression;
-            }
-            case Operator(var type, _) when type == OperatorType.MINUS -> {
-                Span span = this.tokenSource.consume().span();
-                yield new NegateTree(parseFactor(), span);
-            }
-            case Identifier ident -> {
-                this.tokenSource.consume();
-                yield new IdentExpressionTree(name(ident));
-            }
-            case NumberLiteral(String value, int base, Span span) -> {
-                this.tokenSource.consume();
-                yield new LiteralTree(value, base, span);
-            }
-            case Token t -> throw new ParseException("invalid factor " + t);
-        };
+        if (token.isKeyword(KeywordType.TRUE)) {
+            // true
+            atom = new TrueTree(token.span());
+        } else if (token.isKeyword(KeywordType.FALSE)) {
+            // false
+            atom = new FalseTree(token.span());
+        } else if (token instanceof Identifier identifier) {
+            // ident
+            atom = new IdentExpressionTree(name(identifier));
+        } else if (token.isSeparator(SeparatorType.PAREN_OPEN)) {
+            // ( ⟨exp⟩ )
+            atom = parseExpression(0);
+            this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
+        } else if (token instanceof NumberLiteral numberLiteral) {
+            // ⟨intconst⟩
+            atom = new LiteralTree(numberLiteral.value(), numberLiteral.base(), numberLiteral.span());
+        } else if (token instanceof UnaryOperator operator) {
+            // ⟨unop⟩ ⟨exp⟩
+            atom = new UnaryOperationTree(operator, parseExpression(0));
+        } else {
+            throw new ParseException("unexpected token '" + token + "'");
+        }
+
+        return atom;
     }
 
     private static NameTree name(Identifier ident) {

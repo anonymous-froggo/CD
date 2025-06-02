@@ -13,6 +13,7 @@ public sealed interface Token permits ErrorToken, Identifier, Keyword, NumberLit
         return false;
     }
 
+    // TODO refactor using subclasses for types of keywords
     default boolean isControlKeyword() {
         return false;
     }
@@ -22,10 +23,6 @@ public sealed interface Token permits ErrorToken, Identifier, Keyword, NumberLit
     }
 
     default boolean isOperator(OperatorType operatorType) {
-        return false;
-    }
-
-    default boolean isAssignmentOperator() {
         return false;
     }
 

@@ -2,6 +2,8 @@ package edu.kit.kastel.vads.compiler.lexer;
 
 import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator.AssignmentOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.BinaryOperator.BinaryOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Keyword.KeywordType;
 import edu.kit.kastel.vads.compiler.lexer.Operator.OperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
@@ -37,12 +39,12 @@ public class Lexer {
             case '{' -> separator(SeparatorType.BRACE_OPEN);
             case '}' -> separator(SeparatorType.BRACE_CLOSE);
             case ';' -> separator(SeparatorType.SEMICOLON);
-            case '-' -> singleOrAssign(OperatorType.MINUS, OperatorType.ASSIGN_MINUS);
-            case '+' -> singleOrAssign(OperatorType.PLUS, OperatorType.ASSIGN_PLUS);
-            case '*' -> singleOrAssign(OperatorType.MUL, OperatorType.ASSIGN_MUL);
-            case '/' -> singleOrAssign(OperatorType.DIV, OperatorType.ASSIGN_DIV);
-            case '%' -> singleOrAssign(OperatorType.MOD, OperatorType.ASSIGN_MOD);
-            case '=' -> new Operator(OperatorType.ASSIGN, buildSpan(1));
+            case '-' -> singleOrAssign(BinaryOperatorType.MINUS, AssignmentOperatorType.ASSIGN_MINUS);
+            case '+' -> singleOrAssign(BinaryOperatorType.PLUS, AssignmentOperatorType.ASSIGN_PLUS);
+            case '*' -> singleOrAssign(BinaryOperatorType.MUL, AssignmentOperatorType.ASSIGN_MUL);
+            case '/' -> singleOrAssign(BinaryOperatorType.DIV, AssignmentOperatorType.ASSIGN_DIV);
+            case '%' -> singleOrAssign(BinaryOperatorType.MOD, AssignmentOperatorType.ASSIGN_MOD);
+            case '=' -> new AssignmentOperator(AssignmentOperatorType.ASSIGN, buildSpan(1));
             default -> {
                 if (isIdentifierChar(peek())) {
                     if (isNumeric(peek())) {
@@ -191,11 +193,11 @@ public class Lexer {
         return isNumeric(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
-    private Token singleOrAssign(OperatorType single, OperatorType assign) {
+    private Token singleOrAssign(BinaryOperatorType single, AssignmentOperatorType assign) {
         if (hasMore(1) && peek(1) == '=') {
-            return new Operator(assign, buildSpan(2));
+            return new AssignmentOperator(assign, buildSpan(2));
         }
-        return new Operator(single, buildSpan(1));
+        return new BinaryOperator(single, buildSpan(1));
     }
 
     private Span buildSpan(int proceed) {

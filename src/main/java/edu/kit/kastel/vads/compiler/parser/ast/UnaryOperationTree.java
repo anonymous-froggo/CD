@@ -1,13 +1,13 @@
 package edu.kit.kastel.vads.compiler.parser.ast;
 
-import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator;
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.lexer.Operator;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public record AssignmentTree(LValueTree lValue, AssignmentOperator operator, ExpressionTree expression) implements StatementTree {
+public record UnaryOperationTree(Operator operator, ExpressionTree expression) implements ExpressionTree {
     @Override
     public Span span() {
-        return lValue().span().merge(expression().span());
+        return operator.span().merge(expression().span());
     }
 
     @Override
