@@ -8,5 +8,4 @@ public record FalseTree(Span span) implements ExpressionTree {
     public <T, R> R accept(Visitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
-
 }

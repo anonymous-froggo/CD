@@ -4,6 +4,7 @@ import java.util.List;
 
 import edu.kit.kastel.vads.compiler.Span;
 
+// TODO maybe refactor keywords into multiple records for control, type etc.
 public record Keyword(KeywordType type, Span span) implements Token {
     @Override
     public boolean isKeyword(KeywordType keywordType) {

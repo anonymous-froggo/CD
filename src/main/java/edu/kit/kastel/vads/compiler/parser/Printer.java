@@ -4,14 +4,20 @@ import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
+import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
+import edu.kit.kastel.vads.compiler.parser.ast.TrueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
+import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
@@ -76,6 +82,10 @@ public class Printer {
                 print("break");
                 semicolon();
             }
+            case ContinueTree(_) -> {
+                print("continue");
+                semicolon();
+            }
             case DeclarationTree(var type, var name, var initializer) -> {
                 printTree(type);
                 space();
@@ -86,6 +96,10 @@ public class Printer {
                 }
                 semicolon();
             }
+            case FalseTree(_) -> print("false");
+            case ForTree() -> throw new UnsupportedOperationException(
+                "printing '" + tree.getClass() + "' is not implemented"
+            );
             case FunctionTree(var returnType, var name, var body) -> {
                 printTree(returnType);
                 space();
@@ -95,15 +109,12 @@ public class Printer {
                 printTree(body);
             }
             case IdentifierTree(var name) -> printTree(name);
-            case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
+            case IfTree() -> throw new UnsupportedOperationException(
+                "printing '" + tree.getClass() + "' is not implemented"
+            );
             case LValueIdentifierTree(var name) -> printTree(name);
             case NameTree(var name, _) -> print(name.asString());
-            // TOOD edit to include other unary operations
-            case UnaryOperationTree(_, var expression) -> {
-                print("-(");
-                printTree(expression);
-                print(")");
-            }
+            case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
             case ProgramTree(var topLevelTrees) -> {
                 for (FunctionTree function : topLevelTrees) {
                     printTree(function);
@@ -115,8 +126,19 @@ public class Printer {
                 printTree(expr);
                 semicolon();
             }
+            case TrueTree(_) -> print("true");
             case TypeTree(var type, _) -> print(type.asString());
-            default -> throw new UnsupportedOperationException("printing '" + tree.getClass() + "' is not implemented");
+            case UnaryOperationTree(var operator, var expression) -> {
+                this.builder.append(operator);
+                print("(");
+                printTree(expression);
+                print(")");
+            }
+            case WhileTree() -> throw new UnsupportedOperationException(
+                "printing '" + tree.getClass() + "' is not implemented"
+            );
+            // default -> throw new UnsupportedOperationException("printing '" +
+            // tree.getClass() + "' is not implemented");
         }
     }
 
