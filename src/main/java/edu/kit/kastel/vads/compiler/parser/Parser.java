@@ -130,9 +130,7 @@ public class Parser {
         Identifier ident = this.tokenSource.expectIdentifier();
         ExpressionTree expr = null;
 
-        System.out.println("parsing decl " + this.tokenSource.peek());
         if (this.tokenSource.peek().isOperator(AssignmentOperatorType.ASSIGN)) {
-            System.out.println("Assignment found");
             // ⟨type⟩ ident = ⟨exp⟩
             this.tokenSource.consume();
             expr = parseExpression();
