@@ -242,6 +242,7 @@ public class Parser {
 
         while (this.tokenSource.peek() instanceof BinaryOperator operator
             && operator.type().getPrecedence() >= minPrecedence) {
+            this.tokenSource.consume();
             precedence = operator.type().getPrecedence();
             associativity = operator.type().getAssociativity();
 
