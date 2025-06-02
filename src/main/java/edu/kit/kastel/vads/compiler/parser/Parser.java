@@ -27,11 +27,11 @@ import edu.kit.kastel.vads.compiler.parser.ast.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IfTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
@@ -168,7 +168,7 @@ public class Parser {
 
         // LValue is not surrounded by parantheses
         Identifier identifier = this.tokenSource.expectIdentifier();
-        return new LValueIdentTree(name(identifier));
+        return new LValueIdentifierTree(name(identifier));
     }
 
     private AssignmentOperator parseAssignmentOperator() {
@@ -208,17 +208,17 @@ public class Parser {
     }
 
     private StatementTree parseIf() {
-        // TODO: implement
+        // TODO: implement parseIf
         return new IfTree();
     }
 
     private StatementTree parseWhile() {
-        // TODO: implement
+        // TODO: implement parseWhile
         return new WhileTree();
     }
 
     private StatementTree parseFor() {
-        // TODO: implement
+        // TODO: implement parseFor
         return new ForTree();
     }
 
@@ -275,21 +275,21 @@ public class Parser {
             atom = new FalseTree(token.span());
         } else if (token instanceof Identifier identifier) {
             // ident
-            atom = new IdentExpressionTree(name(identifier));
+            atom = new IdentifierTree(name(identifier));
         } else if (token.isSeparator(SeparatorType.PAREN_OPEN)) {
             // ( ⟨exp⟩ )
             atom = parseExpression();
             this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
         } else if (token instanceof NumberLiteral numberLiteral) {
             // ⟨intconst⟩
-            atom = new LiteralTree(numberLiteral.value(), numberLiteral.base(), numberLiteral.span());
+            atom = new NumberLiteralTree(numberLiteral.value(), numberLiteral.base(), numberLiteral.span());
         } else if (token instanceof UnaryOperator operator) {
             // ⟨unop⟩ ⟨exp⟩
             atom = new UnaryOperationTree(operator, parseAtom());
         } else if (token instanceof BinaryOperator operator && token.isOperator(BinaryOperatorType.MINUS)) {
             // In this case BinaryOperatorType.MINUS is actually a unary minus
             atom = new UnaryOperationTree(operator, parseAtom());
-        }else {
+        } else {
             throw new ParseException("unexpected token '" + token + "'");
         }
 

@@ -16,10 +16,10 @@ import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IfTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
@@ -105,7 +105,7 @@ public class SsaTranslation {
             switch (assignmentTree.lValue()) {
                 case
 
-                    LValueIdentTree(var name) -> {
+                    LValueIdentifierTree(var name) -> {
                     Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
                     if (desugar != null) {
                         rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
@@ -191,7 +191,7 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(IdentExpressionTree identExpressionTree, SsaTranslation data) {
+        public Optional<Node> visit(IdentifierTree identExpressionTree, SsaTranslation data) {
             pushSpan(identExpressionTree);
             Node value = data.readVariable(identExpressionTree.name().name(), data.currentBlock());
             popSpan();
@@ -205,7 +205,7 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(LiteralTree literalTree, SsaTranslation data) {
+        public Optional<Node> visit(NumberLiteralTree literalTree, SsaTranslation data) {
             pushSpan(literalTree);
             Node node = data.constructor.newConstInt((int) literalTree.parseValue().orElseThrow());
             popSpan();
@@ -213,7 +213,7 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(LValueIdentTree lValueIdentTree, SsaTranslation data) {
+        public Optional<Node> visit(LValueIdentifierTree lValueIdentTree, SsaTranslation data) {
             return NOT_AN_EXPRESSION;
         }
 

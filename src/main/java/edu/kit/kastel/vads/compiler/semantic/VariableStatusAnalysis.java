@@ -2,8 +2,8 @@ package edu.kit.kastel.vads.compiler.semantic;
 
 import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.NoOpVisitor;
 import edu.kit.kastel.vads.compiler.parser.visitor.Unit;
@@ -21,7 +21,7 @@ class VariableStatusAnalysis implements NoOpVisitor<Namespace<VariableStatusAnal
     @Override
     public Unit visit(AssignmentTree assignmentTree, Namespace<VariableStatus> data) {
         switch (assignmentTree.lValue()) {
-            case LValueIdentTree(var name) -> {
+            case LValueIdentifierTree(var name) -> {
                 VariableStatus status = data.get(name);
                 checkDeclared(name, status);
                 if (status != VariableStatus.INITIALIZED) {
@@ -73,7 +73,7 @@ class VariableStatusAnalysis implements NoOpVisitor<Namespace<VariableStatusAnal
     }
 
     @Override
-    public Unit visit(IdentExpressionTree identExpressionTree, Namespace<VariableStatus> data) {
+    public Unit visit(IdentifierTree identExpressionTree, Namespace<VariableStatus> data) {
         VariableStatus status = data.get(identExpressionTree.name());
         checkInitialized(identExpressionTree.name(), status);
         return NoOpVisitor.super.visit(identExpressionTree, data);

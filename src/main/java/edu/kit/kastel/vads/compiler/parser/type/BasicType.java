@@ -18,7 +18,7 @@ public enum BasicType implements Type {
         return switch (keyword.type()) {
             case INT -> INT;
             case BOOL -> BOOL;
-            default -> throw new ParseException("expected a type but got " + keyword);
+            default -> throw new ParseException("expected a basic type but got " + keyword);
         };
     }
 }

@@ -4,9 +4,9 @@ import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
-import edu.kit.kastel.vads.compiler.parser.ast.IdentExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
@@ -94,9 +94,9 @@ public class Printer {
                 space();
                 printTree(body);
             }
-            case IdentExpressionTree(var name) -> printTree(name);
-            case LiteralTree(var value, _, _) -> this.builder.append(value);
-            case LValueIdentTree(var name) -> printTree(name);
+            case IdentifierTree(var name) -> printTree(name);
+            case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
+            case LValueIdentifierTree(var name) -> printTree(name);
             case NameTree(var name, _) -> print(name.asString());
             // TOOD edit to include other unary operations
             case UnaryOperationTree(_, var expression) -> {

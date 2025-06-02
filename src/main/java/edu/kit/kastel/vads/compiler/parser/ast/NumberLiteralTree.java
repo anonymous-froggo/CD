@@ -4,7 +4,7 @@ import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 import java.util.OptionalLong;
 
-public record LiteralTree(String value, int base, Span span) implements ExpressionTree {
+public record NumberLiteralTree(String value, int base, Span span) implements ExpressionTree {
     @Override
     public <T, R> R accept(Visitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
