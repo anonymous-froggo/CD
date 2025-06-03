@@ -231,8 +231,6 @@ public class Parser {
         return new WhileTree();
     }
 
-   
-
     private StatementTree parseReturn() {
         Keyword ret = this.tokenSource.expectKeyword(ControlKeywordType.RETURN);
         ExpressionTree expression = parseExpression();
@@ -253,10 +251,10 @@ public class Parser {
         int nextMinPrecedence;
 
         while (this.tokenSource.peek() instanceof BinaryOperator operator
-            && operator.type().getPrecedence() >= minPrecedence) {
+            && operator.type().precedence() >= minPrecedence) {
             this.tokenSource.consume();
-            precedence = operator.type().getPrecedence();
-            associativity = operator.type().getAssociativity();
+            precedence = operator.type().precedence();
+            associativity = operator.type().associativity();
 
             nextMinPrecedence = switch (associativity) {
                 case LEFT: {

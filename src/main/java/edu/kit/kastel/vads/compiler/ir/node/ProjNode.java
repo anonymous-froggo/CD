@@ -14,7 +14,7 @@ public final class ProjNode extends Node {
         return this.projectionInfo.toString();
     }
 
-    public ProjectionInfo getProjectionInfo() {
+    public ProjectionInfo projectionInfo() {
         return this.projectionInfo;
     }
 

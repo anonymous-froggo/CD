@@ -57,9 +57,7 @@ public class Lexer {
                     if (isNumeric(peek())) {
                         yield lexNumber();
                     }
-                    Token token = lexIdentifierOrKeyword();
-                    System.out.println(token);
-                    yield token;
+                    yield lexIdentifierOrKeyword();
                 }
                 yield new ErrorToken(String.valueOf(peek()), buildSpan(1));
             }

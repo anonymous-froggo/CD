@@ -10,7 +10,7 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
 
     public enum BinaryOperatorType implements OperatorType {
         MUL("*", 11),
-            DIV("/", 11),
+        DIV("/", 11),
         MOD("%", 11),
 
         PLUS("+", 10),
@@ -36,7 +36,7 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
         LOGICAL_AND("&&", 3),
 
         LOGICAL_OR("||", 2);
-        
+
         private final String value;
         private final int precedence;
         private final Associativity associativity;
@@ -52,11 +52,11 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
             return this.value;
         }
 
-        public int getPrecedence() {
+        public int precedence() {
             return this.precedence;
         }
 
-        public Associativity getAssociativity() {
+        public Associativity associativity() {
             return this.associativity;
         }
     }

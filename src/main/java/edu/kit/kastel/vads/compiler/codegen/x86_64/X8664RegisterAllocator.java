@@ -46,7 +46,7 @@ public class X8664RegisterAllocator implements IRegisterAllocator {
         return Map.copyOf(this.registerAllocation);
     }
 
-    public int getNumberOfStackRegisters() {
+    public int numberOfStackRegisters() {
         return this.numberOfStackRegisters;
     }
 }

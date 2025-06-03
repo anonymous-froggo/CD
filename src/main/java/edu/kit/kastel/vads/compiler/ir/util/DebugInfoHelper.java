@@ -10,7 +10,7 @@ public final class DebugInfoHelper {
         DebugInfoHelper.debugInfo = debugInfo;
     }
 
-    public static DebugInfo getDebugInfo() {
+    public static DebugInfo debugInfo() {
         return debugInfo;
     }
 }

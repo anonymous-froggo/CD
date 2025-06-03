@@ -7,7 +7,6 @@ import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.codegen.IRegister;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
-import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
 import edu.kit.kastel.vads.compiler.ir.node.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
@@ -15,11 +14,12 @@ import edu.kit.kastel.vads.compiler.ir.node.Phi;
 import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.node.StartNode;
-import edu.kit.kastel.vads.compiler.ir.node.SubNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.AddNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.MulNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.SubNode;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
@@ -31,7 +31,7 @@ public class X8664CodeGenerator {
         for (IrGraph graph : program) {
             X8664RegisterAllocator allocator = new X8664RegisterAllocator(graph);
             Map<Node, IRegister> registerAllocation = allocator.allocateRegisters();
-            numberOfStackRegisters = allocator.getNumberOfStackRegisters();
+            numberOfStackRegisters = allocator.numberOfStackRegisters();
 
             moveStackPointer(builder, -numberOfStackRegisters * 8, X8664Register.RSP);
             builder.append("\n");

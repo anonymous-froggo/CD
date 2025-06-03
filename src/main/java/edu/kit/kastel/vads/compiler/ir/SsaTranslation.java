@@ -69,8 +69,8 @@ public class SsaTranslation {
         return this.graphConstructor.readVariable(variable, block);
     }
 
-    private Block getCurrentBlock() {
-        return this.graphConstructor.getCurrentBlock();
+    private Block currentBlock() {
+        return this.graphConstructor.currentBlock();
     }
 
     private static class SsaTranslationVisitor implements Visitor<SsaTranslation, Optional<Node>> {
@@ -81,13 +81,15 @@ public class SsaTranslation {
         private final Deque<DebugInfo> debugStack = new ArrayDeque<>();
 
         private void pushSpan(Tree tree) {
-            this.debugStack.push(DebugInfoHelper.getDebugInfo());
+            this.debugStack.push(DebugInfoHelper.debugInfo());
             DebugInfoHelper.setDebugInfo(new DebugInfo.SourceInfo(tree.span()));
         }
 
         private void popSpan() {
             DebugInfoHelper.setDebugInfo(this.debugStack.pop());
         }
+
+        // TODO reorder methods according to package structure
 
         @Override
         public Optional<Node> visit(AssignmentTree assignmentTree, SsaTranslation data) {
@@ -110,9 +112,9 @@ public class SsaTranslation {
                     LValueIdentifierTree(var name) -> {
                     Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
                     if (desugar != null) {
-                        rhs = desugar.apply(data.readVariable(name.name(), data.getCurrentBlock()), rhs);
+                        rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
                     }
-                    data.writeVariable(name.name(), data.getCurrentBlock(), rhs);
+                    data.writeVariable(name.name(), data.currentBlock(), rhs);
                 }
             }
 
@@ -158,7 +160,7 @@ public class SsaTranslation {
             pushSpan(boolTree);
 
             popSpan();
-            return ;
+            return;
         }
 
         @Override
@@ -178,7 +180,7 @@ public class SsaTranslation {
             pushSpan(declarationTree);
             if (declarationTree.initializer() != null) {
                 Node rhs = declarationTree.initializer().accept(this, data).orElseThrow();
-                data.writeVariable(declarationTree.name().name(), data.getCurrentBlock(), rhs);
+                data.writeVariable(declarationTree.name().name(), data.currentBlock(), rhs);
             }
             popSpan();
             return NOT_AN_EXPRESSION;
@@ -203,7 +205,7 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(IdentifierTree identExpressionTree, SsaTranslation data) {
             pushSpan(identExpressionTree);
-            Node value = data.readVariable(identExpressionTree.name().name(), data.getCurrentBlock());
+            Node value = data.readVariable(identExpressionTree.name().name(), data.currentBlock());
             popSpan();
             return Optional.of(value);
         }

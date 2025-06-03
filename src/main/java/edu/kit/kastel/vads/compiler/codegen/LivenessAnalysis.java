@@ -11,13 +11,13 @@ import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
-import edu.kit.kastel.vads.compiler.ir.node.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
 import edu.kit.kastel.vads.compiler.ir.node.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.node.StartNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;

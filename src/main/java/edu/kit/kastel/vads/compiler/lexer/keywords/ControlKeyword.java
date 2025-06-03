@@ -20,13 +20,13 @@ public record ControlKeyword(ControlKeywordType type, Span span) implements Keyw
             this.keyword = keyword;
         }
 
-        public String getKeyword() {
+        public String keyword() {
             return this.keyword;
         }
 
         @Override
         public String toString() {
-            return getKeyword();
+            return keyword();
         }
     }
 }

@@ -3,7 +3,7 @@ package edu.kit.kastel.vads.compiler.lexer.keywords;
 import edu.kit.kastel.vads.compiler.Span;
 
 public record BoolKeyword(BoolKeywordType type, Span span) implements Keyword {
-    
+
     public enum BoolKeywordType implements KeywordType {
 
         TRUE("true"),
@@ -15,13 +15,13 @@ public record BoolKeyword(BoolKeywordType type, Span span) implements Keyword {
             this.keyword = keyword;
         }
 
-        public String getKeyword() {
+        public String keyword() {
             return keyword;
         }
 
         @Override
         public String toString() {
-            return getKeyword();
+            return keyword();
         }
     }
 }
