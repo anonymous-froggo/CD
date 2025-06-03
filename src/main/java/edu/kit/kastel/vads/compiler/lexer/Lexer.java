@@ -4,9 +4,13 @@ import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.BinaryOperator.BinaryOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.BoolKeyword.BoolKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.ControlKeyword.ControlKeywordType;
 import edu.kit.kastel.vads.compiler.lexer.Keyword.KeywordType;
 import edu.kit.kastel.vads.compiler.lexer.Operator.OperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
+import edu.kit.kastel.vads.compiler.lexer.TypeKeyword.TypeKeywordType;
+
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
@@ -50,7 +54,9 @@ public class Lexer {
                     if (isNumeric(peek())) {
                         yield lexNumber();
                     }
-                    yield lexIdentifierOrKeyword();
+                    Token token = lexIdentifierOrKeyword();
+                    System.out.println(token);
+                    yield token;
                 }
                 yield new ErrorToken(String.valueOf(peek()), buildSpan(1));
             }
@@ -141,14 +147,18 @@ public class Lexer {
             off++;
         }
         String id = this.source.substring(this.pos, this.pos + off);
+        
         // TODO: This is a naive solution. Using a better data structure (hashmap, trie)
         // likely performs better.
-        for (KeywordType value : KeywordType.values()) {
-            if (value.getKeyword().equals(id)) {
-                return new Keyword(value, buildSpan(off));
-            }
+        Span span = buildSpan(off);
+        Keyword keyword = Keyword.fromString(id, span);
+        if (keyword != null) {
+            // id is a keyword
+            return keyword;
         }
-        return new Identifier(id, buildSpan(off));
+
+        // id is an identifier
+        return new Identifier(id, span);
     }
 
     private Token lexNumber() {

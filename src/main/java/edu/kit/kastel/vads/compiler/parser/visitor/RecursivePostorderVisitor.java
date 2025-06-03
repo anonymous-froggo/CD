@@ -6,7 +6,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
@@ -61,6 +60,11 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
+    public R visit(BoolTree trueTree, T data) {
+        return this.visitor.visit(trueTree, data);
+    }
+
+    @Override
     public R visit(BreakTree breakTree, T data) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
@@ -82,12 +86,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         r = this.visitor.visit(declarationTree, accumulate(data, r));
         return r;
     }
-    
-    @Override
-    public R visit(FalseTree falseTree, T data) {
-        return this.visitor.visit(falseTree, data);
-    }
-    
+
     @Override
     public R visit(ForTree forTree, T data) {
         // TODO Auto-generated method stub
@@ -157,11 +156,6 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         R r = returnTree.expression().accept(this, data);
         r = this.visitor.visit(returnTree, accumulate(data, r));
         return r;
-    }
-
-    @Override
-    public R visit(BoolTree trueTree, T data) {
-        return this.visitor.visit(trueTree, data);
     }
 
     @Override

@@ -2,6 +2,9 @@ package edu.kit.kastel.vads.compiler.parser;
 
 import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator;
 import edu.kit.kastel.vads.compiler.lexer.BinaryOperator;
+import edu.kit.kastel.vads.compiler.lexer.BoolKeyword;
+import edu.kit.kastel.vads.compiler.lexer.ControlKeyword;
+import edu.kit.kastel.vads.compiler.lexer.ControlKeyword.ControlKeywordType;
 import edu.kit.kastel.vads.compiler.lexer.Identifier;
 import edu.kit.kastel.vads.compiler.lexer.Keyword;
 import edu.kit.kastel.vads.compiler.lexer.Keyword.KeywordType;
@@ -11,9 +14,11 @@ import edu.kit.kastel.vads.compiler.lexer.Operator.Associativity;
 import edu.kit.kastel.vads.compiler.lexer.Operator.OperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Separator;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
+import edu.kit.kastel.vads.compiler.lexer.TypeKeyword.TypeKeywordType;
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.lexer.Token;
+import edu.kit.kastel.vads.compiler.lexer.TypeKeyword;
 import edu.kit.kastel.vads.compiler.lexer.UnaryOperator;
 import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.BinaryOperator.BinaryOperatorType;
@@ -75,7 +80,7 @@ public class Parser {
     }
 
     private FunctionTree parseFunction() {
-        Keyword returnType = this.tokenSource.expectKeyword(KeywordType.INT);
+        Keyword returnType = this.tokenSource.expectKeyword(TypeKeywordType.INT);
         Identifier identifier = this.tokenSource.expectIdentifier();
         this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
         this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
@@ -108,7 +113,7 @@ public class Parser {
 
         if (token instanceof Keyword keyword) {
             // ⟨simp⟩ -> ⟨decl⟩ | ⟨control⟩
-            if (keyword.isTypeKeyword()) {
+            if (keyword instanceof TypeKeyword) {
                 // ⟨simp⟩ -> ⟨decl⟩
                 statement = parseDeclaration();
             } else {
@@ -183,27 +188,37 @@ public class Parser {
     private StatementTree parseControl() {
         Token token = this.tokenSource.peek();
 
-        if (token instanceof Keyword keyword) {
+        if (token instanceof ControlKeyword keyword) {
             return switch (keyword.type()) {
-                case IF -> parseIf();
-                case WHILE -> parseWhile();
-                case FOR -> parseFor();
-                case CONTINUE -> {
-                    this.tokenSource.consume();
-                    this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
-                    yield new ContinueTree(keyword.span());
-                }
                 case BREAK -> {
                     this.tokenSource.consume();
                     this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
                     yield new BreakTree(keyword.span());
                 }
+                case CONTINUE -> {
+                    this.tokenSource.consume();
+                    this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
+                    yield new ContinueTree(keyword.span());
+                }
+                case ELSE -> parseElse();
+                case FOR -> parseFor();
+                case IF -> parseIf();
+                case WHILE -> parseWhile();
                 case RETURN -> parseReturn();
-                default -> throw new ParseException("expected control keyword but got " + keyword);
             };
         }
 
         throw new ParseException("expected control keyword but got " + token);
+    }
+
+    private StatementTree parseElse() {
+        // TODO: implement parseElse
+        return null;
+    }
+
+    private StatementTree parseFor() {
+        // TODO: implement parseFor
+        return new ForTree();
     }
 
     private StatementTree parseIf() {
@@ -216,13 +231,10 @@ public class Parser {
         return new WhileTree();
     }
 
-    private StatementTree parseFor() {
-        // TODO: implement parseFor
-        return new ForTree();
-    }
+   
 
     private StatementTree parseReturn() {
-        Keyword ret = this.tokenSource.expectKeyword(KeywordType.RETURN);
+        Keyword ret = this.tokenSource.expectKeyword(ControlKeywordType.RETURN);
         ExpressionTree expression = parseExpression();
         this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
         return new ReturnTree(expression, ret.span().start());
@@ -266,9 +278,9 @@ public class Parser {
         Token token = this.tokenSource.consume();
         ExpressionTree atom;
 
-        if (token.isKeyword(KeywordType.TRUE)) {
+        if (token instanceof BoolKeyword keyword) {
             // true
-            atom = new BoolTree(token.span());
+            atom = new BoolTree(keyword);
         } else if (token instanceof Identifier identifier) {
             // ident
             atom = new IdentifierTree(name(identifier));

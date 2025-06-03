@@ -6,7 +6,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
@@ -37,6 +36,11 @@ public interface NoOpVisitor<T> extends Visitor<T, Unit> {
 
     @Override
     default Unit visit(BlockTree blockTree, T data) {
+        return Unit.INSTANCE;
+    }
+
+    @Override
+    default Unit visit(BoolTree trueTree, T data) {
         return Unit.INSTANCE;
     }
 
@@ -112,16 +116,6 @@ public interface NoOpVisitor<T> extends Visitor<T, Unit> {
 
     @Override
     default Unit visit(WhileTree whileTree, T data) {
-        return Unit.INSTANCE;
-    }
-
-    @Override
-    default Unit visit(BoolTree trueTree, T data) {
-        return Unit.INSTANCE;
-    }
-
-    @Override
-    default Unit visit(FalseTree falseTree, T data) {
         return Unit.INSTANCE;
     }
 }

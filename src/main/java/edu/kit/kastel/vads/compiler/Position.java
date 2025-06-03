@@ -8,7 +8,7 @@ public sealed interface Position {
   record SimplePosition(int line, int column) implements Position {
     @Override
     public String toString() {
-      return line() + ":" + column();
+      return (line() + 1) + ":" + (column() + 1);
     }
   }
 }

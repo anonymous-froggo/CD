@@ -16,7 +16,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
@@ -79,6 +78,7 @@ public class Printer {
                 this.indentDepth--;
                 print("}");
             }
+            case BoolTree(var boolKeyword) -> builder.append(boolKeyword);
             case BreakTree(_) -> {
                 print("break");
                 semicolon();
@@ -97,7 +97,6 @@ public class Printer {
                 }
                 semicolon();
             }
-            case FalseTree(_) -> print("false");
             case ForTree() -> throw new UnsupportedOperationException(
                 "printing '" + tree.getClass() + "' is not implemented"
             );
@@ -127,7 +126,6 @@ public class Printer {
                 printTree(expr);
                 semicolon();
             }
-            case BoolTree(_) -> print("true");
             case TypeTree(var type, _) -> print(type.asString());
             case UnaryOperationTree(var operator, var expression) -> {
                 this.builder.append(operator);

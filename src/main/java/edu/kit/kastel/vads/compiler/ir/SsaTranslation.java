@@ -13,7 +13,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
@@ -155,6 +154,12 @@ public class SsaTranslation {
         }
 
         @Override
+        public Optional<Node> visit(BoolTree trueTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        }
+
+        @Override
         public Optional<Node> visit(BreakTree breakTree, SsaTranslation data) {
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'visit'");
@@ -175,12 +180,6 @@ public class SsaTranslation {
             }
             popSpan();
             return NOT_AN_EXPRESSION;
-        }
-
-        @Override
-        public Optional<Node> visit(FalseTree falseTree, SsaTranslation data) {
-            pushSpan(falseTree);
-            popSpan();
         }
 
         @Override
@@ -253,12 +252,6 @@ public class SsaTranslation {
             data.graphConstructor.graph().endBlock().addPredecessor(ret);
             popSpan();
             return NOT_AN_EXPRESSION;
-        }
-
-        @Override
-        public Optional<Node> visit(BoolTree trueTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
 
         @Override
