@@ -7,7 +7,7 @@ import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator.UnaryOperatorT
 
 public sealed interface Operator extends Token permits AssignmentOperator, BinaryOperator, UnaryOperator {
 
-    public OperatorType type();
+    OperatorType type();
 
     @Override
     default boolean isOperator(OperatorType operatorType) {
@@ -19,10 +19,10 @@ public sealed interface Operator extends Token permits AssignmentOperator, Binar
         return type().toString();
     }
 
-    public sealed interface OperatorType permits AssignmentOperatorType, BinaryOperatorType, UnaryOperatorType {
+    sealed interface OperatorType permits AssignmentOperatorType, BinaryOperatorType, UnaryOperatorType {
     }
 
-    public enum Associativity {
+    enum Associativity {
 
         LEFT, RIGHT;
     }

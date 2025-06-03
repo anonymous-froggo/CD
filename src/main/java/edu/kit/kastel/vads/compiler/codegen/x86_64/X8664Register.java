@@ -23,13 +23,13 @@ public enum X8664Register implements IRegister {
     R14("r14", "r14d", "r14w", "r14b"),
     R15("r15", "r15d", "r15w", "r15b");
 
-    String name64;
-    String name32;
-    String name16;
-    String name8;
+    private String name64;
+    private String name32;
+    private String name16;
+    private String name8;
 
     private static final IRegister[] GENERAL_PURPOSE_REGISTERS = new IRegister[] {
-        R8, R9, R10, R11, R12, R13, R14
+        R8, R9, R10, R11, R12, R13, R14, R15,
     };
 
     private X8664Register(String name64, String name32, String name16, String name8) {
@@ -39,20 +39,24 @@ public enum X8664Register implements IRegister {
         this.name8 = "%" + name8;
     }
 
-    public String name64() {
-        return this.name64;
+    @Override
+    public String name(int bitlength) {
+        return switch (bitlength) {
+            case (64) -> this.name64;
+            case (32) -> this.name32;
+            case (16) -> this.name16;
+            case (8) -> this.name8;
+            default -> throw new IllegalArgumentException(
+                "bitlength " + bitlength + " not applicable for " + X8664Register.class
+            );
+        };
     }
 
-    public String name32() {
-        return this.name32;
-    }
-
-    public String name16() {
-        return this.name16;
-    }
-
-    public String name8() {
-        return this.name8;
+    @Override
+    public String toString() {
+        throw new UnsupportedOperationException(
+            "toString() used for a register. You should use name(int bitlength) instead"
+        );
     }
 
     public static IRegister[] getGeneralPurposeRegisters() {

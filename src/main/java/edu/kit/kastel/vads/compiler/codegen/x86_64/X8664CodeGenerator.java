@@ -36,7 +36,7 @@ public class X8664CodeGenerator {
             numberOfStackRegisters = allocator.numberOfStackRegisters();
 
             if (numberOfStackRegisters > 0) {
-                moveStackPointer(builder, -numberOfStackRegisters * 8, X8664Register.RSP);
+                moveStackPointer(builder, -numberOfStackRegisters * 8);
             }
             builder.append("\n");
             generateForGraph(graph, builder, registerAllocation);
@@ -65,8 +65,8 @@ public class X8664CodeGenerator {
             case ModNode mod -> divisionBinary(builder, registers, mod);
 
             // other nodes
-            case BoolNode bool -> move(builder, "$" + bool.value(), registers.get(bool));
-            case ConstIntNode constInt -> move(builder, "$" + constInt.value(), registers.get(constInt));
+            case BoolNode bool -> constant(builder, bool.value(), registers.get(bool));
+            case ConstIntNode constInt -> constant(builder, constInt.value(), registers.get(constInt));
             case ReturnNode ret -> ret(builder, registers, ret);
             case Phi _ -> throw new UnsupportedOperationException("phi");
             case Block _,ProjNode _,StartNode _ -> {
@@ -138,7 +138,7 @@ public class X8664CodeGenerator {
 
         builder.append("\n").repeat(" ", 2)
             .append("idivl ")
-            .append(rightRegister)
+            .append(rightRegister.name(32))
             .append("\n");
 
         // The quotient (needed for division) is in rax,
@@ -162,7 +162,7 @@ public class X8664CodeGenerator {
         );
 
         if (numberOfStackRegisters > 0) {
-            moveStackPointer(builder, numberOfStackRegisters * 8, X8664Register.RSP);
+            moveStackPointer(builder, numberOfStackRegisters * 8);
         }
 
         builder.append("\n").repeat(" ", 2)
@@ -171,35 +171,48 @@ public class X8664CodeGenerator {
 
     private static void move(
         StringBuilder builder,
-        Object src,
-        Object dest
-    ) {
-
-        builder.repeat(" ", 2)
-            .append("movl ")
-            .append(src.toString())
-            .append(", ")
-            .append(dest.toString());
-    }
-
-    private static void sourceDest(
-        StringBuilder builder, String opcode, IRegister sourceRegister,
+        IRegister sourceRegister,
         IRegister destRegister
     ) {
 
         builder.repeat(" ", 2)
-            .append(opcode)
-            .append(" ")
-            .append(sourceRegister)
+            .append("movl ")
+            .append(sourceRegister.name(32))
             .append(", ")
-            .append(destRegister);
+            .append(destRegister.name(32));
     }
 
-    private static void moveStackPointer(StringBuilder builder, int offset, IRegister stackPointer) {
+    private static void constant(
+        StringBuilder builder,
+        int constant,
+        IRegister destRegister
+    ) {
+        builder.repeat(" ", 2)
+            .append("movl $")
+            .append(constant)
+            .append(", ")
+            .append(destRegister.name(32));
+    }
+
+    private static void sourceDest(
+        StringBuilder builder,
+        String opcode,
+        IRegister sourceRegister,
+        IRegister destRegister
+    ) {
+        builder.repeat(" ", 2)
+            .append(opcode)
+            .append(" ")
+            .append(sourceRegister.name(32))
+            .append(", ")
+            .append(destRegister.name(32));
+    }
+
+    private static void moveStackPointer(StringBuilder builder, int offset) {
         builder.append("\n").repeat(" ", 2)
             .append("add $")
             .append(offset)
             .append(", ")
-            .append(stackPointer);
+            .append(X8664Register.RSP.name(64));
     }
 }

@@ -8,7 +8,7 @@ import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
 
 public sealed interface Keyword extends Token permits BoolKeyword, ControlKeyword, TypeKeyword {
 
-    public static Keyword fromString(String string, Span span) {
+    static Keyword fromString(String string, Span span) {
         for (BoolKeywordType value : BoolKeywordType.values()) {
             if (value.keyword().equals(string)) {
                 return new BoolKeyword(value, span);
@@ -29,7 +29,7 @@ public sealed interface Keyword extends Token permits BoolKeyword, ControlKeywor
         return null;
     }
 
-    public KeywordType type();
+    KeywordType type();
 
     @Override
     default boolean isKeyword(KeywordType keywordType) {
@@ -41,7 +41,7 @@ public sealed interface Keyword extends Token permits BoolKeyword, ControlKeywor
         return type().toString();
     }
 
-    public sealed interface KeywordType permits BoolKeywordType, ControlKeywordType, TypeKeywordType {
+    sealed interface KeywordType permits BoolKeywordType, ControlKeywordType, TypeKeywordType {
 
         public String keyword();
     }
