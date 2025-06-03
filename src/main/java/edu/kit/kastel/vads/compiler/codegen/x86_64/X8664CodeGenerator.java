@@ -8,6 +8,7 @@ import java.util.Set;
 import edu.kit.kastel.vads.compiler.codegen.IRegister;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
+import edu.kit.kastel.vads.compiler.ir.node.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.node.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.Phi;
@@ -53,13 +54,17 @@ public class X8664CodeGenerator {
         }
 
         switch (node) {
+            // binary operation nodes
             case AddNode add -> defaultBinary(builder, registers, add, "addl");
             case SubNode sub -> defaultBinary(builder, registers, sub, "subl");
             case MulNode mul -> defaultBinary(builder, registers, mul, "imull");
             case DivNode div -> divisionBinary(builder, registers, div);
             case ModNode mod -> divisionBinary(builder, registers, mod);
-            case ReturnNode r -> ret(builder, registers, r);
+
+            // other nodes
+            case BoolNode bool -> move(builder, "$" + bool.value(), registers.get(bool));
             case ConstIntNode c -> move(builder, "$" + c.value(), registers.get(c));
+            case ReturnNode r -> ret(builder, registers, r);
             case Phi _ -> throw new UnsupportedOperationException("phi");
             case Block _,ProjNode _,StartNode _ -> {
                 // do nothing, skip line break

@@ -158,9 +158,9 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(BoolTree boolTree, SsaTranslation data) {
             pushSpan(boolTree);
-
+            Node node = data.graphConstructor.newBooNode(boolTree.value());
             popSpan();
-            return;
+            return Optional.of(node);
         }
 
         @Override

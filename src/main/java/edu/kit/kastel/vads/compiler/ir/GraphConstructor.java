@@ -1,6 +1,7 @@
 package edu.kit.kastel.vads.compiler.ir;
 
 import edu.kit.kastel.vads.compiler.ir.node.Block;
+import edu.kit.kastel.vads.compiler.ir.node.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.node.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.Phi;
@@ -44,6 +45,8 @@ class GraphConstructor {
         return new StartNode(currentBlock());
     }
 
+    // Binary operation nodes
+
     public Node newAdd(Node left, Node right) {
         return this.optimizer.transform(new AddNode(currentBlock(), left, right));
     }
@@ -64,14 +67,16 @@ class GraphConstructor {
         return this.optimizer.transform(new ModNode(currentBlock(), left, right, readCurrentSideEffect()));
     }
 
-    public Node newReturn(Node result) {
-        return new ReturnNode(currentBlock(), readCurrentSideEffect(), result);
-    }
+    // Other nodes
 
     public Node newConstInt(int value) {
         // always move const into start block, this allows better deduplication
         // and resultingly in better value numbering
         return this.optimizer.transform(new ConstIntNode(this.graph.startBlock(), value));
+    }
+
+    public Node newBooNode(int value) {
+        return this.optimizer.transform(new BoolNode(this.graph.startBlock(), value));
     }
 
     public Node newSideEffectProj(Node node) {
@@ -80,6 +85,10 @@ class GraphConstructor {
 
     public Node newResultProj(Node node) {
         return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.RESULT);
+    }
+
+    public Node newReturn(Node result) {
+        return new ReturnNode(currentBlock(), readCurrentSideEffect(), result);
     }
 
     public Block currentBlock() {
