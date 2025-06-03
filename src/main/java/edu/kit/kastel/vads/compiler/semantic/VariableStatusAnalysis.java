@@ -1,10 +1,10 @@
 package edu.kit.kastel.vads.compiler.semantic;
 
-import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
-import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.NoOpVisitor;
 import edu.kit.kastel.vads.compiler.parser.visitor.Unit;
 import org.jspecify.annotations.Nullable;

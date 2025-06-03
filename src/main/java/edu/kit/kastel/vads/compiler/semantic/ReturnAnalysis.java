@@ -1,7 +1,7 @@
 package edu.kit.kastel.vads.compiler.semantic;
 
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.NoOpVisitor;
 import edu.kit.kastel.vads.compiler.parser.visitor.Unit;
 

@@ -1,6 +1,7 @@
-package edu.kit.kastel.vads.compiler.parser.ast;
+package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record ContinueTree(Span span) implements StatementTree {

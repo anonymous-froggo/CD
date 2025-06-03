@@ -1,25 +1,25 @@
 package edu.kit.kastel.vads.compiler.parser.visitor;
 
-import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
-import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
-import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
-import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
-import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
-import edu.kit.kastel.vads.compiler.parser.ast.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
-import edu.kit.kastel.vads.compiler.parser.ast.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
-import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
-import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
-import edu.kit.kastel.vads.compiler.parser.ast.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
-import edu.kit.kastel.vads.compiler.parser.ast.WhileTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 
 /// A visitor that traverses a tree in postorder and lets [this{@link #visitor}] visit each node
 /// @param <T> a type for additional data

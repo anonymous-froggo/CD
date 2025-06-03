@@ -1,4 +1,4 @@
-package edu.kit.kastel.vads.compiler.parser.ast;
+package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.Operator;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;

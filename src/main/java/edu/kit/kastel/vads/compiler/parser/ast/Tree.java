@@ -1,6 +1,7 @@
 package edu.kit.kastel.vads.compiler.parser.ast;
 
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public sealed interface Tree permits 
