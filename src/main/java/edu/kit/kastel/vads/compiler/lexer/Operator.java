@@ -1,6 +1,7 @@
 package edu.kit.kastel.vads.compiler.lexer;
 
-public sealed interface Operator extends Token permits UnaryOperator, BinaryOperator, AssignmentOperator {
+public sealed interface Operator extends Token permits AssignmentOperator, BinaryOperator, UnaryOperator {
+    
     public OperatorType type();
 
     @Override
@@ -8,7 +9,15 @@ public sealed interface Operator extends Token permits UnaryOperator, BinaryOper
         return operatorType == type();
     }
 
-    public interface OperatorType {
+    @Override
+    default String asString() {
+        return type().toString();
+    }
+
+    public sealed interface OperatorType permits
+        AssignmentOperator.AssignmentOperatorType,
+        BinaryOperator.BinaryOperatorType,
+        UnaryOperator.UnaryOperatorType {
     }
 
     public enum Associativity {

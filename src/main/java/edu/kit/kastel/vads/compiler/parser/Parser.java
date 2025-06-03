@@ -24,7 +24,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.IdentifierTree;
@@ -37,7 +36,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
-import edu.kit.kastel.vads.compiler.parser.ast.TrueTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
@@ -269,10 +268,7 @@ public class Parser {
 
         if (token.isKeyword(KeywordType.TRUE)) {
             // true
-            atom = new TrueTree(token.span());
-        } else if (token.isKeyword(KeywordType.FALSE)) {
-            // false
-            atom = new FalseTree(token.span());
+            atom = new BoolTree(token.span());
         } else if (token instanceof Identifier identifier) {
             // ident
             atom = new IdentifierTree(name(identifier));

@@ -3,7 +3,7 @@ package edu.kit.kastel.vads.compiler.parser.visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BlockTree;
-import edu.kit.kastel.vads.compiler.parser.ast.TrueTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
@@ -57,7 +57,7 @@ public interface Visitor<T, R> {
 
     R visit(ReturnTree returnTree, T data);
 
-    R visit(TrueTree trueTree, T data);
+    R visit(BoolTree trueTree, T data);
 
     R visit(TypeTree typeTree, T data);
 

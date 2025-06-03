@@ -14,7 +14,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
-import edu.kit.kastel.vads.compiler.parser.ast.TrueTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.FalseTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ForTree;
@@ -27,6 +27,7 @@ import java.util.List;
 
 /// This is a utility class to help with debugging the parser.
 public class Printer {
+    public static final int TAB_WIDTH = 4;
 
     private final Tree ast;
     private final StringBuilder builder = new StringBuilder();
@@ -126,7 +127,7 @@ public class Printer {
                 printTree(expr);
                 semicolon();
             }
-            case TrueTree(_) -> print("true");
+            case BoolTree(_) -> print("true");
             case TypeTree(var type, _) -> print(type.asString());
             case UnaryOperationTree(var operator, var expression) -> {
                 this.builder.append(operator);
@@ -137,15 +138,13 @@ public class Printer {
             case WhileTree() -> throw new UnsupportedOperationException(
                 "printing '" + tree.getClass() + "' is not implemented"
             );
-            // default -> throw new UnsupportedOperationException("printing '" +
-            // tree.getClass() + "' is not implemented");
         }
     }
 
     private void print(String str) {
         if (this.requiresIndent) {
             this.requiresIndent = false;
-            this.builder.append(" ".repeat(4 * this.indentDepth));
+            this.builder.append(" ".repeat(TAB_WIDTH * this.indentDepth));
         }
         this.builder.append(str);
     }

@@ -40,32 +40,32 @@ class GraphConstructor {
     }
 
     public Node newStart() {
-        assert currentBlock() == this.graph.startBlock() : "start must be in start block";
-        return new StartNode(currentBlock());
+        assert getCurrentBlock() == this.graph.startBlock() : "start must be in start block";
+        return new StartNode(getCurrentBlock());
     }
 
     public Node newAdd(Node left, Node right) {
-        return this.optimizer.transform(new AddNode(currentBlock(), left, right));
+        return this.optimizer.transform(new AddNode(getCurrentBlock(), left, right));
     }
 
     public Node newSub(Node left, Node right) {
-        return this.optimizer.transform(new SubNode(currentBlock(), left, right));
+        return this.optimizer.transform(new SubNode(getCurrentBlock(), left, right));
     }
 
     public Node newMul(Node left, Node right) {
-        return this.optimizer.transform(new MulNode(currentBlock(), left, right));
+        return this.optimizer.transform(new MulNode(getCurrentBlock(), left, right));
     }
 
     public Node newDiv(Node left, Node right) {
-        return this.optimizer.transform(new DivNode(currentBlock(), left, right, readCurrentSideEffect()));
+        return this.optimizer.transform(new DivNode(getCurrentBlock(), left, right, readCurrentSideEffect()));
     }
 
     public Node newMod(Node left, Node right) {
-        return this.optimizer.transform(new ModNode(currentBlock(), left, right, readCurrentSideEffect()));
+        return this.optimizer.transform(new ModNode(getCurrentBlock(), left, right, readCurrentSideEffect()));
     }
 
     public Node newReturn(Node result) {
-        return new ReturnNode(currentBlock(), readCurrentSideEffect(), result);
+        return new ReturnNode(getCurrentBlock(), readCurrentSideEffect(), result);
     }
 
     public Node newConstInt(int value) {
@@ -75,20 +75,20 @@ class GraphConstructor {
     }
 
     public Node newSideEffectProj(Node node) {
-        return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.SIDE_EFFECT);
+        return new ProjNode(getCurrentBlock(), node, ProjNode.SimpleProjectionInfo.SIDE_EFFECT);
     }
 
     public Node newResultProj(Node node) {
-        return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.RESULT);
+        return new ProjNode(getCurrentBlock(), node, ProjNode.SimpleProjectionInfo.RESULT);
     }
 
-    public Block currentBlock() {
+    public Block getCurrentBlock() {
         return this.currentBlock;
     }
 
     public Phi newPhi() {
         // don't transform phi directly, it is not ready yet
-        return new Phi(currentBlock());
+        return new Phi(getCurrentBlock());
     }
 
     public IrGraph graph() {
@@ -146,7 +146,7 @@ class GraphConstructor {
     }
 
     public void writeCurrentSideEffect(Node node) {
-        writeSideEffect(currentBlock(), node);
+        writeSideEffect(getCurrentBlock(), node);
     }
 
     private void writeSideEffect(Block block, Node node) {
@@ -154,7 +154,7 @@ class GraphConstructor {
     }
 
     public Node readCurrentSideEffect() {
-        return readSideEffect(currentBlock());
+        return readSideEffect(getCurrentBlock());
     }
 
     private Node readSideEffect(Block block) {

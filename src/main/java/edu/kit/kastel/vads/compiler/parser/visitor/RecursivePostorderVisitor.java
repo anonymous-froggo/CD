@@ -18,11 +18,11 @@ import edu.kit.kastel.vads.compiler.parser.ast.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
-import edu.kit.kastel.vads.compiler.parser.ast.TrueTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.WhileTree;
 
-/// A visitor that traverses a tree in postorder
+/// A visitor that traverses a tree in postorder and lets [this{@link #visitor}] visit each node
 /// @param <T> a type for additional data
 /// @param <R> a type for a return type
 public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
@@ -82,7 +82,12 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         r = this.visitor.visit(declarationTree, accumulate(data, r));
         return r;
     }
-
+    
+    @Override
+    public R visit(FalseTree falseTree, T data) {
+        return this.visitor.visit(falseTree, data);
+    }
+    
     @Override
     public R visit(ForTree forTree, T data) {
         // TODO Auto-generated method stub
@@ -155,24 +160,17 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
+    public R visit(BoolTree trueTree, T data) {
+        return this.visitor.visit(trueTree, data);
+    }
+
+    @Override
     public R visit(TypeTree typeTree, T data) {
         return this.visitor.visit(typeTree, data);
     }
 
     @Override
     public R visit(WhileTree whileTree, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
-    }
-
-    @Override
-    public R visit(FalseTree falseTree, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
-    }
-
-    @Override
-    public R visit(TrueTree trueTree, T data) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }

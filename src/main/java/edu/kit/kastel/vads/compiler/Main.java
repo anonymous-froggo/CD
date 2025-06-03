@@ -47,9 +47,9 @@ public class Main {
         }
 
         List<IrGraph> graphs = new ArrayList<>();
-        for (FunctionTree function : program.topLevelTrees()) {
-            SsaTranslation translation = new SsaTranslation(function, new LocalValueNumbering());
-            graphs.add(translation.translate());
+        for (FunctionTree functionTree : program.topLevelTrees()) {
+            SsaTranslation ssaTranslation = new SsaTranslation(functionTree, new LocalValueNumbering());
+            graphs.add(ssaTranslation.translate());
         }
 
         String generatedCode = X8664CodeGenerator.generateCode(graphs);

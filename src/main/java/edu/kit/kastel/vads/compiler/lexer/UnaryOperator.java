@@ -3,11 +3,6 @@ package edu.kit.kastel.vads.compiler.lexer;
 import edu.kit.kastel.vads.compiler.Span;
 
 public record UnaryOperator(UnaryOperatorType type, Span span) implements Operator {
-    @Override
-    public String asString() {
-        return type().toString();
-    }
-
     public enum UnaryOperatorType implements OperatorType {
         LOGICAL_NOT("!"),
         BITWISE_NOT("~");

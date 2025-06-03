@@ -26,7 +26,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
-import edu.kit.kastel.vads.compiler.parser.ast.TrueTree;
+import edu.kit.kastel.vads.compiler.parser.ast.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
@@ -45,30 +45,33 @@ import java.util.function.BinaryOperator;
 ///
 /// We recommend to read the paper to better understand the mechanics implemented here.
 public class SsaTranslation {
-    private final FunctionTree function;
-    private final GraphConstructor constructor;
+    // Input
+    private final FunctionTree functionTree;
 
-    public SsaTranslation(FunctionTree function, Optimizer optimizer) {
-        this.function = function;
-        this.constructor = new GraphConstructor(optimizer, function.name().name().asString());
+    // Output constructor
+    private final GraphConstructor graphConstructor;
+
+    public SsaTranslation(FunctionTree functionTree, Optimizer optimizer) {
+        this.functionTree = functionTree;
+        this.graphConstructor = new GraphConstructor(optimizer, functionTree.name().name().asString());
     }
 
     public IrGraph translate() {
         var visitor = new SsaTranslationVisitor();
-        this.function.accept(visitor, this);
-        return this.constructor.graph();
+        this.functionTree.accept(visitor, this);
+        return this.graphConstructor.graph();
     }
 
     private void writeVariable(Name variable, Block block, Node value) {
-        this.constructor.writeVariable(variable, block, value);
+        this.graphConstructor.writeVariable(variable, block, value);
     }
 
     private Node readVariable(Name variable, Block block) {
-        return this.constructor.readVariable(variable, block);
+        return this.graphConstructor.readVariable(variable, block);
     }
 
-    private Block currentBlock() {
-        return this.constructor.currentBlock();
+    private Block getCurrentBlock() {
+        return this.graphConstructor.getCurrentBlock();
     }
 
     private static class SsaTranslationVisitor implements Visitor<SsaTranslation, Optional<Node>> {
@@ -91,11 +94,11 @@ public class SsaTranslation {
         public Optional<Node> visit(AssignmentTree assignmentTree, SsaTranslation data) {
             pushSpan(assignmentTree);
             BinaryOperator<Node> desugar = switch (assignmentTree.operator().type()) {
-                case ASSIGN_MINUS -> data.constructor::newSub;
-                case ASSIGN_PLUS -> data.constructor::newAdd;
-                case ASSIGN_MUL -> data.constructor::newMul;
-                case ASSIGN_DIV -> (lhs, rhs) -> projResultDivMod(data, data.constructor.newDiv(lhs, rhs));
-                case ASSIGN_MOD -> (lhs, rhs) -> projResultDivMod(data, data.constructor.newMod(lhs, rhs));
+                case ASSIGN_MINUS -> data.graphConstructor::newSub;
+                case ASSIGN_PLUS -> data.graphConstructor::newAdd;
+                case ASSIGN_MUL -> data.graphConstructor::newMul;
+                case ASSIGN_DIV -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
+                case ASSIGN_MOD -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
                 case ASSIGN -> null;
                 default -> throw new IllegalArgumentException(
                     "not an assignment operator " + assignmentTree.operator()
@@ -108,9 +111,9 @@ public class SsaTranslation {
                     LValueIdentifierTree(var name) -> {
                     Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
                     if (desugar != null) {
-                        rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
+                        rhs = desugar.apply(data.readVariable(name.name(), data.getCurrentBlock()), rhs);
                     }
-                    data.writeVariable(name.name(), data.currentBlock(), rhs);
+                    data.writeVariable(name.name(), data.getCurrentBlock(), rhs);
                 }
             }
 
@@ -124,11 +127,11 @@ public class SsaTranslation {
             Node lhs = binaryOperationTree.lhs().accept(this, data).orElseThrow();
             Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
             Node res = switch (binaryOperationTree.operatorType()) {
-                case MINUS -> data.constructor.newSub(lhs, rhs);
-                case PLUS -> data.constructor.newAdd(lhs, rhs);
-                case MUL -> data.constructor.newMul(lhs, rhs);
-                case DIV -> projResultDivMod(data, data.constructor.newDiv(lhs, rhs));
-                case MOD -> projResultDivMod(data, data.constructor.newMod(lhs, rhs));
+                case MINUS -> data.graphConstructor.newSub(lhs, rhs);
+                case PLUS -> data.graphConstructor.newAdd(lhs, rhs);
+                case MUL -> data.graphConstructor.newMul(lhs, rhs);
+                case DIV -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
+                case MOD -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
                 default -> throw new IllegalArgumentException(
                     "not a binary expression operator " + binaryOperationTree.operatorType()
                 );
@@ -168,10 +171,16 @@ public class SsaTranslation {
             pushSpan(declarationTree);
             if (declarationTree.initializer() != null) {
                 Node rhs = declarationTree.initializer().accept(this, data).orElseThrow();
-                data.writeVariable(declarationTree.name().name(), data.currentBlock(), rhs);
+                data.writeVariable(declarationTree.name().name(), data.getCurrentBlock(), rhs);
             }
             popSpan();
             return NOT_AN_EXPRESSION;
+        }
+
+        @Override
+        public Optional<Node> visit(FalseTree falseTree, SsaTranslation data) {
+            pushSpan(falseTree);
+            popSpan();
         }
 
         @Override
@@ -183,8 +192,8 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(FunctionTree functionTree, SsaTranslation data) {
             pushSpan(functionTree);
-            Node start = data.constructor.newStart();
-            data.constructor.writeCurrentSideEffect(data.constructor.newSideEffectProj(start));
+            Node start = data.graphConstructor.newStart();
+            data.graphConstructor.writeCurrentSideEffect(data.graphConstructor.newSideEffectProj(start));
             functionTree.body().accept(this, data);
             popSpan();
             return NOT_AN_EXPRESSION;
@@ -193,7 +202,7 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(IdentifierTree identExpressionTree, SsaTranslation data) {
             pushSpan(identExpressionTree);
-            Node value = data.readVariable(identExpressionTree.name().name(), data.currentBlock());
+            Node value = data.readVariable(identExpressionTree.name().name(), data.getCurrentBlock());
             popSpan();
             return Optional.of(value);
         }
@@ -207,7 +216,7 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(NumberLiteralTree literalTree, SsaTranslation data) {
             pushSpan(literalTree);
-            Node node = data.constructor.newConstInt((int) literalTree.parseValue().orElseThrow());
+            Node node = data.graphConstructor.newConstInt((int) literalTree.parseValue().orElseThrow());
             popSpan();
             return Optional.of(node);
         }
@@ -226,7 +235,7 @@ public class SsaTranslation {
         public Optional<Node> visit(UnaryOperationTree negateTree, SsaTranslation data) {
             pushSpan(negateTree);
             Node node = negateTree.expression().accept(this, data).orElseThrow();
-            Node res = data.constructor.newSub(data.constructor.newConstInt(0), node);
+            Node res = data.graphConstructor.newSub(data.graphConstructor.newConstInt(0), node);
             popSpan();
             return Optional.of(res);
         }
@@ -240,10 +249,16 @@ public class SsaTranslation {
         public Optional<Node> visit(ReturnTree returnTree, SsaTranslation data) {
             pushSpan(returnTree);
             Node node = returnTree.expression().accept(this, data).orElseThrow();
-            Node ret = data.constructor.newReturn(node);
-            data.constructor.graph().endBlock().addPredecessor(ret);
+            Node ret = data.graphConstructor.newReturn(node);
+            data.graphConstructor.graph().endBlock().addPredecessor(ret);
             popSpan();
             return NOT_AN_EXPRESSION;
+        }
+
+        @Override
+        public Optional<Node> visit(BoolTree trueTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
 
         @Override
@@ -257,25 +272,13 @@ public class SsaTranslation {
             if (!(divMod instanceof DivNode || divMod instanceof ModNode)) {
                 return divMod;
             }
-            Node projSideEffect = data.constructor.newSideEffectProj(divMod);
-            data.constructor.writeCurrentSideEffect(projSideEffect);
-            return data.constructor.newResultProj(divMod);
+            Node projSideEffect = data.graphConstructor.newSideEffectProj(divMod);
+            data.graphConstructor.writeCurrentSideEffect(projSideEffect);
+            return data.graphConstructor.newResultProj(divMod);
         }
 
         @Override
         public Optional<Node> visit(WhileTree whileTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
-        }
-
-        @Override
-        public Optional<Node> visit(FalseTree falseTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
-        }
-
-        @Override
-        public Optional<Node> visit(TrueTree trueTree, SsaTranslation data) {
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }

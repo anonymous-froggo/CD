@@ -1,5 +1,5 @@
 package edu.kit.kastel.vads.compiler.parser.ast;
 
 public sealed interface ExpressionTree extends Tree
-    permits BinaryOperationTree, FalseTree, IdentifierTree, NumberLiteralTree, TrueTree, UnaryOperationTree {
+    permits BinaryOperationTree, FalseTree, IdentifierTree, NumberLiteralTree, BoolTree, UnaryOperationTree {
 }
