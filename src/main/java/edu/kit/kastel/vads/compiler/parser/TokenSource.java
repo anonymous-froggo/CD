@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class TokenSource {
+
     private final List<Token> tokens;
     private int idx;
 
@@ -24,7 +25,7 @@ public class TokenSource {
             .map(Optional::orElseThrow)
             .toList();
     }
- 
+
     TokenSource(List<Token> tokens) {
         this.tokens = List.copyOf(tokens);
     }

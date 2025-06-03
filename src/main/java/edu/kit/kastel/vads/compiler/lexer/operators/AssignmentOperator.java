@@ -3,12 +3,14 @@ package edu.kit.kastel.vads.compiler.lexer.operators;
 import edu.kit.kastel.vads.compiler.Span;
 
 public record AssignmentOperator(AssignmentOperatorType type, Span span) implements Operator {
+
     @Override
     public String asString() {
         return type().toString();
     }
 
     public enum AssignmentOperatorType implements OperatorType {
+
         ASSIGN("="),
         ASSIGN_PLUS("+="),
         ASSIGN_MINUS("-="),

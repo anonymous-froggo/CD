@@ -14,6 +14,7 @@ import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.Node;
 
 public class X8664RegisterAllocator implements IRegisterAllocator {
+
     private List<IRegister> registers;
     private final IrGraph irGraph;
     private final Map<Node, IRegister> registerAllocation = new HashMap<>();

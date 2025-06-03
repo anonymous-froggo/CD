@@ -23,7 +23,7 @@ public sealed interface Operator extends Token permits AssignmentOperator, Binar
     }
 
     public enum Associativity {
-        
+
         LEFT, RIGHT;
     }
 }

@@ -25,6 +25,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 /// @param <T> a type for additional data
 /// @param <R> a type for a return type
 public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
+
     private final Visitor<T, R> visitor;
 
     public RecursivePostorderVisitor(Visitor<T, R> visitor) {

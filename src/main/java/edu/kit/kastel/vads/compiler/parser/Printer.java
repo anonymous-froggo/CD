@@ -26,6 +26,7 @@ import java.util.List;
 
 /// This is a utility class to help with debugging the parser.
 public class Printer {
+
     public static final int TAB_WIDTH = 4;
 
     private final Tree ast;

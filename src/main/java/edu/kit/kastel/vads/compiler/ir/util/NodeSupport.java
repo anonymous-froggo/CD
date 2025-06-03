@@ -4,6 +4,7 @@ import edu.kit.kastel.vads.compiler.ir.node.Node;
 import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
 
 public final class NodeSupport {
+
     private NodeSupport() {
 
     }

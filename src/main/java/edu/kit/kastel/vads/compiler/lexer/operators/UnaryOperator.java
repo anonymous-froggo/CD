@@ -3,7 +3,9 @@ package edu.kit.kastel.vads.compiler.lexer.operators;
 import edu.kit.kastel.vads.compiler.Span;
 
 public record UnaryOperator(UnaryOperatorType type, Span span) implements Operator {
+
     public enum UnaryOperatorType implements OperatorType {
+
         LOGICAL_NOT("!"),
         BITWISE_NOT("~");
         // unary minus is implemented in {BinaryOperator}

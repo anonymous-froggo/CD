@@ -12,7 +12,7 @@ public final class BoolNode extends Node {
     public int value() {
         return this.value();
     }
-    
+
     // This is used in order to enable optimization -> if one constant is used
     // several times, it may as well just be the same node
     @Override
@@ -23,10 +23,11 @@ public final class BoolNode extends Node {
         return false;
     }
 
-    // TODO implement optimization similar to {ConstIntNode}
+    // This is used in order to enable optimization for hashmaps etc. -> if one
+    // constant is used several times, it may as well just be the same node
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return this.value;
     }
 
     @Override

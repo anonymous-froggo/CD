@@ -19,7 +19,7 @@ public record BoolTree(BoolKeyword keyword) implements ExpressionTree {
 
     // TODO check if 0 and 1 is really what you should use here
     public int value() {
-        return switch(keyword.type()) {
+        return switch (keyword.type()) {
             case BoolKeywordType.FALSE -> 0;
             case BoolKeywordType.TRUE -> 1;
         };

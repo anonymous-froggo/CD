@@ -4,14 +4,15 @@ import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public sealed interface Tree permits 
+public sealed interface Tree permits
     ExpressionTree,
     FunctionTree,
     LValueTree,
     NameTree,
     ProgramTree,
     StatementTree,
-    TypeTree {
+    TypeTree
+{
 
     Span span();
 

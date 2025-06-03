@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
+
     public static boolean DEBUG = false;
 
     public static final Path OUTPUT_FOLDER = Path.of("output");
@@ -88,13 +89,13 @@ public class Main {
 
         try {
             Process gccProcess = Runtime.getRuntime().exec(new String[] {
-                    "gcc", ASSEMBLY_FILE.toString(), "-o", output.toString()
+                "gcc", ASSEMBLY_FILE.toString(), "-o", output.toString()
             });
             gccProcess.waitFor();
 
             if (Main.DEBUG) {
                 Process outputProcess = Runtime.getRuntime().exec(new String[] {
-                        "./" + output.toString()
+                    "./" + output.toString()
                 });
                 outputProcess.waitFor();
 

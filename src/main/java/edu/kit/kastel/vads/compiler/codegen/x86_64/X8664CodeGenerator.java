@@ -25,6 +25,7 @@ import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.SubNode;
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
 public class X8664CodeGenerator {
+
     private static int numberOfStackRegisters;
 
     public static String generateCode(List<IrGraph> program) {
@@ -34,7 +35,9 @@ public class X8664CodeGenerator {
             Map<Node, IRegister> registerAllocation = allocator.allocateRegisters();
             numberOfStackRegisters = allocator.numberOfStackRegisters();
 
-            moveStackPointer(builder, -numberOfStackRegisters * 8, X8664Register.RSP);
+            if (numberOfStackRegisters > 0) {
+                moveStackPointer(builder, -numberOfStackRegisters * 8, X8664Register.RSP);
+            }
             builder.append("\n");
             generateForGraph(graph, builder, registerAllocation);
         }
@@ -63,8 +66,8 @@ public class X8664CodeGenerator {
 
             // other nodes
             case BoolNode bool -> move(builder, "$" + bool.value(), registers.get(bool));
-            case ConstIntNode c -> move(builder, "$" + c.value(), registers.get(c));
-            case ReturnNode r -> ret(builder, registers, r);
+            case ConstIntNode constInt -> move(builder, "$" + constInt.value(), registers.get(constInt));
+            case ReturnNode ret -> ret(builder, registers, ret);
             case Phi _ -> throw new UnsupportedOperationException("phi");
             case Block _,ProjNode _,StartNode _ -> {
                 // do nothing, skip line break
@@ -157,7 +160,10 @@ public class X8664CodeGenerator {
             registerAllocation.get(predecessorSkipProj(node, ReturnNode.RESULT)),
             X8664Register.RAX
         );
-        moveStackPointer(builder, numberOfStackRegisters * 8, X8664Register.RSP);
+
+        if (numberOfStackRegisters > 0) {
+            moveStackPointer(builder, numberOfStackRegisters * 8, X8664Register.RSP);
+        }
 
         builder.append("\n").repeat(" ", 2)
             .append("ret");

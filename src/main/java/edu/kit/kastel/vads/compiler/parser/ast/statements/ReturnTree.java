@@ -7,6 +7,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record ReturnTree(ExpressionTree expression, Position start) implements StatementTree {
+
     @Override
     public Span span() {
         return new Span.SimpleSpan(start(), expression().span().end());

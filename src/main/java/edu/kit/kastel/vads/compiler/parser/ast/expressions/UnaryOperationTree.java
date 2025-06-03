@@ -5,6 +5,7 @@ import edu.kit.kastel.vads.compiler.lexer.operators.Operator;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record UnaryOperationTree(Operator operator, ExpressionTree expression) implements ExpressionTree {
+
     @Override
     public Span span() {
         return operator.span().merge(expression().span());

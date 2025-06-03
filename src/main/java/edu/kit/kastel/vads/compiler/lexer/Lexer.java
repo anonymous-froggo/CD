@@ -19,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 public class Lexer {
+
     private final String source;
     private int pos;
     private int lineStart;
@@ -148,7 +149,7 @@ public class Lexer {
             off++;
         }
         String id = this.source.substring(this.pos, this.pos + off);
-        
+
         // TODO: This is a naive solution. Using a better data structure (hashmap, trie)
         // likely performs better.
         Span span = buildSpan(off);

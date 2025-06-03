@@ -10,6 +10,7 @@ import java.util.SequencedSet;
 import java.util.Set;
 
 public class IrGraph {
+
     private final Map<Node, SequencedSet<Node>> successors = new IdentityHashMap<>();
     private final Block startBlock;
     private final Block endBlock;

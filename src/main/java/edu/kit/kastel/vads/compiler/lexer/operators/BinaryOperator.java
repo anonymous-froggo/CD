@@ -3,12 +3,14 @@ package edu.kit.kastel.vads.compiler.lexer.operators;
 import edu.kit.kastel.vads.compiler.Span;
 
 public record BinaryOperator(BinaryOperatorType type, Span span) implements Operator {
+
     @Override
     public String asString() {
         return type().toString();
     }
 
     public enum BinaryOperatorType implements OperatorType {
+
         MUL("*", 11),
         DIV("/", 11),
         MOD("%", 11),

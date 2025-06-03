@@ -7,6 +7,7 @@ import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
 import edu.kit.kastel.vads.compiler.parser.ParseException;
 
 public enum BasicType implements Type {
+
     INT,
     BOOL;
 

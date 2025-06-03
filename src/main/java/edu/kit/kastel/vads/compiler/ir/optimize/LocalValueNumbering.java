@@ -11,6 +11,7 @@ import java.util.Map;
 /// When using classes like [HashMap] or [java.util.HashSet] without this optimization,
 /// the [Node#equals(java.lang.Object)] and  [Node#hashCode()] methods must be adjusted.
 public class LocalValueNumbering implements Optimizer {
+
     private final Map<Node, Node> knownNodes = new HashMap<>();
 
     @Override

@@ -5,6 +5,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record FunctionTree(TypeTree returnType, NameTree name, BlockTree body) implements Tree {
+
     @Override
     public Span span() {
         return new Span.SimpleSpan(returnType().span().start(), body().span().end());

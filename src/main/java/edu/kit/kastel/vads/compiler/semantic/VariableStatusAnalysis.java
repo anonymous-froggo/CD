@@ -80,6 +80,7 @@ class VariableStatusAnalysis implements NoOpVisitor<Namespace<VariableStatusAnal
     }
 
     enum VariableStatus {
+
         DECLARED,
         INITIALIZED;
 

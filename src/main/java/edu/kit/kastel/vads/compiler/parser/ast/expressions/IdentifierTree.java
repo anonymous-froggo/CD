@@ -5,6 +5,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record IdentifierTree(NameTree name) implements ExpressionTree {
+
     @Override
     public Span span() {
         return name().span();

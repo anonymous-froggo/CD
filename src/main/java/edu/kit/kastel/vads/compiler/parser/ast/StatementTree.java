@@ -19,5 +19,6 @@ public sealed interface StatementTree extends Tree permits
     ForTree,
     IfTree,
     ReturnTree,
-    WhileTree {
+    WhileTree
+{
 }

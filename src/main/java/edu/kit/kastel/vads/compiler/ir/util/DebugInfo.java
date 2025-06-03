@@ -4,6 +4,7 @@ import edu.kit.kastel.vads.compiler.Span;
 
 /// Provides information to ease debugging
 public sealed interface DebugInfo {
+
     enum NoInfo implements DebugInfo {
         INSTANCE
     }

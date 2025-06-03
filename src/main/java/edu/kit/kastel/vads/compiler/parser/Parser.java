@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
+
     private final TokenSource tokenSource;
 
     public Parser(TokenSource tokenSource) {
@@ -250,8 +251,11 @@ public class Parser {
 
         int nextMinPrecedence;
 
-        while (this.tokenSource.peek() instanceof BinaryOperator operator
-            && operator.type().precedence() >= minPrecedence) {
+        while (
+            this.tokenSource.peek() instanceof BinaryOperator operator
+                && operator.type().precedence() >= minPrecedence
+        )
+        {
             this.tokenSource.consume();
             precedence = operator.type().precedence();
             associativity = operator.type().associativity();

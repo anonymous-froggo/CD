@@ -3,6 +3,7 @@ package edu.kit.kastel.vads.compiler.codegen.x86_64;
 import edu.kit.kastel.vads.compiler.codegen.IRegister;
 
 public class X8664StackRegister implements IRegister {
+
     private int offset;
     private String id;
 

@@ -10,6 +10,7 @@ import edu.kit.kastel.vads.compiler.parser.visitor.Unit;
 class ReturnAnalysis implements NoOpVisitor<ReturnAnalysis.ReturnState> {
 
     static class ReturnState {
+
         boolean returns = false;
     }
 

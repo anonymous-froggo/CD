@@ -7,7 +7,10 @@ import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public record AssignmentTree(LValueTree lValue, AssignmentOperator operator, ExpressionTree expression) implements StatementTree {
+public record AssignmentTree(LValueTree lValue, AssignmentOperator operator, ExpressionTree expression)
+    implements StatementTree
+{
+
     @Override
     public Span span() {
         return lValue().span().merge(expression().span());

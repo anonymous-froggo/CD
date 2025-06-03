@@ -23,6 +23,7 @@ import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
 
 public class LivenessAnalysis {
+
     private static Map<Node, Set<Node>> def = new HashMap<>();
     private static Map<Node, Set<Node>> use = new HashMap<>();
     private static Map<Node, Set<Node>> succ = new HashMap<>();
@@ -34,6 +35,7 @@ public class LivenessAnalysis {
     private static List<Node> schedule = new ArrayList<>();
 
     public static InterferenceGraph calculateInterferenceGraph(IrGraph irGraph) {
+
         // TODO: generate IR-Graph for each graph in the program
         if (Main.DEBUG) {
             GraphVizPrinter.generateSvg(irGraph);
@@ -164,7 +166,9 @@ public class LivenessAnalysis {
         }
     }
 
-    private static boolean addFact(Map<Node, Set<Node>> predicate, Node line, Node subject) {
+    private static boolean addFact(
+        Map<Node, Set<Node>> predicate, Node line, Node subject
+    ) {
         if (!predicate.containsKey(line)) {
             predicate.put(line, new HashSet<>());
         }

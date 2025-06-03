@@ -44,6 +44,7 @@ import java.util.function.BinaryOperator;
 ///
 /// We recommend to read the paper to better understand the mechanics implemented here.
 public class SsaTranslation {
+
     // Input
     private final FunctionTree functionTree;
 

@@ -20,6 +20,7 @@ import java.util.Set;
 
 /// Outputs a DOT format string to visualize an [IrGraph].
 public class GraphVizPrinter {
+
     public static final Path IR_GRAPH_DOT_FILE = Main.OUTPUT_FOLDER.resolve("ir-graph.dot");
     public static final Path IR_GRAPH_SVG_FILE = Main.OUTPUT_FOLDER.resolve("ir-graph.svg");
 
@@ -35,17 +36,15 @@ public class GraphVizPrinter {
     }
 
     public static void generateSvg(IrGraph graph) {
-        if (Main.DEBUG)
-            System.out.println("Generating IR-Graph...");
+        System.out.println("Generating IR-Graph...");
         String graphAsDotString = print(graph);
         try {
             Files.writeString(IR_GRAPH_DOT_FILE, graphAsDotString);
             Process dotProcess = Runtime.getRuntime().exec(new String[] {
-                    "dot", "-Tsvg", IR_GRAPH_DOT_FILE.toString(), "-o", IR_GRAPH_SVG_FILE.toString()
+                "dot", "-Tsvg", IR_GRAPH_DOT_FILE.toString(), "-o", IR_GRAPH_SVG_FILE.toString()
             });
             dotProcess.waitFor();
-            if (Main.DEBUG)
-                System.out.println(String.format("dot exited with code %s", dotProcess.exitValue()));
+            System.out.println(String.format("dot exited with code %s", dotProcess.exitValue()));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
