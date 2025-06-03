@@ -154,9 +154,11 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(BoolTree trueTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        public Optional<Node> visit(BoolTree boolTree, SsaTranslation data) {
+            pushSpan(boolTree);
+
+            popSpan();
+            return ;
         }
 
         @Override

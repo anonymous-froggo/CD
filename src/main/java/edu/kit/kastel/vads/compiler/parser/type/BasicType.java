@@ -2,8 +2,8 @@ package edu.kit.kastel.vads.compiler.parser.type;
 
 import java.util.Locale;
 
-import edu.kit.kastel.vads.compiler.lexer.Keyword;
-import edu.kit.kastel.vads.compiler.lexer.TypeKeyword.TypeKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword;
+import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
 import edu.kit.kastel.vads.compiler.parser.ParseException;
 
 public enum BasicType implements Type {

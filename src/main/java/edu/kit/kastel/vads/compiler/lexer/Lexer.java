@@ -2,14 +2,17 @@ package edu.kit.kastel.vads.compiler.lexer;
 
 import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator.AssignmentOperatorType;
-import edu.kit.kastel.vads.compiler.lexer.BinaryOperator.BinaryOperatorType;
-import edu.kit.kastel.vads.compiler.lexer.BoolKeyword.BoolKeywordType;
-import edu.kit.kastel.vads.compiler.lexer.ControlKeyword.ControlKeywordType;
-import edu.kit.kastel.vads.compiler.lexer.Keyword.KeywordType;
-import edu.kit.kastel.vads.compiler.lexer.Operator.OperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
-import edu.kit.kastel.vads.compiler.lexer.TypeKeyword.TypeKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword;
+import edu.kit.kastel.vads.compiler.lexer.keywords.BoolKeyword.BoolKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.ControlKeyword.ControlKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword.KeywordType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator;
+import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator;
+import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.operators.Operator.OperatorType;
 
 import org.jspecify.annotations.Nullable;
 

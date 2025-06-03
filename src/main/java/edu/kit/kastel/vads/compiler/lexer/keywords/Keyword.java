@@ -1,9 +1,10 @@
-package edu.kit.kastel.vads.compiler.lexer;
+package edu.kit.kastel.vads.compiler.lexer.keywords;
 
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.lexer.BoolKeyword.BoolKeywordType;
-import edu.kit.kastel.vads.compiler.lexer.ControlKeyword.ControlKeywordType;
-import edu.kit.kastel.vads.compiler.lexer.TypeKeyword.TypeKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.Token;
+import edu.kit.kastel.vads.compiler.lexer.keywords.BoolKeyword.BoolKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.ControlKeyword.ControlKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
 
 public sealed interface Keyword extends Token permits BoolKeyword, ControlKeyword, TypeKeyword {
     

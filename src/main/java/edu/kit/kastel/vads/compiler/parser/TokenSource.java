@@ -1,13 +1,13 @@
 package edu.kit.kastel.vads.compiler.parser;
 
 import edu.kit.kastel.vads.compiler.lexer.Identifier;
-import edu.kit.kastel.vads.compiler.lexer.Keyword;
-import edu.kit.kastel.vads.compiler.lexer.Keyword.KeywordType;
 import edu.kit.kastel.vads.compiler.lexer.Lexer;
-import edu.kit.kastel.vads.compiler.lexer.Operator;
-import edu.kit.kastel.vads.compiler.lexer.Operator.OperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Separator;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword;
+import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword.KeywordType;
+import edu.kit.kastel.vads.compiler.lexer.operators.Operator;
+import edu.kit.kastel.vads.compiler.lexer.operators.Operator.OperatorType;
 import edu.kit.kastel.vads.compiler.lexer.Token;
 
 import java.util.List;

@@ -1,8 +1,9 @@
-package edu.kit.kastel.vads.compiler.lexer;
+package edu.kit.kastel.vads.compiler.lexer.operators;
 
-import edu.kit.kastel.vads.compiler.lexer.AssignmentOperator.AssignmentOperatorType;
-import edu.kit.kastel.vads.compiler.lexer.BinaryOperator.BinaryOperatorType;
-import edu.kit.kastel.vads.compiler.lexer.UnaryOperator.UnaryOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.Token;
+import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator.UnaryOperatorType;
 
 public sealed interface Operator extends Token permits AssignmentOperator, BinaryOperator, UnaryOperator {
 

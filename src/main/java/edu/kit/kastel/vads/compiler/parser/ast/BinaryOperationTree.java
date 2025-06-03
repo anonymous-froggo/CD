@@ -1,7 +1,7 @@
 package edu.kit.kastel.vads.compiler.parser.ast;
 
-import edu.kit.kastel.vads.compiler.lexer.Operator;
-import edu.kit.kastel.vads.compiler.lexer.BinaryOperator.BinaryOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.operators.Operator;
+import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
