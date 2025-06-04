@@ -96,15 +96,17 @@ public class SsaTranslation {
         public Optional<Node> visit(AssignmentTree assignmentTree, SsaTranslation data) {
             pushSpan(assignmentTree);
             BinaryOperator<Node> desugar = switch (assignmentTree.operator().type()) {
-                case ASSIGN_MINUS -> data.graphConstructor::newSub;
                 case ASSIGN_PLUS -> data.graphConstructor::newAdd;
+                case ASSIGN_MINUS -> data.graphConstructor::newSub;
                 case ASSIGN_MUL -> data.graphConstructor::newMul;
                 case ASSIGN_DIV -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
                 case ASSIGN_MOD -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
+                case ASSIGN_AND -> null;
+                case ASSIGN_XOR -> null;
+                case ASSIGN_OR -> null;
+                case ASSIGN_SHIFT_LEFT -> data.graphConstructor::newShiftLeft;
+                case ASSIGN_SHIFT_RIGHT -> data.graphConstructor::newShiftRight;
                 case ASSIGN -> null;
-                default -> throw new IllegalArgumentException(
-                    "not an assignment operator " + assignmentTree.operator()
-                );
             };
 
             switch (assignmentTree.lValue()) {
