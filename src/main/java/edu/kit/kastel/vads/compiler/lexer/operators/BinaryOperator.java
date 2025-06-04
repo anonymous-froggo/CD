@@ -16,7 +16,9 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
         MOD("%", 11),
 
         PLUS("+", 10),
-        MINUS("-", 10), // may also be a unary minus if it is at the beginning of an atom
+        // May actually be a unary minus if it is at the beginning of an atom. It will
+        // then be converted to UnaryOperator.UNARY_MINUS in [Parser::parseAtom]
+        MINUS("-", 10), 
 
         SHIFT_LEFT("<<", 9),
         SHIFT_RIGHT(">>", 9),

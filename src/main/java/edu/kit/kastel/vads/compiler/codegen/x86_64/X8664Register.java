@@ -1,8 +1,8 @@
 package edu.kit.kastel.vads.compiler.codegen.x86_64;
 
-import edu.kit.kastel.vads.compiler.codegen.IRegister;
+import edu.kit.kastel.vads.compiler.codegen.Register;
 
-public enum X8664Register implements IRegister {
+public enum X8664Register implements Register {
 
     RAX("rax", "eax", "ax", "al"),
     RBX("rbx", "ebx", "bx", "bl"),
@@ -28,7 +28,7 @@ public enum X8664Register implements IRegister {
     private String name16;
     private String name8;
 
-    private static final IRegister[] GENERAL_PURPOSE_REGISTERS = new IRegister[] {
+    private static final Register[] GENERAL_PURPOSE_REGISTERS = new Register[] {
         R8, R9, R10, R11, R12, R13, R14, R15,
     };
 
@@ -55,11 +55,11 @@ public enum X8664Register implements IRegister {
     @Override
     public String toString() {
         throw new UnsupportedOperationException(
-            "toString() used for a register. You should use name(int bitlength) instead"
+            "toString() used for a register - you must use name(int bitlength) instead"
         );
     }
 
-    public static IRegister[] getGeneralPurposeRegisters() {
+    public static Register[] getGeneralPurposeRegisters() {
         return GENERAL_PURPOSE_REGISTERS.clone();
     }
 }

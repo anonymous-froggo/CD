@@ -16,6 +16,7 @@ import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.operators.Operator.Associativity;
+import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator.UnaryOperatorType;
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.lexer.Token;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
@@ -276,29 +277,31 @@ public class Parser {
         Token token = this.tokenSource.consume();
         ExpressionTree atom;
 
-        if (token instanceof BoolKeyword keyword) {
-            // true
-            atom = new BoolTree(keyword);
-        } else if (token instanceof Identifier identifier) {
-            // ident
-            atom = new IdentifierTree(name(identifier));
-        } else if (token.isSeparator(SeparatorType.PAREN_OPEN)) {
+        if (token.isSeparator(SeparatorType.PAREN_OPEN)) {
             // ( ⟨exp⟩ )
             atom = parseExpression();
             this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
-        } else if (token instanceof NumberLiteral numberLiteral) {
-            // ⟨intconst⟩
-            atom = new NumberLiteralTree(numberLiteral.value(), numberLiteral.base(), numberLiteral.span());
-        } else if (token instanceof UnaryOperator operator) {
-            // ⟨unop⟩ ⟨exp⟩
-            atom = new UnaryOperationTree(operator, parseAtom());
-        } else if (token instanceof BinaryOperator operator && token.isOperator(BinaryOperatorType.MINUS)) {
-            // In this case BinaryOperatorType.MINUS is actually a unary minus
-            atom = new UnaryOperationTree(operator, parseAtom());
-        } else {
-            throw new ParseException("unexpected token '" + token + "'");
+            return atom;
         }
 
+        atom = switch (token) {
+            // true | false
+            case BoolKeyword keyword -> new BoolTree(keyword);
+            // ident
+            case Identifier identifier -> new IdentifierTree(name(identifier));
+            // ⟨intconst⟩
+            case NumberLiteral numberLiteral -> new NumberLiteralTree(
+                numberLiteral.value(), numberLiteral.base(), numberLiteral.span()
+            );
+            // ⟨unop⟩ ⟨exp⟩
+            case UnaryOperator operator -> new UnaryOperationTree(operator, parseAtom());
+            case BinaryOperator operator when operator.isOperator(BinaryOperatorType.MINUS) -> {
+                // In this case BinaryOperatorType.MINUS is actually a unary minus
+                UnaryOperator unaryMinus = new UnaryOperator(UnaryOperatorType.UNARY_MINUS, operator.span());
+                yield new UnaryOperationTree(unaryMinus, parseAtom());
+            }
+            default -> throw new ParseException("unexpected token '" + token + "'");
+        };
         return atom;
     }
 

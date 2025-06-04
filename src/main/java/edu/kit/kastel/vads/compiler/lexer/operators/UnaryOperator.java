@@ -7,8 +7,8 @@ public record UnaryOperator(UnaryOperatorType type, Span span) implements Operat
     public enum UnaryOperatorType implements OperatorType {
 
         LOGICAL_NOT("!"),
-        BITWISE_NOT("~");
-        // unary minus is implemented in {BinaryOperator}
+        BITWISE_NOT("~"),
+        UNARY_MINUS("-");
 
         private final String value;
 

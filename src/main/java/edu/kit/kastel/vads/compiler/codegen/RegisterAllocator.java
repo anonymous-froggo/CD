@@ -8,9 +8,9 @@ import edu.kit.kastel.vads.compiler.ir.node.StartNode;
 
 import java.util.Map;
 
-public interface IRegisterAllocator {
+public interface RegisterAllocator {
 
-    Map<Node, IRegister> allocateRegisters();
+    Map<Node, Register> allocateRegisters();
 
     public static boolean needsRegister(Node node) {
         return !(node instanceof ProjNode || node instanceof StartNode || node instanceof Block

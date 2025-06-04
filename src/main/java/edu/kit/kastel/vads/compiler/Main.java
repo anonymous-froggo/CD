@@ -53,7 +53,7 @@ public class Main {
             graphs.add(ssaTranslation.translate());
         }
 
-        String generatedCode = X8664CodeGenerator.generateCode(graphs);
+        String generatedCode = new X8664CodeGenerator().generateCode(graphs);
 
         assembleAndLink(generatedCode, output);
     }
@@ -73,17 +73,15 @@ public class Main {
 
     private static void assembleAndLink(String generatedCode, Path output) throws IOException {
         Files.writeString(
-            ASSEMBLY_FILE, ".global main\n" + //
-                ".global _main\n" + //
-                ".text\n" + //
-                "main:\n" + //
-                "call _main\n" + //
-                "# move the return value into the first argument for the syscall\n" + //
-                "movq %rax, %rdi\n" + //
-                "# move the exit syscall number into rax\n" + //
-                "movq $0x3C, %rax\n" + //
-                "syscall\n" + //
-                "_main:" + //
+            ASSEMBLY_FILE, ".global main\n" +
+                ".global _main\n" +
+                ".text\n" +
+                "main:\n" +
+                "call _main\n" +
+                "movq %rax, %rdi\n" +
+                "movq $0x3C, %rax\n" +
+                "syscall\n" +
+                "_main:\n" +
                 generatedCode
         );
 
@@ -94,12 +92,14 @@ public class Main {
             gccProcess.waitFor();
 
             if (Main.DEBUG) {
+                System.out.println("gcc exited with code " + gccProcess.exitValue());
+
                 Process outputProcess = Runtime.getRuntime().exec(new String[] {
                     "./" + output.toString()
                 });
                 outputProcess.waitFor();
 
-                System.out.println("Output exited with code " + outputProcess.exitValue());
+                System.out.println("output exited with code " + outputProcess.exitValue());
             }
         } catch (InterruptedException e) {
             e.printStackTrace();

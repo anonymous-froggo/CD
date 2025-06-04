@@ -17,11 +17,10 @@ public record BoolTree(BoolKeyword keyword) implements ExpressionTree {
         return visitor.visit(this, data);
     }
 
-    // TODO check if 0 and 1 is really what you should use here
-    public int value() {
+    public boolean value() {
         return switch (keyword.type()) {
-            case BoolKeywordType.FALSE -> 0;
-            case BoolKeywordType.TRUE -> 1;
+            case BoolKeywordType.TRUE -> true;
+            case BoolKeywordType.FALSE -> false;
         };
     }
 }

@@ -129,11 +129,17 @@ public class SsaTranslation {
             Node lhs = binaryOperationTree.lhs().accept(this, data).orElseThrow();
             Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
             Node res = switch (binaryOperationTree.operatorType()) {
-                case MINUS -> data.graphConstructor.newSub(lhs, rhs);
-                case PLUS -> data.graphConstructor.newAdd(lhs, rhs);
                 case MUL -> data.graphConstructor.newMul(lhs, rhs);
                 case DIV -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
                 case MOD -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
+
+                case PLUS -> data.graphConstructor.newAdd(lhs, rhs);
+                case MINUS -> data.graphConstructor.newSub(lhs, rhs);
+
+                // TODO implement other missing ops
+                case SHIFT_LEFT -> data.graphConstructor.newShiftLeft(lhs, rhs);
+                case SHIFT_RIGHT -> data.graphConstructor.newShiftRight(lhs, rhs);
+
                 default -> throw new IllegalArgumentException(
                     "not a binary expression operator " + binaryOperationTree.operatorType()
                 );
@@ -159,7 +165,7 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(BoolTree boolTree, SsaTranslation data) {
             pushSpan(boolTree);
-            Node node = data.graphConstructor.newBooNode(boolTree.value());
+            Node node = data.graphConstructor.newBoolNode(boolTree.value());
             popSpan();
             return Optional.of(node);
         }

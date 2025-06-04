@@ -12,6 +12,8 @@ import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.AddNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.MulNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ShiftLeftNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.SubNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
@@ -51,20 +53,27 @@ class GraphConstructor {
         return this.optimizer.transform(new AddNode(currentBlock(), left, right));
     }
 
-    public Node newSub(Node left, Node right) {
-        return this.optimizer.transform(new SubNode(currentBlock(), left, right));
-    }
-
-    public Node newMul(Node left, Node right) {
-        return this.optimizer.transform(new MulNode(currentBlock(), left, right));
-    }
-
     public Node newDiv(Node left, Node right) {
         return this.optimizer.transform(new DivNode(currentBlock(), left, right, readCurrentSideEffect()));
     }
 
     public Node newMod(Node left, Node right) {
         return this.optimizer.transform(new ModNode(currentBlock(), left, right, readCurrentSideEffect()));
+    }
+
+    public Node newMul(Node left, Node right) {
+        return this.optimizer.transform(new MulNode(currentBlock(), left, right));
+    }
+
+    public Node newShiftLeft(Node left, Node right) {
+        return this.optimizer.transform(new ShiftLeftNode(currentBlock(), left, right));
+    }
+    public Node newShiftRight(Node left, Node right) {
+        return this.optimizer.transform(new ShiftRightNode(currentBlock(), left, right));
+    }
+    
+    public Node newSub(Node left, Node right) {
+        return this.optimizer.transform(new SubNode(currentBlock(), left, right));
     }
 
     // Other nodes
@@ -75,7 +84,7 @@ class GraphConstructor {
         return this.optimizer.transform(new ConstIntNode(this.graph.startBlock(), value));
     }
 
-    public Node newBooNode(int value) {
+    public Node newBoolNode(boolean value) {
         return this.optimizer.transform(new BoolNode(this.graph.startBlock(), value));
     }
 

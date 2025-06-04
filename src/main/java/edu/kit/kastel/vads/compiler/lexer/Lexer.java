@@ -4,15 +4,10 @@ import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
 import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword;
-import edu.kit.kastel.vads.compiler.lexer.keywords.BoolKeyword.BoolKeywordType;
-import edu.kit.kastel.vads.compiler.lexer.keywords.ControlKeyword.ControlKeywordType;
-import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword.KeywordType;
-import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
-import edu.kit.kastel.vads.compiler.lexer.operators.Operator.OperatorType;
 
 import org.jspecify.annotations.Nullable;
 
@@ -52,20 +47,25 @@ public class Lexer {
             case '*' -> singleOrAssign(BinaryOperatorType.MUL, AssignmentOperatorType.ASSIGN_MUL);
             case '/' -> singleOrAssign(BinaryOperatorType.DIV, AssignmentOperatorType.ASSIGN_DIV);
             case '%' -> singleOrAssign(BinaryOperatorType.MOD, AssignmentOperatorType.ASSIGN_MOD);
+            case '^' -> singleOrAssign(BinaryOperatorType.BITWISE_XOR, AssignmentOperatorType.ASSIGN_XOR);
+            case '&' -> and();
+            case '|' -> or();
+            case '<' -> lessThanOrShiftLeft();
+            case '>' -> greaterThanOrShiftRight();
             case '=' -> new AssignmentOperator(AssignmentOperatorType.ASSIGN, buildSpan(1));
             default -> {
                 if (isIdentifierChar(peek())) {
                     if (isNumeric(peek())) {
-                        yield lexNumber();
-                    }
-                    yield lexIdentifierOrKeyword();
-                }
-                yield new ErrorToken(String.valueOf(peek()), buildSpan(1));
-            }
-        };
 
-        return Optional.of(t);
+    yield lexNumber();
+
     }
+
+    yield lexIdentifierOrKeyword();
+
+    }yield new ErrorToken(String.valueOf(peek()),buildSpan(1));}};
+
+    return Optional.of(t);}
 
     private @Nullable ErrorToken skipWhitespace() {
         enum CommentType {
@@ -210,6 +210,60 @@ public class Lexer {
             return new AssignmentOperator(assign, buildSpan(2));
         }
         return new BinaryOperator(single, buildSpan(1));
+    }
+
+    private Token and() {
+        if (hasMore(1) && peek(1) == '&') {
+            // &&
+            return new BinaryOperator(BinaryOperatorType.LOGICAL_AND, buildSpan(2));
+        }
+        // & or &=
+        return singleOrAssign(BinaryOperatorType.BITWISE_AND, AssignmentOperatorType.ASSIGN_AND);
+    }
+
+    private Token or() {
+        if (hasMore(1) && peek(1) == '|') {
+            // ||
+            return new BinaryOperator(BinaryOperatorType.LOGICAL_OR, buildSpan(2));
+        }
+        // | or |=
+        return singleOrAssign(BinaryOperatorType.BITWISE_OR, AssignmentOperatorType.ASSIGN_OR);
+    }
+
+    private Token lessThanOrShiftLeft() {
+        if (hasMore(1) && peek(1) == '<') {
+            if (hasMore(2) && peek(2) == '=') {
+                // <<=
+                return new AssignmentOperator(AssignmentOperatorType.ASSIGN_SHIFT_LEFT, buildSpan(3));
+            }
+            // <<
+            return new BinaryOperator(BinaryOperatorType.SHIFT_LEFT, buildSpan(2));
+        }
+
+        if (hasMore(1) && peek(1) == '=') {
+            // <=
+            return new BinaryOperator(BinaryOperatorType.LESS_THAN_EQ, buildSpan(2));
+        }
+        // <
+        return new BinaryOperator(BinaryOperatorType.LESS_THAN, buildSpan(1));
+    }
+    
+    private Token greaterThanOrShiftRight() {
+        if (hasMore(1) && peek(1) == '>') {
+            if (hasMore(2) && peek(2) == '=') {
+                // >>=
+                return new AssignmentOperator(AssignmentOperatorType.ASSIGN_SHIFT_RIGHT, buildSpan(3));
+            }
+            // >>
+            return new BinaryOperator(BinaryOperatorType.SHIFT_RIGHT, buildSpan(2));
+        }
+
+        if (hasMore(1) && peek(1) == '=') {
+            // >=
+            return new BinaryOperator(BinaryOperatorType.GREATER_THAN_EQ, buildSpan(2));
+        }
+        // >
+        return new BinaryOperator(BinaryOperatorType.GREATER_THAN, buildSpan(1));
     }
 
     private Span buildSpan(int proceed) {

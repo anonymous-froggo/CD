@@ -2,14 +2,14 @@ package edu.kit.kastel.vads.compiler.ir.node;
 
 public final class BoolNode extends Node {
 
-    private final int value;
+    private final boolean value;
 
-    public BoolNode(Block block, int value) {
+    public BoolNode(Block block, boolean value) {
         super(block);
         this.value = value;
     }
 
-    public int value() {
+    public boolean value() {
         return this.value();
     }
 
@@ -27,7 +27,7 @@ public final class BoolNode extends Node {
     // constant is used several times, it may as well just be the same node
     @Override
     public int hashCode() {
-        return this.value;
+        return this.value ? 1 : 0;
     }
 
     @Override

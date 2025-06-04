@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.kit.kastel.vads.compiler.codegen.IRegister;
+import edu.kit.kastel.vads.compiler.codegen.CodeGenerator;
+import edu.kit.kastel.vads.compiler.codegen.Register;
+import edu.kit.kastel.vads.compiler.codegen.RegisterAllocator;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.node.Block;
 import edu.kit.kastel.vads.compiler.ir.node.BoolNode;
@@ -20,199 +22,224 @@ import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.MulNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ShiftLeftNode;
+import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.SubNode;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
-public class X8664CodeGenerator {
+public final class X8664CodeGenerator implements CodeGenerator {
 
-    private static int numberOfStackRegisters;
+    private final StringBuilder builder;
 
-    public static String generateCode(List<IrGraph> program) {
-        StringBuilder builder = new StringBuilder();
+    private Map<Node, Register> registers;
+    private int nStackRegisters;
+
+    public X8664CodeGenerator() {
+        this.builder = new StringBuilder();
+    }
+
+    @Override
+    public String generateCode(List<IrGraph> program) {
         for (IrGraph graph : program) {
             X8664RegisterAllocator allocator = new X8664RegisterAllocator(graph);
-            Map<Node, IRegister> registerAllocation = allocator.allocateRegisters();
-            numberOfStackRegisters = allocator.numberOfStackRegisters();
+            this.registers = allocator.allocateRegisters();
+            this.nStackRegisters = allocator.numberOfStackRegisters();
 
-            if (numberOfStackRegisters > 0) {
-                moveStackPointer(builder, -numberOfStackRegisters * 8);
+            if (this.nStackRegisters > 0) {
+                this.moveStackPointer(-this.nStackRegisters * X8664StackRegister.N_BYTES);
             }
-            builder.append("\n");
-            generateForGraph(graph, builder, registerAllocation);
+            this.generateForGraph(graph);
         }
-        return builder.toString();
+
+        return this.builder.toString();
     }
 
-    private static void generateForGraph(IrGraph graph, StringBuilder builder, Map<Node, IRegister> registers) {
+    @Override
+    public String fromInt(int value) {
+        return "$" + value;
+    }
+
+    @Override
+    public String fromBoolean(boolean value) {
+        return "$" + (value ? Integer.toHexString(0xFFFFFFFF) : Integer.toHexString(0x00000000));
+    }
+
+    private void generateForGraph(IrGraph graph) {
         Set<Node> visited = new HashSet<>();
-        scan(graph.endBlock(), visited, builder, registers);
+        this.scan(graph.endBlock(), visited);
     }
 
-    private static void scan(Node node, Set<Node> visited, StringBuilder builder, Map<Node, IRegister> registers) {
+    private void scan(Node node, Set<Node> visited) {
         for (Node predecessor : node.predecessors()) {
             if (visited.add(predecessor)) {
-                scan(predecessor, visited, builder, registers);
+                this.scan(predecessor, visited);
             }
         }
 
         switch (node) {
             // binary operation nodes
-            case AddNode add -> defaultBinary(builder, registers, add, "addl");
-            case SubNode sub -> defaultBinary(builder, registers, sub, "subl");
-            case MulNode mul -> defaultBinary(builder, registers, mul, "imull");
-            case DivNode div -> divisionBinary(builder, registers, div);
-            case ModNode mod -> divisionBinary(builder, registers, mod);
+            case AddNode add -> this.defaultBinary(add, "addl");
+            case DivNode div -> this.division(div);
+            case ModNode mod -> this.division(mod);
+            case MulNode mul -> this.defaultBinary(mul, "imull");
+            case ShiftLeftNode shiftLeft -> this.shift(shiftLeft, "sall");
+            case ShiftRightNode shiftRight -> this.shift(shiftRight, "sarl");
+            case SubNode sub -> this.defaultBinary(sub, "subl");
 
             // other nodes
-            case BoolNode bool -> constant(builder, bool.value(), registers.get(bool));
-            case ConstIntNode constInt -> constant(builder, constInt.value(), registers.get(constInt));
-            case ReturnNode ret -> ret(builder, registers, ret);
+            case BoolNode bool -> this.constant(this.fromBoolean(bool.value()), this.registers.get(bool));
+            case ConstIntNode constInt -> this.constant(this.fromInt(constInt.value()), this.registers.get(constInt));
+            case ReturnNode ret -> this.ret(ret);
             case Phi _ -> throw new UnsupportedOperationException("phi");
             case Block _,ProjNode _,StartNode _ -> {
                 // do nothing, skip line break
                 return;
             }
         }
-        builder.append("\n");
     }
 
-    private static void defaultBinary(
-        StringBuilder builder,
-        Map<Node, IRegister> registerAllocation,
-        BinaryOperationNode node,
-        String opcode
-    ) {
-        IRegister leftRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
-        IRegister rightRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
-        IRegister destRegister = registerAllocation.get(node);
+    private void defaultBinary(BinaryOperationNode node, String opcode) {
+        Register leftRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        Register rightRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        Register destRegister = this.registers.get(node);
 
         if (destRegister instanceof X8664StackRegister) {
-            move(builder, leftRegister, X8664Register.RAX);
-            builder.append("\n");
-            sourceDest(builder, opcode, rightRegister, X8664Register.RAX);
-            builder.append("\n");
-            move(builder, X8664Register.RAX, destRegister);
+            this.move(leftRegister, X8664Register.RAX);
+            this.sourceDest(opcode, rightRegister, X8664Register.RAX);
+            this.move(X8664Register.RAX, destRegister);
             return;
         }
 
         if (destRegister == leftRegister) {
-            sourceDest(builder, opcode, rightRegister, destRegister);
+            this.sourceDest(opcode, rightRegister, destRegister);
         } else if (destRegister == rightRegister) {
             if (node instanceof SubNode) {
                 // This is of the form rightRegister = leftRegister - rightRegister, needs %eax
                 // as temp register
-                specialSub(builder, leftRegister, destRegister);
+                this.specialSub(leftRegister, destRegister);
                 return;
             }
 
-            sourceDest(builder, opcode, leftRegister, destRegister);
+            this.sourceDest(opcode, leftRegister, destRegister);
         } else {
-            move(builder, leftRegister, destRegister);
-            builder.append("\n");
-            sourceDest(builder, opcode, rightRegister, destRegister);
+            this.move(leftRegister, destRegister);
+            this.sourceDest(opcode, rightRegister, destRegister);
         }
     }
 
-    private static void specialSub(StringBuilder builder, IRegister srcRegister, IRegister destRegister) {
-        move(builder, srcRegister, X8664Register.RAX);
-        builder.append("\n");
-        sourceDest(builder, "subl", destRegister, X8664Register.RAX);
-        builder.append("\n");
-        move(builder, X8664Register.RAX, destRegister);
+    private void shift(BinaryOperationNode node, String opcode) {
+        Register srcRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        Register countRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        Register destRegister = this.registers.get(node);
+
+        this.move(countRegister, X8664Register.RCX);
+
+        if (destRegister instanceof X8664StackRegister) {
+            this.move(srcRegister, X8664Register.RAX);
+            this.builder.repeat(" ", 2)
+                .append(opcode)
+                .append(" ")
+                .append(X8664Register.RCX.name(8))
+                .append(", ")
+                .append(X8664Register.RAX.name(32))
+                .append("\n");
+            this.move(X8664Register.RAX, destRegister);
+            return;
+        }
+
+        if (srcRegister != destRegister) {
+            this.move(srcRegister, destRegister);
+        }
+
+        this.builder.repeat(" ", 2)
+            .append(opcode)
+            .append(" ")
+            .append(X8664Register.RCX.name(8))
+            .append(", ")
+            .append(destRegister.name(32))
+            .append("\n");
     }
 
-    private static void divisionBinary(
-        StringBuilder builder,
-        Map<Node, IRegister> registerAllocation,
-        BinaryOperationNode node
-    ) {
-        IRegister leftRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
-        IRegister rightRegister = registerAllocation.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
-        IRegister destRegister = registerAllocation.get(node);
+    private void specialSub(Register srcRegister, Register destRegister) {
+        this.move(srcRegister, X8664Register.RAX);
+        this.sourceDest("subl", destRegister, X8664Register.RAX);
+        this.move(X8664Register.RAX, destRegister);
+    }
 
-        move(builder, leftRegister, X8664Register.RAX);
+    private void division(BinaryOperationNode node) {
+        Register leftRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        Register rightRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        Register destRegister = this.registers.get(node);
 
-        builder.append("\n").repeat(" ", 2)
-            .append("cdq");
+        this.move(leftRegister, X8664Register.RAX);
 
-        builder.append("\n").repeat(" ", 2)
+        this.builder.repeat(" ", 2)
+            .append("cdq")
+            .append("\n");
+
+        this.builder.repeat(" ", 2)
             .append("idivl ")
             .append(rightRegister.name(32))
             .append("\n");
 
         // The quotient (needed for division) is in rax,
         // the remainder (needed for modulo) is in rdx
-        move(
-            builder,
+        this.move(
             node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX,
             destRegister
         );
     }
 
-    private static void ret(
-        StringBuilder builder,
-        Map<Node, IRegister> registerAllocation,
-        ReturnNode node
-    ) {
-        move(
-            builder,
-            registerAllocation.get(predecessorSkipProj(node, ReturnNode.RESULT)),
+    private void ret(ReturnNode node) {
+        this.move(
+            this.registers.get(predecessorSkipProj(node, ReturnNode.RESULT)),
             X8664Register.RAX
         );
 
-        if (numberOfStackRegisters > 0) {
-            moveStackPointer(builder, numberOfStackRegisters * 8);
+        if (this.nStackRegisters > 0) {
+            this.moveStackPointer(this.nStackRegisters * 8);
         }
 
-        builder.append("\n").repeat(" ", 2)
-            .append("ret");
+        this.builder.repeat(" ", 2)
+            .append("ret")
+            .append("\n");
     }
 
-    private static void move(
-        StringBuilder builder,
-        IRegister sourceRegister,
-        IRegister destRegister
-    ) {
-
-        builder.repeat(" ", 2)
+    private void move(Register srcRegister, Register destRegister) {
+        this.builder.repeat(" ", 2)
             .append("movl ")
-            .append(sourceRegister.name(32))
+            .append(srcRegister.name(32))
             .append(", ")
-            .append(destRegister.name(32));
+            .append(destRegister.name(32))
+            .append("\n");
     }
 
-    private static void constant(
-        StringBuilder builder,
-        int constant,
-        IRegister destRegister
-    ) {
-        builder.repeat(" ", 2)
-            .append("movl $")
+    private void constant(String constant, Register destRegister) {
+        this.builder.repeat(" ", 2)
+            .append("movl ")
             .append(constant)
             .append(", ")
-            .append(destRegister.name(32));
+            .append(destRegister.name(32))
+            .append("\n");
     }
 
-    private static void sourceDest(
-        StringBuilder builder,
-        String opcode,
-        IRegister sourceRegister,
-        IRegister destRegister
-    ) {
-        builder.repeat(" ", 2)
+    private void sourceDest(String opcode, Register srcRegister, Register destRegister) {
+        this.builder.repeat(" ", 2)
             .append(opcode)
             .append(" ")
-            .append(sourceRegister.name(32))
+            .append(srcRegister.name(32))
             .append(", ")
-            .append(destRegister.name(32));
+            .append(destRegister.name(32))
+            .append("\n");
     }
 
-    private static void moveStackPointer(StringBuilder builder, int offset) {
-        builder.append("\n").repeat(" ", 2)
+    private void moveStackPointer(int offset) {
+        this.builder.repeat(" ", 2)
             .append("add $")
             .append(offset)
             .append(", ")
-            .append(X8664Register.RSP.name(64));
+            .append(X8664Register.RSP.name(64))
+            .append("\n");
     }
 }
