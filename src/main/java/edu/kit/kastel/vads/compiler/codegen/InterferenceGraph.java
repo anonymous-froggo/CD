@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.Main;
-import edu.kit.kastel.vads.compiler.ir.node.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
 public class InterferenceGraph {
 

@@ -1,7 +1,7 @@
-package edu.kit.kastel.vads.compiler.ir.node.binaryoperation;
+package edu.kit.kastel.vads.compiler.ir.nodes.binary_operation;
 
-import edu.kit.kastel.vads.compiler.ir.node.Block;
-import edu.kit.kastel.vads.compiler.ir.node.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.Block;
+import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
 public final class MulNode extends BinaryOperationNode {
 

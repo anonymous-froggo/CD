@@ -1,4 +1,4 @@
-package edu.kit.kastel.vads.compiler.ir.node;
+package edu.kit.kastel.vads.compiler.ir.nodes;
 
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 

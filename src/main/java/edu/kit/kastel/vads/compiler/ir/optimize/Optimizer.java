@@ -1,6 +1,6 @@
 package edu.kit.kastel.vads.compiler.ir.optimize;
 
-import edu.kit.kastel.vads.compiler.ir.node.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
 /// An interface that allows replacing a node with a more optimal one.
 public interface Optimizer {

@@ -1,12 +1,12 @@
 package edu.kit.kastel.vads.compiler.codegen;
 
-import edu.kit.kastel.vads.compiler.ir.node.Block;
-import edu.kit.kastel.vads.compiler.ir.node.Node;
-import edu.kit.kastel.vads.compiler.ir.node.ProjNode;
-import edu.kit.kastel.vads.compiler.ir.node.ReturnNode;
-import edu.kit.kastel.vads.compiler.ir.node.StartNode;
-
 import java.util.Map;
+
+import edu.kit.kastel.vads.compiler.ir.nodes.Block;
+import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.StartNode;
 
 public interface RegisterAllocator {
 

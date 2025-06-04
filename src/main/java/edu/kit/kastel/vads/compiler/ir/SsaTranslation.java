@@ -1,9 +1,9 @@
 package edu.kit.kastel.vads.compiler.ir;
 
-import edu.kit.kastel.vads.compiler.ir.node.Block;
-import edu.kit.kastel.vads.compiler.ir.node.Node;
-import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.DivNode;
-import edu.kit.kastel.vads.compiler.ir.node.binaryoperation.ModNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.Block;
+import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.DivNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
@@ -138,9 +138,28 @@ public class SsaTranslation {
                 case PLUS -> data.graphConstructor.newAdd(lhs, rhs);
                 case MINUS -> data.graphConstructor.newSub(lhs, rhs);
 
-                // TODO implement other missing ops
                 case SHIFT_LEFT -> data.graphConstructor.newShiftLeft(lhs, rhs);
                 case SHIFT_RIGHT -> data.graphConstructor.newShiftRight(lhs, rhs);
+
+                // TODO implement missing ops (-> null)
+
+                case LESS_THAN -> null;
+                case LESS_THAN_EQ -> null;
+                case GREATER_THAN -> null;
+                case GREATER_THAN_EQ -> null;
+
+                case EQ -> null;
+                case NOT_EQ -> null;
+
+                case BITWISE_AND -> null;
+                
+                case BITWISE_XOR -> null;
+                
+                case BITWISE_OR -> null;
+
+                case LOGICAL_AND -> null;
+
+                case LOGICAL_OR -> null;
 
                 default -> throw new IllegalArgumentException(
                     "not a binary expression operator " + binaryOperationTree.operatorType()

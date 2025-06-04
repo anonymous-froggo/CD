@@ -11,7 +11,7 @@ import edu.kit.kastel.vads.compiler.codegen.RegisterAllocator;
 import edu.kit.kastel.vads.compiler.codegen.InterferenceGraph;
 import edu.kit.kastel.vads.compiler.codegen.LivenessAnalysis;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
-import edu.kit.kastel.vads.compiler.ir.node.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
 public class X8664RegisterAllocator implements RegisterAllocator {
 

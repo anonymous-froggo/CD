@@ -1,9 +1,9 @@
 package edu.kit.kastel.vads.compiler.ir.optimize;
 
-import edu.kit.kastel.vads.compiler.ir.node.Node;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
 /// This depends on [Node#equals(java.lang.Object)] and  [Node#hashCode()] methods.
 /// As long as they take the block into account, it is only local, but replacement
