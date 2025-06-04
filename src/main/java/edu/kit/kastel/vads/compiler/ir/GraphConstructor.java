@@ -9,12 +9,26 @@ import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.StartNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.AddNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseAndNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseOrNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseXorNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.DivNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.EqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.GreaterThanEqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.GreaterThanNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LessThanEqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LessThanNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LogicalAndNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LogicalOrNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.MulNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.NotEqNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ShiftLeftNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.SubNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary_operation.BitwiseNotNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary_operation.LogicalNotNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary_operation.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 
@@ -53,8 +67,48 @@ class GraphConstructor {
         return this.optimizer.transform(new AddNode(currentBlock(), left, right));
     }
 
+    public Node newBitwiseAnd(Node left, Node right) {
+        return this.optimizer.transform(new BitwiseAndNode(currentBlock(), left, right));
+    }
+
+    public Node newBitwiseOr(Node left, Node right) {
+        return this.optimizer.transform(new BitwiseOrNode(currentBlock(), left, right));
+    }
+
+    public Node newBitwiseXor(Node left, Node right) {
+        return this.optimizer.transform(new BitwiseXorNode(currentBlock(), left, right));
+    }
+
     public Node newDiv(Node left, Node right) {
         return this.optimizer.transform(new DivNode(currentBlock(), left, right, readCurrentSideEffect()));
+    }
+
+    public Node newEq(Node left, Node right) {
+        return this.optimizer.transform(new EqNode(currentBlock(), left, right));
+    }
+
+    public Node newGreaterThanEq(Node left, Node right) {
+        return this.optimizer.transform(new GreaterThanEqNode(currentBlock(), left, right));
+    }
+
+    public Node newGreaterThan(Node left, Node right) {
+        return this.optimizer.transform(new GreaterThanNode(currentBlock(), left, right));
+    }
+
+    public Node newLessThanEq(Node left, Node right) {
+        return this.optimizer.transform(new LessThanEqNode(currentBlock(), left, right));
+    }
+
+    public Node newLessThan(Node left, Node right) {
+        return this.optimizer.transform(new LessThanNode(currentBlock(), left, right));
+    }
+
+    public Node newLogicalAnd(Node left, Node right) {
+        return this.optimizer.transform(new LogicalAndNode(currentBlock(), left, right));
+    }
+
+    public Node newLogicalOr(Node left, Node right) {
+        return this.optimizer.transform(new LogicalOrNode(currentBlock(), left, right));
     }
 
     public Node newMod(Node left, Node right) {
@@ -65,15 +119,34 @@ class GraphConstructor {
         return this.optimizer.transform(new MulNode(currentBlock(), left, right));
     }
 
+    public Node newNotEqNode(Node left, Node right) {
+        return this.optimizer.transform(new NotEqNode(currentBlock(), left, right));
+    }
+
     public Node newShiftLeft(Node left, Node right) {
         return this.optimizer.transform(new ShiftLeftNode(currentBlock(), left, right));
     }
+
     public Node newShiftRight(Node left, Node right) {
         return this.optimizer.transform(new ShiftRightNode(currentBlock(), left, right));
     }
-    
+
     public Node newSub(Node left, Node right) {
         return this.optimizer.transform(new SubNode(currentBlock(), left, right));
+    }
+
+    // Unary operation nodes
+
+    public Node newBitwiseNot(Node input) {
+        return this.optimizer.transform(new BitwiseNotNode(currentBlock(), input));
+    }
+
+    public Node newLogicalNot(Node input) {
+        return this.optimizer.transform(new LogicalNotNode(currentBlock(), input));
+    }
+
+    public Node newNegate(Node input) {
+        return this.optimizer.transform(new NegateNode(currentBlock(), input));
     }
 
     // Other nodes

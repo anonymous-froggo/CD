@@ -19,7 +19,13 @@ import edu.kit.kastel.vads.compiler.ir.nodes.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.StartNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.AddNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BinaryOperationNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseAndNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseOrNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseXorNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.DivNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.EqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LogicalAndNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LogicalOrNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.MulNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ShiftLeftNode;
@@ -80,7 +86,12 @@ public final class X8664CodeGenerator implements CodeGenerator {
         switch (node) {
             // binary operation nodes
             case AddNode add -> this.defaultBinary(add, "addl");
+            case BitwiseAndNode bitwiseAnd -> this.defaultBinary(bitwiseAnd, "andl");
+            case BitwiseOrNode bitwiseOr -> this.defaultBinary(bitwiseOr, "orl");
+            case BitwiseXorNode bitwiseXor -> this.defaultBinary(bitwiseXor, "xorl");
             case DivNode div -> this.division(div);
+            case LogicalAndNode logicalAnd -> this.defaultBinary(logicalAnd, "andl");
+            case LogicalOrNode logicalOr -> this.defaultBinary(logicalOr, "orl");
             case ModNode mod -> this.division(mod);
             case MulNode mul -> this.defaultBinary(mul, "imull");
             case ShiftLeftNode shiftLeft -> this.shift(shiftLeft, "sall");
@@ -96,6 +107,9 @@ public final class X8664CodeGenerator implements CodeGenerator {
                 // do nothing, skip line break
                 return;
             }
+            default -> throw new UnsupportedOperationException(
+                "code generation for " + node.getClass() + " not yet implemented"
+            );
         }
     }
 

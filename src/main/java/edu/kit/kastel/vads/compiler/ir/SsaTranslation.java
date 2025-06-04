@@ -101,9 +101,9 @@ public class SsaTranslation {
                 case ASSIGN_MUL -> data.graphConstructor::newMul;
                 case ASSIGN_DIV -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
                 case ASSIGN_MOD -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
-                case ASSIGN_AND -> null;
-                case ASSIGN_XOR -> null;
-                case ASSIGN_OR -> null;
+                case ASSIGN_AND -> data.graphConstructor::newBitwiseAnd;
+                case ASSIGN_XOR -> data.graphConstructor::newBitwiseXor;
+                case ASSIGN_OR -> data.graphConstructor::newBitwiseOr;
                 case ASSIGN_SHIFT_LEFT -> data.graphConstructor::newShiftLeft;
                 case ASSIGN_SHIFT_RIGHT -> data.graphConstructor::newShiftRight;
                 case ASSIGN -> null;
@@ -141,29 +141,23 @@ public class SsaTranslation {
                 case SHIFT_LEFT -> data.graphConstructor.newShiftLeft(lhs, rhs);
                 case SHIFT_RIGHT -> data.graphConstructor.newShiftRight(lhs, rhs);
 
-                // TODO implement missing ops (-> null)
+                case LESS_THAN -> data.graphConstructor.newLessThan(lhs, rhs);
+                case LESS_THAN_EQ -> data.graphConstructor.newLessThanEq(lhs, rhs);
+                case GREATER_THAN -> data.graphConstructor.newGreaterThan(lhs, rhs);
+                case GREATER_THAN_EQ -> data.graphConstructor.newGreaterThanEq(lhs, rhs);
 
-                case LESS_THAN -> null;
-                case LESS_THAN_EQ -> null;
-                case GREATER_THAN -> null;
-                case GREATER_THAN_EQ -> null;
+                case EQ -> data.graphConstructor.newEq(lhs, rhs);
+                case NOT_EQ -> data.graphConstructor.newNotEqNode(lhs, rhs);
 
-                case EQ -> null;
-                case NOT_EQ -> null;
+                case BITWISE_AND -> data.graphConstructor.newBitwiseAnd(lhs, rhs);
 
-                case BITWISE_AND -> null;
-                
-                case BITWISE_XOR -> null;
-                
-                case BITWISE_OR -> null;
+                case BITWISE_XOR -> data.graphConstructor.newBitwiseXor(lhs, rhs);
 
-                case LOGICAL_AND -> null;
+                case BITWISE_OR -> data.graphConstructor.newBitwiseOr(lhs, rhs);
 
-                case LOGICAL_OR -> null;
+                case LOGICAL_AND -> data.graphConstructor.newLogicalAnd(lhs, rhs);
 
-                default -> throw new IllegalArgumentException(
-                    "not a binary expression operator " + binaryOperationTree.operatorType()
-                );
+                case LOGICAL_OR -> data.graphConstructor.newLogicalOr(lhs, rhs);
             };
             popSpan();
             return Optional.of(res);
