@@ -1,14 +1,14 @@
 package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
+import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public record ForTree() implements StatementTree {
+public final record EmptyTree(Position position) implements StatementTree {
 
     @Override
     public Span span() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'span'");
+        return new Span.SimpleSpan(position, position);
     }
 
     @Override

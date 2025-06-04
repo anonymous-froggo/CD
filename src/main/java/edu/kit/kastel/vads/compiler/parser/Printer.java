@@ -4,6 +4,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
@@ -12,14 +13,16 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.EmptyTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
-import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 
 import java.util.List;
@@ -50,14 +53,7 @@ public class Printer {
 
     private void printTree(Tree tree) {
         switch (tree) {
-            case AssignmentTree(var lValue, var op, var expression) -> {
-                printTree(lValue);
-                space();
-                this.builder.append(op);
-                space();
-                printTree(expression);
-                semicolon();
-            }
+            // Expressions
             case BinaryOperationTree(var lhs, var rhs, var op) -> {
                 print("(");
                 printTree(lhs);
@@ -69,6 +65,25 @@ public class Printer {
                 printTree(rhs);
                 print(")");
             }
+            case BoolTree(var boolKeyword) -> builder.append(boolKeyword.asString());
+            case IdentifierTree(var name) -> printTree(name);
+            case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
+            case UnaryOperationTree(var operator, var expression) -> {
+                this.builder.append(operator);
+                print("(");
+                printTree(expression);
+                print(")");
+            }
+
+            // Statements
+            case AssignmentTree(var lValue, var op, var expression) -> {
+                printTree(lValue);
+                space();
+                this.builder.append(op);
+                space();
+                printTree(expression);
+                semicolon();
+            }
             case BlockTree(List<StatementTree> statements, _) -> {
                 print("{");
                 lineBreak();
@@ -79,7 +94,6 @@ public class Printer {
                 this.indentDepth--;
                 print("}");
             }
-            case BoolTree(var boolKeyword) -> builder.append(boolKeyword);
             case BreakTree(_) -> {
                 print("break");
                 semicolon();
@@ -98,9 +112,35 @@ public class Printer {
                 }
                 semicolon();
             }
+            case ElseOptTree(var statement, _) -> {
+                print(" else ");
+                printTree(statement);
+            }
+            case EmptyTree(_) -> {
+            }
             case ForTree() -> throw new UnsupportedOperationException(
                 "printing '" + tree.getClass() + "' is not implemented"
             );
+            case IfTree(var condition, var thenStatement, var elseOpt, _) -> {
+                print("if (");
+                printTree(condition);
+                print(") ");
+                printTree(thenStatement);
+                printTree(elseOpt);
+                // TODO maybe refine this line break as it generates an additional linebreak if
+                // thenStatement is not a block
+                lineBreak();
+            }
+            case ReturnTree(var expr, _) -> {
+                print("return ");
+                printTree(expr);
+                semicolon();
+            }
+            case WhileTree() -> throw new UnsupportedOperationException(
+                "printing '" + tree.getClass() + "' is not implemented"
+            );
+
+            // Others
             case FunctionTree(var returnType, var name, var body) -> {
                 printTree(returnType);
                 space();
@@ -109,34 +149,15 @@ public class Printer {
                 space();
                 printTree(body);
             }
-            case IdentifierTree(var name) -> printTree(name);
-            case IfTree() -> throw new UnsupportedOperationException(
-                "printing '" + tree.getClass() + "' is not implemented"
-            );
             case LValueIdentifierTree(var name) -> printTree(name);
             case NameTree(var name, _) -> print(name.asString());
-            case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
             case ProgramTree(var topLevelTrees) -> {
                 for (FunctionTree function : topLevelTrees) {
                     printTree(function);
                     lineBreak();
                 }
             }
-            case ReturnTree(var expr, _) -> {
-                print("return ");
-                printTree(expr);
-                semicolon();
-            }
             case TypeTree(var type, _) -> print(type.asString());
-            case UnaryOperationTree(var operator, var expression) -> {
-                this.builder.append(operator);
-                print("(");
-                printTree(expression);
-                print(")");
-            }
-            case WhileTree() -> throw new UnsupportedOperationException(
-                "printing '" + tree.getClass() + "' is not implemented"
-            );
         }
     }
 

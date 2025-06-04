@@ -2,7 +2,6 @@ package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
 import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 

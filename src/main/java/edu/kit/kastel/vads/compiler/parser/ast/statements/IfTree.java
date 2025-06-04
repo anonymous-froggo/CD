@@ -1,21 +1,26 @@
 package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
+import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public record IfTree() implements StatementTree {
+public record IfTree(
+    ExpressionTree condition,
+    StatementTree thenStatement,
+    StatementTree elseOpt,
+    Position start
+) implements StatementTree
+{
 
     @Override
     public Span span() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'span'");
+        Position end = (elseOpt() instanceof EmptyTree ? thenStatement() : elseOpt()).span().end();
+        return new Span.SimpleSpan(start, end);
     }
 
     @Override
     public <T, R> R accept(Visitor<T, R> visitor, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accept'");
+        return visitor.visit(this, data);
     }
-
 }

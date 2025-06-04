@@ -11,7 +11,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
-import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
@@ -24,9 +23,12 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.EmptyTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
@@ -95,7 +97,7 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(AssignmentTree assignmentTree, SsaTranslation data) {
             pushSpan(assignmentTree);
-            BinaryOperator<Node> desugar = switch (assignmentTree.operator().type()) {
+            BinaryOperator<Node> desugar = switch (assignmentTree.operatorType()) {
                 case ASSIGN_PLUS -> data.graphConstructor::newAdd;
                 case ASSIGN_MINUS -> data.graphConstructor::newSub;
                 case ASSIGN_MUL -> data.graphConstructor::newMul;
@@ -147,7 +149,7 @@ public class SsaTranslation {
                 case GREATER_THAN_EQ -> data.graphConstructor.newGreaterThanEq(lhs, rhs);
 
                 case EQ -> data.graphConstructor.newEq(lhs, rhs);
-                case NOT_EQ -> data.graphConstructor.newNotEqNode(lhs, rhs);
+                case NOT_EQ -> data.graphConstructor.newNotEq(lhs, rhs);
 
                 case BITWISE_AND -> data.graphConstructor.newBitwiseAnd(lhs, rhs);
 
@@ -234,8 +236,7 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(IfTree ifTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+
         }
 
         @Override
@@ -298,6 +299,18 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(WhileTree whileTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        }
+
+        @Override
+        public Optional<Node> visit(EmptyTree forTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        }
+
+        @Override
+        public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }

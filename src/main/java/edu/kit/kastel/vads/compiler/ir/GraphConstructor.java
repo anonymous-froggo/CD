@@ -119,7 +119,7 @@ class GraphConstructor {
         return this.optimizer.transform(new MulNode(currentBlock(), left, right));
     }
 
-    public Node newNotEqNode(Node left, Node right) {
+    public Node newNotEq(Node left, Node right) {
         return this.optimizer.transform(new NotEqNode(currentBlock(), left, right));
     }
 

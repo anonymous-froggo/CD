@@ -4,7 +4,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
-import edu.kit.kastel.vads.compiler.parser.ast.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
@@ -16,9 +15,12 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.EmptyTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 
 /// A visitor that traverses a tree in postorder and lets [this{@link #visitor}] visit each node
@@ -32,19 +34,49 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         this.visitor = visitor;
     }
 
-    @Override
-    public R visit(AssignmentTree assignmentTree, T data) {
-        R r = assignmentTree.lValue().accept(this, data);
-        r = assignmentTree.expression().accept(this, accumulate(data, r));
-        r = this.visitor.visit(assignmentTree, accumulate(data, r));
-        return r;
-    }
+    // Expressions
 
     @Override
     public R visit(BinaryOperationTree binaryOperationTree, T data) {
         R r = binaryOperationTree.lhs().accept(this, data);
         r = binaryOperationTree.rhs().accept(this, accumulate(data, r));
         r = this.visitor.visit(binaryOperationTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(BoolTree trueTree, T data) {
+        R r = this.visitor.visit(trueTree, data);
+        return r;
+    }
+
+    @Override
+    public R visit(IdentifierTree identExpressionTree, T data) {
+        R r = identExpressionTree.name().accept(this, data);
+        r = this.visitor.visit(identExpressionTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(NumberLiteralTree literalTree, T data) {
+        R r = this.visitor.visit(literalTree, data);
+        return r;
+    }
+
+    @Override
+    public R visit(UnaryOperationTree negateTree, T data) {
+        R r = negateTree.expression().accept(this, data);
+        r = this.visitor.visit(negateTree, accumulate(data, r));
+        return r;
+    }
+
+    // Statements
+
+    @Override
+    public R visit(AssignmentTree assignmentTree, T data) {
+        R r = assignmentTree.lValue().accept(this, data);
+        r = assignmentTree.expression().accept(this, accumulate(data, r));
+        r = this.visitor.visit(assignmentTree, accumulate(data, r));
         return r;
     }
 
@@ -58,11 +90,6 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         }
         r = this.visitor.visit(blockTree, d);
         return r;
-    }
-
-    @Override
-    public R visit(BoolTree trueTree, T data) {
-        return this.visitor.visit(trueTree, data);
     }
 
     @Override
@@ -89,10 +116,47 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
+    public R visit(ElseOptTree elseOptTree, T data) {
+        R r = elseOptTree.statement().accept(this, data);
+        r = this.visitor.visit(elseOptTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(EmptyTree emptyTree, T data) {
+        R r = this.visitor.visit(emptyTree, data);
+        return r;
+    }
+
+    @Override
     public R visit(ForTree forTree, T data) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
+
+    @Override
+    public R visit(IfTree ifTree, T data) {
+        R r = ifTree.condition().accept(this, data);
+        r = ifTree.thenStatement().accept(this, accumulate(data, r));
+        r = ifTree.elseOpt().accept(this, accumulate(data, r));
+        r = this.visitor.visit(ifTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(ReturnTree returnTree, T data) {
+        R r = returnTree.expression().accept(this, data);
+        r = this.visitor.visit(returnTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(WhileTree whileTree, T data) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    // Others
 
     @Override
     public R visit(FunctionTree functionTree, T data) {
@@ -104,24 +168,6 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
-    public R visit(IdentifierTree identExpressionTree, T data) {
-        R r = identExpressionTree.name().accept(this, data);
-        r = this.visitor.visit(identExpressionTree, accumulate(data, r));
-        return r;
-    }
-
-    @Override
-    public R visit(IfTree ifTree, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
-    }
-
-    @Override
-    public R visit(NumberLiteralTree literalTree, T data) {
-        return this.visitor.visit(literalTree, data);
-    }
-
-    @Override
     public R visit(LValueIdentifierTree lValueIdentTree, T data) {
         R r = lValueIdentTree.name().accept(this, data);
         r = this.visitor.visit(lValueIdentTree, accumulate(data, r));
@@ -130,13 +176,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
 
     @Override
     public R visit(NameTree nameTree, T data) {
-        return this.visitor.visit(nameTree, data);
-    }
-
-    @Override
-    public R visit(UnaryOperationTree negateTree, T data) {
-        R r = negateTree.expression().accept(this, data);
-        r = this.visitor.visit(negateTree, accumulate(data, r));
+        R r = this.visitor.visit(nameTree, data);
         return r;
     }
 
@@ -153,21 +193,9 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
-    public R visit(ReturnTree returnTree, T data) {
-        R r = returnTree.expression().accept(this, data);
-        r = this.visitor.visit(returnTree, accumulate(data, r));
-        return r;
-    }
-
-    @Override
     public R visit(TypeTree typeTree, T data) {
-        return this.visitor.visit(typeTree, data);
-    }
-
-    @Override
-    public R visit(WhileTree whileTree, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        R r = this.visitor.visit(typeTree, data);
+        return r;
     }
 
     protected T accumulate(T data, R value) {

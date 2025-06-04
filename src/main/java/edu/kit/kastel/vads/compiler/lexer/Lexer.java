@@ -37,6 +37,7 @@ public class Lexer {
             return Optional.empty();
         }
         Token t = switch (peek()) {
+            // TODO add !, ~, ==, and !=
             case '(' -> separator(SeparatorType.PAREN_OPEN);
             case ')' -> separator(SeparatorType.PAREN_CLOSE);
             case '{' -> separator(SeparatorType.BRACE_OPEN);
@@ -56,16 +57,18 @@ public class Lexer {
             default -> {
                 if (isIdentifierChar(peek())) {
                     if (isNumeric(peek())) {
+                        yield lexNumber();
+                    }
 
-    yield lexNumber();
+                    yield lexIdentifierOrKeyword();
 
+                }
+                yield new ErrorToken(String.valueOf(peek()), buildSpan(1));
+            }
+        };
+
+        return Optional.of(t);
     }
-
-    yield lexIdentifierOrKeyword();
-
-    }yield new ErrorToken(String.valueOf(peek()),buildSpan(1));}};
-
-    return Optional.of(t);}
 
     private @Nullable ErrorToken skipWhitespace() {
         enum CommentType {
@@ -150,8 +153,6 @@ public class Lexer {
         }
         String id = this.source.substring(this.pos, this.pos + off);
 
-        // TODO: This is a naive solution. Using a better data structure (hashmap, trie)
-        // likely performs better.
         Span span = buildSpan(off);
         Keyword keyword = Keyword.fromString(id, span);
         if (keyword != null) {
@@ -247,7 +248,7 @@ public class Lexer {
         // <
         return new BinaryOperator(BinaryOperatorType.LESS_THAN, buildSpan(1));
     }
-    
+
     private Token greaterThanOrShiftRight() {
         if (hasMore(1) && peek(1) == '>') {
             if (hasMore(2) && peek(2) == '=') {
