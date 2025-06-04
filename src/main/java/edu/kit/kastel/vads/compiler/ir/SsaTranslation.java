@@ -236,7 +236,8 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(IfTree ifTree, SsaTranslation data) {
-
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
 
         @Override
