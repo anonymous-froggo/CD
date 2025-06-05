@@ -11,13 +11,13 @@ import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -257,7 +257,7 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(LiteralTree literalTree, SsaTranslation data) {
+        public Optional<Node> visit(NumberLiteralTree literalTree, SsaTranslation data) {
             pushSpan(literalTree);
             Node node = data.graphConstructor.newConstInt((int) literalTree.parseValue().orElseThrow());
             popSpan();

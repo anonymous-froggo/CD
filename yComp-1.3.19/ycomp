@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+YCOMP="$0"
+while [ -L "$YCOMP" ]; do
+    LINK="$(readlink "$YCOMP")"
+    case "$LINK" in
+        /*) YCOMP="$LINK";;
+        *)  YCOMP="${YCOMP%/*}/$LINK";;
+    esac
+done
+
+# 1.5.0_22, 1.8, 9, 11.0.2...
+# We only match on the first field
+JAVA_VERSION="$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | cut -d'.' -f1)"
+
+ADDITIONAL_ARGUMENTS=""
+
+if [ "$JAVA_VERSION" -gt 9 ]; then
+    echo "Java 9+ detected, opening potentially required packages"
+    ADDITIONAL_ARGUMENTS='--add-opens java.desktop/sun.swing=ALL-UNNAMED'
+fi
+
+echo "Commandline is: 'java -Xmx512m $ADDITIONAL_ARGUMENTS -jar "${YCOMP%/*}/yComp.jar" "$@"'"
+java -Xmx512m $ADDITIONAL_ARGUMENTS -jar "${YCOMP%/*}/yComp.jar" "$@"

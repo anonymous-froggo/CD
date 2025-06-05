@@ -20,7 +20,6 @@ import edu.kit.kastel.vads.compiler.ir.nodes.StartNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.DivNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ModNode;
-import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
 
 public class LivenessAnalysis {
 
@@ -35,12 +34,6 @@ public class LivenessAnalysis {
     private static List<Node> schedule = new ArrayList<>();
 
     public static InterferenceGraph calculateInterferenceGraph(IrGraph irGraph) {
-
-        // TODO: generate IR-Graph for each graph in the program
-        if (Main.DEBUG) {
-            GraphVizPrinter.generateSvg(irGraph);
-        }
-
         visited.add(irGraph.endBlock());
         scan(irGraph.endBlock());
         if (Main.DEBUG) {

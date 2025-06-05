@@ -53,7 +53,7 @@ public class Main {
             graphs.add(ssaTranslation.translate());
         }
 
-        if ("vcg".equals(System.getenv("DUMP_GRAPHS")) || "vcg".equals(System.getProperty("dumpGraphs"))) {
+        if (DEBUG) {
             Path tmp = output.toAbsolutePath().resolveSibling("graphs");
             Files.createDirectory(tmp);
             for (IrGraph graph : graphs) {

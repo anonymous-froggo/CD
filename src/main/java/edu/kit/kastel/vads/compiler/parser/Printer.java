@@ -2,11 +2,11 @@ package edu.kit.kastel.vads.compiler.parser;
 
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -67,7 +67,7 @@ public class Printer {
             }
             case BoolTree(var boolKeyword) -> builder.append(boolKeyword.asString());
             case IdentifierTree(var name) -> printTree(name);
-            case LiteralTree(var value, _, _) -> this.builder.append(value);
+            case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
             case UnaryOperationTree(var operator, var expression) -> {
                 this.builder.append(operator);
                 print("(");
