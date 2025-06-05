@@ -10,6 +10,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode.SimpleProjectionInfo;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 
@@ -169,7 +170,7 @@ public class YCompPrinter {
         StringJoiner result = new StringJoiner("\n");
         List<? extends Node> parents = block.predecessors();
         for (Node parent : parents) {
-            if (parent instanceof ReturnNode) {
+            if (parent instanceof ReturnNode || parent instanceof ProjNode || parent instanceof JumpNode) {
                 // Return needs no label
                 result.add(formatControlflowEdge(parent, block, ""));
             } else {
@@ -221,6 +222,7 @@ public class YCompPrinter {
             case BoolNode _ -> VcgColor.NORMAL;
             case ConditionalJumpNode _ -> VcgColor.CONTROL_FLOW;
             case ConstIntNode _ -> VcgColor.NORMAL;
+            case JumpNode _ -> VcgColor.CONTROL_FLOW;
             case Phi _ -> VcgColor.PHI;
             case ProjNode proj -> {
                 if (proj.projectionInfo() == SimpleProjectionInfo.SIDE_EFFECT) {

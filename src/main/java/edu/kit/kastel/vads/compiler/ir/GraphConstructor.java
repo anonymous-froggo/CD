@@ -25,6 +25,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftLeftNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.SubNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.BitwiseNotNode;
@@ -48,11 +49,13 @@ class GraphConstructor {
     private final Map<Block, Phi> incompleteSideEffectPhis = new HashMap<>();
     private final Set<Block> sealedBlocks = new HashSet<>();
     private Block currentBlock;
+    private int currentBlockId;
 
     public GraphConstructor(Optimizer optimizer, String name) {
         this.optimizer = optimizer;
         this.graph = new IrGraph(name);
         this.currentBlock = this.graph.startBlock();
+        this.currentBlockId = 0;
         // the start block never gets any more predecessors
         sealBlock(this.currentBlock);
     }
@@ -160,13 +163,18 @@ class GraphConstructor {
     }
 
     public Block newBlock() {
-        Block block = new Block(graph());
+        this.currentBlockId++;
+        Block block = new Block(this.currentBlockId, graph());
         this.currentBlock = block;
         return block;
     }
 
-    public Node newDecision(Node condition) {
+    public Node newConditionalJump(Node condition) {
         return new ConditionalJumpNode(currentBlock(), condition);
+    }
+
+    public Node newJump() {
+        return new JumpNode(currentBlock());
     }
 
     public Phi newPhi() {
@@ -305,4 +313,7 @@ class GraphConstructor {
         return tryRemoveTrivialPhi(phi);
     }
 
+    Set<Block> sealedBlocks() {
+        return this.sealedBlocks;
+    }
 }

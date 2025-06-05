@@ -18,8 +18,8 @@ public class IrGraph {
 
     public IrGraph(String name) {
         this.name = name;
-        this.startBlock = new Block(this);
-        this.endBlock = new Block(this);
+        this.startBlock = new Block(0, this);
+        this.endBlock = new Block(-1, this);
     }
 
     public void registerSuccessor(Node node, Node successor) {

@@ -7,6 +7,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
+import edu.kit.kastel.vads.compiler.parser.Printer;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
@@ -61,6 +62,11 @@ public class SsaTranslation {
     public IrGraph translate() {
         var visitor = new SsaTranslationVisitor();
         this.functionTree.accept(visitor, this);
+
+        for (Block block : this.graphConstructor.sealedBlocks()) {
+            System.out.println(block + " | " + block.predecessors());
+        }
+
         return this.graphConstructor.graph();
     }
 
@@ -169,6 +175,7 @@ public class SsaTranslation {
         public Optional<Node> visit(BlockTree blockTree, SsaTranslation data) {
             pushSpan(blockTree);
             for (StatementTree statement : blockTree.statements()) {
+                System.out.println(Printer.print(statement));
                 statement.accept(this, data);
                 // skip everything after a return in a block
                 if (statement instanceof ReturnTree) {
@@ -239,21 +246,21 @@ public class SsaTranslation {
             pushSpan(ifTree);
 
             Node condition = ifTree.condition().accept(this, data).orElseThrow();
-            Node decisionNode = data.graphConstructor.newDecision(condition);
-            Node projTrue = data.graphConstructor.newTrueProj(decisionNode);
-            Node projFalse = data.graphConstructor.newFalseProj(decisionNode);
 
-            data.graphConstructor.sealBlock(data.graphConstructor.currentBlock());
+            Node conditionalJump = data.graphConstructor.newConditionalJump(condition);
+            Node projTrue = data.graphConstructor.newTrueProj(conditionalJump);
+            Node projFalse = data.graphConstructor.newFalseProj(conditionalJump);
 
-            Block trueBlock = data.graphConstructor.newBlock();
-            data.graphConstructor.graph().registerSuccessor(projTrue, trueBlock);
+            Block thenBlock = data.graphConstructor.newBlock();
+            thenBlock.addPredecessor(projTrue);
+            data.graphConstructor.sealBlock(thenBlock);
             ifTree.thenStatement().accept(this, data);
-            data.graphConstructor.sealBlock(trueBlock);
+            Node exitThenBlock = data.graphConstructor.newJump();
             
-            Block falseBlock = data.graphConstructor.newBlock();
-            data.graphConstructor.graph().registerSuccessor(projFalse, falseBlock);
-            ifTree.elseOpt().accept(this, data);
-            data.graphConstructor.sealBlock(falseBlock);
+            Block nextBlock = data.graphConstructor.newBlock();
+            nextBlock.addPredecessor(exitThenBlock);
+            nextBlock.addPredecessor(projFalse);
+            data.graphConstructor.sealBlock(nextBlock);
 
             popSpan();
 
@@ -295,8 +302,8 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(ReturnTree returnTree, SsaTranslation data) {
             pushSpan(returnTree);
-            Node node = returnTree.expression().accept(this, data).orElseThrow();
-            Node ret = data.graphConstructor.newReturn(node);
+            Node result = returnTree.expression().accept(this, data).orElseThrow();
+            Node ret = data.graphConstructor.newReturn(result);
             data.graphConstructor.graph().endBlock().addPredecessor(ret);
             popSpan();
             return NOT_AN_EXPRESSION;
@@ -326,12 +333,14 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(EmptyTree forTree, SsaTranslation data) {
-            return NOT_AN_EXPRESSION;
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
 
         @Override
         public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
-            return elseOptTree.statement().accept(this, data);
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
     }
 }
