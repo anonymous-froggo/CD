@@ -15,6 +15,7 @@ public sealed abstract class Node permits
     Block,
     BoolNode,
     ConstIntNode,
+    DecisionNode,
     Phi,
     ProjNode,
     ReturnNode,

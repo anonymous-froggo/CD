@@ -7,6 +7,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ModNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
+import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
@@ -236,8 +237,23 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(IfTree ifTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+            pushSpan(ifTree);
+            Node condition = ifTree.condition().accept(this, data).orElseThrow();
+            
+            Node decisionNode = data.graphConstructor.newDecision(condition);
+            System.out.println(decisionNode + " | " + decisionNode.predecessors() + " | " + decisionNode.block());
+            
+            Node trueBlock = data.graphConstructor.newBlock();
+            data.graphConstructor.graph().registerSuccessor(decisionNode, trueBlock);
+            ifTree.thenStatement().accept(this, data);
+            
+            // Node falseBlock = data.graphConstructor.newBlock();
+            // data.graphConstructor.graph().registerSuccessor(decisionNode, falseBlock);
+            // ifTree.elseOpt().accept(this, data);
+
+            popSpan();
+
+            return Optional.of(decisionNode);
         }
 
         @Override
@@ -306,15 +322,13 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(EmptyTree forTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+            return NOT_AN_EXPRESSION;
         }
 
         @Override
         public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+            Optional<Node> statement = elseOptTree.statement().accept(this, data);
+            return statement;
         }
-
     }
 }

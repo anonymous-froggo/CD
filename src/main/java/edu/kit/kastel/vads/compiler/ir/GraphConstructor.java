@@ -3,6 +3,7 @@ package edu.kit.kastel.vads.compiler.ir;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.DecisionNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
@@ -54,11 +55,6 @@ class GraphConstructor {
         this.currentBlock = this.graph.startBlock();
         // the start block never gets any more predecessors
         sealBlock(this.currentBlock);
-    }
-
-    public Node newStart() {
-        assert currentBlock() == this.graph.startBlock() : "start must be in start block";
-        return new StartNode(currentBlock());
     }
 
     // Binary operation nodes
@@ -154,15 +150,28 @@ class GraphConstructor {
     public Node newConstInt(int value) {
         // always move const into start block, this allows better deduplication
         // and resultingly in better value numbering
-        return this.optimizer.transform(new ConstIntNode(this.graph.startBlock(), value));
+        return this.optimizer.transform(new ConstIntNode(graph().startBlock(), value));
     }
 
     public Node newBoolNode(boolean value) {
-        return this.optimizer.transform(new BoolNode(this.graph.startBlock(), value));
+        // always move const into start block, this allows better deduplication
+        // and resultingly in better value numbering
+        return this.optimizer.transform(new BoolNode(graph().startBlock(), value));
     }
 
-    public Node newSideEffectProj(Node node) {
-        return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.SIDE_EFFECT);
+    public Node newBlock() {
+        Block block = new Block(graph());
+        this.currentBlock = block;
+        return block;
+    }
+
+    public Node newDecision(Node condition) {
+        return this.optimizer.transform(new DecisionNode(currentBlock(), condition));
+    }
+
+    public Phi newPhi() {
+        // don't transform phi directly, it is not ready yet
+        return new Phi(currentBlock());
     }
 
     public Node newResultProj(Node node) {
@@ -173,13 +182,17 @@ class GraphConstructor {
         return new ReturnNode(currentBlock(), readCurrentSideEffect(), result);
     }
 
-    public Block currentBlock() {
-        return this.currentBlock;
+    public Node newStart() {
+        assert currentBlock() == this.graph.startBlock() : "start must be in start block";
+        return new StartNode(currentBlock());
     }
 
-    public Phi newPhi() {
-        // don't transform phi directly, it is not ready yet
-        return new Phi(currentBlock());
+    public Node newSideEffectProj(Node node) {
+        return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.SIDE_EFFECT);
+    }
+
+    public Block currentBlock() {
+        return this.currentBlock;
     }
 
     public IrGraph graph() {

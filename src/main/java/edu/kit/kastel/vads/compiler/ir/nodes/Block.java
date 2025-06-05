@@ -7,5 +7,4 @@ public final class Block extends Node {
     public Block(IrGraph graph) {
         super(graph);
     }
-
 }
