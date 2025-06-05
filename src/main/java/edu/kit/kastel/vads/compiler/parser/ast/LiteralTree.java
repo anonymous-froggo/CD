@@ -1,10 +1,11 @@
-package edu.kit.kastel.vads.compiler.parser.ast.expressions;
+package edu.kit.kastel.vads.compiler.parser.ast;
 
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 import java.util.OptionalLong;
 
-public record NumberLiteralTree(String value, int base, Span span) implements ExpressionTree {
+public record LiteralTree(String value, int base, Span span) implements ExpressionTree {
 
     @Override
     public <T, R> R accept(Visitor<T, R> visitor, T data) {
