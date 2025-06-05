@@ -2,8 +2,11 @@ package edu.kit.kastel.vads.compiler.ir.nodes;
 
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BinaryOperationNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.unary_operation.UnaryOperationNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
 
 import java.util.ArrayList;
@@ -15,7 +18,7 @@ public sealed abstract class Node permits
     Block,
     BoolNode,
     ConstIntNode,
-    DecisionNode,
+    ConditionalJumpNode,
     Phi,
     ProjNode,
     ReturnNode,

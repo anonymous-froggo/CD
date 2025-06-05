@@ -1,10 +1,10 @@
-package edu.kit.kastel.vads.compiler.ir.nodes.binary_operation;
+package edu.kit.kastel.vads.compiler.ir.nodes.binary;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
-public final class EqNode extends BinaryOperationNode {
-    public EqNode(Block block, Node left, Node right) {
+public final class NotEqNode extends BinaryOperationNode {
+    public NotEqNode(Block block, Node left, Node right) {
         super(block, left, right);
     }
 

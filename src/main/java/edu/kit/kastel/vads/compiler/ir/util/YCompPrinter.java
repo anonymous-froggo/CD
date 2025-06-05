@@ -1,15 +1,17 @@
 package edu.kit.kastel.vads.compiler.ir.util;
 
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
+import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode.SimpleProjectionInfo;
-import edu.kit.kastel.vads.compiler.ir.nodes.ReturnNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.StartNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -216,6 +218,8 @@ public class YCompPrinter {
         return switch (node) {
             case BinaryOperationNode _ -> VcgColor.NORMAL;
             case Block _ -> VcgColor.NORMAL;
+            case BoolNode _ -> VcgColor.NORMAL;
+            case ConditionalJumpNode _ -> VcgColor.CONTROL_FLOW;
             case ConstIntNode _ -> VcgColor.NORMAL;
             case Phi _ -> VcgColor.PHI;
             case ProjNode proj -> {
@@ -223,13 +227,17 @@ public class YCompPrinter {
                     yield VcgColor.MEMORY;
                 } else if (proj.projectionInfo() == SimpleProjectionInfo.RESULT) {
                     yield VcgColor.NORMAL;
+                } else if (proj.projectionInfo() == SimpleProjectionInfo.TRUE) {
+                    yield VcgColor.CONTROL_FLOW;
+                } else if (proj.projectionInfo() == SimpleProjectionInfo.FALSE) {
+                    yield VcgColor.CONTROL_FLOW;
                 } else {
                     yield VcgColor.NORMAL;
                 }
             }
             case ReturnNode _ -> VcgColor.CONTROL_FLOW;
             case StartNode _ -> VcgColor.CONTROL_FLOW;
-            default -> VcgColor.NORMAL;
+            default -> throw new UnsupportedOperationException("unsupported node type " + node.getClass());
         };
     }
 

@@ -15,11 +15,11 @@ import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.ReturnNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.StartNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BinaryOperationNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.DivNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ModNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 
 public class LivenessAnalysis {
 

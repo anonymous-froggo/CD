@@ -186,7 +186,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         T d = data;
         for (FunctionTree tree : programTree.topLevelTrees()) {
             r = tree.accept(this, d);
-            d = accumulate(data, r);
+            d = accumulate(d, r);
         }
         r = this.visitor.visit(programTree, d);
         return r;

@@ -1,4 +1,4 @@
-package edu.kit.kastel.vads.compiler.ir.nodes.binary_operation;
+package edu.kit.kastel.vads.compiler.ir.nodes.binary;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;

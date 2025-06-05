@@ -5,8 +5,8 @@ import java.util.Map;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.ReturnNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.StartNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 
 public interface RegisterAllocator {
 

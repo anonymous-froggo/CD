@@ -1,10 +1,10 @@
-package edu.kit.kastel.vads.compiler.ir.nodes.binary_operation;
+package edu.kit.kastel.vads.compiler.ir.nodes.binary;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
-public final class BitwiseXorNode extends BinaryOperationNode {
-public BitwiseXorNode(Block block, Node left, Node right) {
+public final class LogicalOrNode extends BinaryOperationNode {
+public LogicalOrNode(Block block, Node left, Node right) {
         super(block, left, right);
     }
 

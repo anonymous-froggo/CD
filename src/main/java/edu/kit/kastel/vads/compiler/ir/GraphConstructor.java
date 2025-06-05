@@ -3,33 +3,33 @@ package edu.kit.kastel.vads.compiler.ir;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.DecisionNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.ReturnNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.StartNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.AddNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseAndNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseOrNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.BitwiseXorNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.DivNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.EqNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.GreaterThanEqNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.GreaterThanNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LessThanEqNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LessThanNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LogicalAndNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.LogicalOrNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ModNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.MulNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.NotEqNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ShiftLeftNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ShiftRightNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.SubNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.unary_operation.BitwiseNotNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.unary_operation.LogicalNotNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.unary_operation.NegateNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.AddNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.BitwiseAndNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.BitwiseOrNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.BitwiseXorNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.EqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.GreaterThanEqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.GreaterThanNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.LessThanEqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.LessThanNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.LogicalAndNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.LogicalOrNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.MulNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.NotEqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftLeftNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftRightNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.SubNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.BitwiseNotNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.LogicalNotNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 
@@ -159,14 +159,14 @@ class GraphConstructor {
         return this.optimizer.transform(new BoolNode(graph().startBlock(), value));
     }
 
-    public Node newBlock() {
+    public Block newBlock() {
         Block block = new Block(graph());
         this.currentBlock = block;
         return block;
     }
 
     public Node newDecision(Node condition) {
-        return this.optimizer.transform(new DecisionNode(currentBlock(), condition));
+        return new ConditionalJumpNode(currentBlock(), condition);
     }
 
     public Phi newPhi() {
@@ -176,6 +176,14 @@ class GraphConstructor {
 
     public Node newResultProj(Node node) {
         return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.RESULT);
+    }
+
+    public Node newTrueProj(Node decision) {
+        return new ProjNode(currentBlock(), decision, ProjNode.SimpleProjectionInfo.TRUE);
+    }
+
+    public Node newFalseProj(Node decision) {
+        return new ProjNode(currentBlock(), decision, ProjNode.SimpleProjectionInfo.FALSE);
     }
 
     public Node newReturn(Node result) {

@@ -2,12 +2,11 @@ package edu.kit.kastel.vads.compiler.ir;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.DivNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary_operation.ModNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
-import edu.kit.kastel.vads.compiler.ir.util.GraphVizPrinter;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
@@ -238,22 +237,27 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(IfTree ifTree, SsaTranslation data) {
             pushSpan(ifTree);
+
             Node condition = ifTree.condition().accept(this, data).orElseThrow();
-            
             Node decisionNode = data.graphConstructor.newDecision(condition);
-            System.out.println(decisionNode + " | " + decisionNode.predecessors() + " | " + decisionNode.block());
-            
-            Node trueBlock = data.graphConstructor.newBlock();
-            data.graphConstructor.graph().registerSuccessor(decisionNode, trueBlock);
+            Node projTrue = data.graphConstructor.newTrueProj(decisionNode);
+            Node projFalse = data.graphConstructor.newFalseProj(decisionNode);
+
+            data.graphConstructor.sealBlock(data.graphConstructor.currentBlock());
+
+            Block trueBlock = data.graphConstructor.newBlock();
+            data.graphConstructor.graph().registerSuccessor(projTrue, trueBlock);
             ifTree.thenStatement().accept(this, data);
+            data.graphConstructor.sealBlock(trueBlock);
             
-            // Node falseBlock = data.graphConstructor.newBlock();
-            // data.graphConstructor.graph().registerSuccessor(decisionNode, falseBlock);
-            // ifTree.elseOpt().accept(this, data);
+            Block falseBlock = data.graphConstructor.newBlock();
+            data.graphConstructor.graph().registerSuccessor(projFalse, falseBlock);
+            ifTree.elseOpt().accept(this, data);
+            data.graphConstructor.sealBlock(falseBlock);
 
             popSpan();
 
-            return Optional.of(decisionNode);
+            return NOT_AN_EXPRESSION;
         }
 
         @Override
@@ -327,8 +331,7 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
-            Optional<Node> statement = elseOptTree.statement().accept(this, data);
-            return statement;
+            return elseOptTree.statement().accept(this, data);
         }
     }
 }

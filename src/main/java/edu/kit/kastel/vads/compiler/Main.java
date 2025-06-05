@@ -55,7 +55,6 @@ public class Main {
 
         if (DEBUG) {
             Path tmp = output.toAbsolutePath().resolveSibling("graphs");
-            Files.createDirectory(tmp);
             for (IrGraph graph : graphs) {
                 dumpGraph(graph, tmp, "before-codegen");
             }

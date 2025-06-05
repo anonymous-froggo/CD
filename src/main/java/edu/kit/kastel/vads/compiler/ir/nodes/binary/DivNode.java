@@ -1,13 +1,13 @@
-package edu.kit.kastel.vads.compiler.ir.nodes.binary_operation;
+package edu.kit.kastel.vads.compiler.ir.nodes.binary;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
-public final class ModNode extends BinaryOperationNode {
+public final class DivNode extends BinaryOperationNode {
 
     public static final int SIDE_EFFECT = 2;
 
-    public ModNode(Block block, Node left, Node right, Node sideEffect) {
+    public DivNode(Block block, Node left, Node right, Node sideEffect) {
         super(block, left, right, sideEffect);
     }
 
