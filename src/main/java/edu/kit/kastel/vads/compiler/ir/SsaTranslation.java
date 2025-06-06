@@ -4,6 +4,9 @@ import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
@@ -249,19 +252,21 @@ public class SsaTranslation {
 
             Node condition = ifTree.condition().accept(this, data).orElseThrow();
 
-            Node conditionalJump = data.graphConstructor.newConditionalJump(condition);
+            ControlFlowNode conditionalJump = data.graphConstructor.newConditionalJump(condition);
             Node projTrue = data.graphConstructor.newTrueProj(conditionalJump);
             Node projFalse = data.graphConstructor.newFalseProj(conditionalJump);
 
             Block thenBlock = data.graphConstructor.newBlock();
+            conditionalJump.setTarget(ConditionalJumpNode.TRUE_TARGET, thenBlock);
             thenBlock.addPredecessor(projTrue);
             data.graphConstructor.sealBlock(thenBlock);
-            Node exitThen = data.graphConstructor.newJump();
+            ControlFlowNode exitThen = data.graphConstructor.newJump();
             ifTree.thenStatement().accept(this, data);
             
-            Node exitElse = null;
+            ControlFlowNode exitElse = null;
             if (hasElse) {
                 Block elseBlock = data.graphConstructor.newBlock();
+                conditionalJump.setTarget(ConditionalJumpNode.FALSE_TARGET, elseBlock);
                 elseBlock.addPredecessor(projFalse);
                 data.graphConstructor.sealBlock(elseBlock);
                 exitElse = data.graphConstructor.newJump();
@@ -269,7 +274,9 @@ public class SsaTranslation {
             ifTree.elseOpt().accept(this, data);
             
             Block nextBlock = data.graphConstructor.newBlock();
+            exitThen.setTarget(JumpNode.TARGET, nextBlock);
             nextBlock.addPredecessor(exitThen);
+            (hasElse ? exitElse : conditionalJump).setTarget(hasElse ? JumpNode.TARGET : ConditionalJumpNode.FALSE_TARGET, nextBlock);
             nextBlock.addPredecessor(hasElse ? exitElse : projFalse);
             data.graphConstructor.sealBlock(nextBlock);
 

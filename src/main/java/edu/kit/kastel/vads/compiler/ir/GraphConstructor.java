@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.ResourceBundle.Control;
 
 class GraphConstructor {
 
@@ -58,7 +59,7 @@ class GraphConstructor {
         this.optimizer = optimizer;
         this.graph = new IrGraph(name);
         this.currentBlock = graph().startBlock();
-        
+
         // the start block never gets any more predecessors
         sealBlock(graph().startBlock());
     }
@@ -87,6 +88,8 @@ class GraphConstructor {
                 graph().addBlock(predecessorBlock);
             }
         }
+
+        System.out.println(block.nodes());
     }
 
     private void scan(Node node, Set<Node> scanned) {
@@ -209,17 +212,12 @@ class GraphConstructor {
         return block;
     }
 
-    // TODO check if currentBlock().setControlFlowNode() is needed
-    public Node newConditionalJump(Node condition) {
-        Node conditionalJump = new ConditionalJumpNode(currentBlock(), condition);
-        // currentBlock().setControlFlowNode(conditionalJump);
-        return conditionalJump;
+    public ControlFlowNode newConditionalJump(Node condition) {
+        return new ConditionalJumpNode(currentBlock(), condition);
     }
 
-    public Node newJump() {
-        Node jump = new JumpNode(currentBlock());
-        // currentBlock().setControlFlowNode(jump);
-        return jump;
+    public ControlFlowNode newJump() {
+        return new JumpNode(currentBlock());
     }
 
     public Phi newPhi() {
@@ -239,11 +237,11 @@ class GraphConstructor {
         return new ProjNode(currentBlock(), decision, ProjNode.SimpleProjectionInfo.FALSE);
     }
 
-    public Node newReturn(Node result) {
+    public ControlFlowNode newReturn(Node result) {
         return new ReturnNode(currentBlock(), readCurrentSideEffect(), result);
     }
 
-    public Node newStart() {
+    public ControlFlowNode newStart() {
         assert currentBlock() == this.graph.startBlock() : "start must be in start block";
         return new StartNode(currentBlock());
     }

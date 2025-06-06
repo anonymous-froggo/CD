@@ -1,6 +1,8 @@
 package edu.kit.kastel.vads.compiler.ir.util;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
@@ -24,8 +26,8 @@ public final class NodeSupport {
         return predecessor;
     }
 
-    public static Set<Node> predecessorsSkipProj(Node node) {
-        Set<Node> predecessors = new HashSet<>();
+    public static List<Node> predecessorsSkipProj(Node node) {
+        List<Node> predecessors = new ArrayList<>();
 
         for (Node predecessor : node.predecessors()) {
             if (predecessor instanceof ProjNode) {

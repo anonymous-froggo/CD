@@ -27,6 +27,8 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.MulNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftLeftNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.SubNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 
@@ -34,18 +36,20 @@ import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipPr
 
 public final class X8664CodeGenerator implements CodeGenerator {
 
-    private final StringBuilder builder;
+    private final List<IrGraph> graphs;
+
+    private final StringBuilder builder = new StringBuilder();
 
     private Map<Node, Register> registers;
     private int nStackRegisters;
 
-    public X8664CodeGenerator() {
-        this.builder = new StringBuilder();
+    public X8664CodeGenerator(List<IrGraph> graphs) {
+        this.graphs = graphs;
     }
 
     @Override
-    public String generateCode(List<IrGraph> program) {
-        for (IrGraph graph : program) {
+    public String generateCode() {
+        for (IrGraph graph : this.graphs) {
             X8664RegisterAllocator allocator = new X8664RegisterAllocator(graph);
             this.registers = allocator.allocateRegisters();
             this.nStackRegisters = allocator.numberOfStackRegisters();
@@ -66,23 +70,27 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     @Override
     public String fromBoolean(boolean value) {
-        return "$" + (value ? Integer.toHexString(0xFFFFFFFF) : Integer.toHexString(0x00000000));
+        return "$" + (value ? Integer.toHexString(0x1) : Integer.toHexString(0x0));
     }
 
     private void generateForGraph(IrGraph graph) {
-        Set<Node> visited = new HashSet<>();
-        scan(graph.endBlock(), visited);
+        for (Block block : graph.blocks()) {
+            generateForBlock(block);
+        }
     }
 
-    private void scan(Node node, Set<Node> visited) {
-        for (Node predecessor : node.predecessors()) {
-            if (visited.add(predecessor)) {
-                scan(predecessor, visited);
-            }
-        }
+    private void generateForBlock(Block block) {
+        this.builder.append(block.label())
+            .append(":\n");
 
+        for (Node node : block.nodes()) {
+            generateForNode(node);
+        }
+    }
+
+    private void generateForNode(Node node) {
         switch (node) {
-            // binary operation nodes
+            // Binary operation nodes
             case AddNode add -> defaultBinary(add, "addl");
             case BitwiseAndNode bitwiseAnd -> defaultBinary(bitwiseAnd, "andl");
             case BitwiseOrNode bitwiseOr -> defaultBinary(bitwiseOr, "orl");
@@ -96,13 +104,18 @@ public final class X8664CodeGenerator implements CodeGenerator {
             case ShiftRightNode shiftRight -> shift(shiftRight, "sarl");
             case SubNode sub -> defaultBinary(sub, "subl");
 
-            // other nodes
+            // Control flow nodes
+            case ConditionalJumpNode conditionalJump -> conditionalJump(conditionalJump);
+            case JumpNode jump -> jump(jump);
+            case ReturnNode ret -> ret(ret);
+
+            // Other nodes
             case BoolNode bool -> constant(fromBoolean(bool.value()), this.registers.get(bool));
             case ConstIntNode constInt -> constant(fromInt(constInt.value()), this.registers.get(constInt));
-            case ReturnNode ret -> ret(ret);
-            case Phi _ -> throw new UnsupportedOperationException("phi");
+            case Phi _ -> {
+            }
             case Block _,ProjNode _,StartNode _ -> {
-                // do nothing, skip line break
+                // do nothing
                 return;
             }
             default -> throw new UnsupportedOperationException(
@@ -112,43 +125,43 @@ public final class X8664CodeGenerator implements CodeGenerator {
     }
 
     private void defaultBinary(BinaryOperationNode node, String opcode) {
-        Register leftRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
-        Register rightRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
-        Register destRegister = this.registers.get(node);
+        Register left = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        Register right = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        Register dest = this.registers.get(node);
 
-        if (destRegister instanceof X8664StackRegister) {
-            move(leftRegister, X8664Register.RAX);
-            sourceDest(opcode, rightRegister, X8664Register.RAX);
-            move(X8664Register.RAX, destRegister);
+        if (dest instanceof X8664StackRegister) {
+            move(left, X8664Register.RAX);
+            sourceDest(opcode, right, X8664Register.RAX);
+            move(X8664Register.RAX, dest);
             return;
         }
 
-        if (destRegister == leftRegister) {
-            sourceDest(opcode, rightRegister, destRegister);
-        } else if (destRegister == rightRegister) {
+        if (dest == left) {
+            sourceDest(opcode, right, dest);
+        } else if (dest == right) {
             if (node instanceof SubNode) {
                 // This is of the form rightRegister = leftRegister - rightRegister, needs %eax
                 // as temp register
-                specialSub(leftRegister, destRegister);
+                specialSub(left, dest);
                 return;
             }
 
-            sourceDest(opcode, leftRegister, destRegister);
+            sourceDest(opcode, left, dest);
         } else {
-            move(leftRegister, destRegister);
-            sourceDest(opcode, rightRegister, destRegister);
+            move(left, dest);
+            sourceDest(opcode, right, dest);
         }
     }
 
     private void shift(BinaryOperationNode node, String opcode) {
-        Register srcRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
-        Register countRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
-        Register destRegister = this.registers.get(node);
+        Register src = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        Register count = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        Register dest = this.registers.get(node);
 
-        move(countRegister, X8664Register.RCX);
+        move(count, X8664Register.RCX);
 
-        if (destRegister instanceof X8664StackRegister) {
-            move(srcRegister, X8664Register.RAX);
+        if (dest instanceof X8664StackRegister) {
+            move(src, X8664Register.RAX);
             this.builder.repeat(" ", 2)
                 .append(opcode)
                 .append(" ")
@@ -156,12 +169,12 @@ public final class X8664CodeGenerator implements CodeGenerator {
                 .append(", ")
                 .append(X8664Register.RAX.name(32))
                 .append("\n");
-            move(X8664Register.RAX, destRegister);
+            move(X8664Register.RAX, dest);
             return;
         }
 
-        if (srcRegister != destRegister) {
-            move(srcRegister, destRegister);
+        if (src != dest) {
+            move(src, dest);
         }
 
         this.builder.repeat(" ", 2)
@@ -169,22 +182,22 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(" ")
             .append(X8664Register.RCX.name(8))
             .append(", ")
-            .append(destRegister.name(32))
+            .append(dest.name(32))
             .append("\n");
     }
 
-    private void specialSub(Register srcRegister, Register destRegister) {
-        move(srcRegister, X8664Register.RAX);
-        sourceDest("subl", destRegister, X8664Register.RAX);
-        move(X8664Register.RAX, destRegister);
+    private void specialSub(Register src, Register dest) {
+        move(src, X8664Register.RAX);
+        sourceDest("subl", dest, X8664Register.RAX);
+        move(X8664Register.RAX, dest);
     }
 
     private void division(BinaryOperationNode node) {
-        Register leftRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
-        Register rightRegister = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
-        Register destRegister = this.registers.get(node);
+        Register left = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        Register right = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        Register dest = this.registers.get(node);
 
-        move(leftRegister, X8664Register.RAX);
+        move(left, X8664Register.RAX);
 
         this.builder.repeat(" ", 2)
             .append("cdq")
@@ -192,15 +205,43 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
         this.builder.repeat(" ", 2)
             .append("idivl ")
-            .append(rightRegister.name(32))
+            .append(right.name(32))
             .append("\n");
 
         // The quotient (needed for division) is in rax,
         // the remainder (needed for modulo) is in rdx
         move(
             node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX,
-            destRegister
+            dest
         );
+    }
+
+    // Control flow
+
+    // TODO maybe change how conditions are handled -> actually leverage the
+    // different jump instructions instead of calling test condition, true
+    private void conditionalJump(ConditionalJumpNode node) {
+        Register condition = this.registers.get(predecessorSkipProj(node, ConditionalJumpNode.CONDITION));
+        this.builder.repeat(" ", 2)
+            .append("test ")
+            .append(condition.name(8))
+            .append(", ")
+            .append(condition.name(8)).append("\n");
+        this.builder.repeat(" ", 2)
+            .append("je ")
+            .append(node.target(ConditionalJumpNode.FALSE_TARGET).label())
+            .append("\n");
+        this.builder.repeat(" ", 2)
+            .append("jmp ")
+            .append(node.target(ConditionalJumpNode.TRUE_TARGET).label())
+            .append("\n");
+    }
+
+    private void jump(JumpNode jump) {
+        this.builder.repeat(" ", 2)
+            .append("jmp ")
+            .append(jump.target(JumpNode.TARGET).label())
+            .append("\n");
     }
 
     private void ret(ReturnNode node) {

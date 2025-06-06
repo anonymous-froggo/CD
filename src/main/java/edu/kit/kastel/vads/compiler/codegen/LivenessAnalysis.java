@@ -12,43 +12,38 @@ import java.util.Set;
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
+import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
 
 public class LivenessAnalysis {
 
-    private static Map<Node, Set<Node>> def = new HashMap<>();
-    private static Map<Node, Set<Node>> use = new HashMap<>();
-    private static Map<Node, Set<Node>> succ = new HashMap<>();
+    private final IrGraph graph;
 
-    private static Map<Node, Set<Node>> live = new HashMap<>();
-    private static boolean liveChanged;
+    private final Map<Node, Set<Node>> def = new HashMap<>();
+    private final Map<Node, Set<Node>> use = new HashMap<>();
+    private final Map<Node, Set<Node>> succ = new HashMap<>();
 
-    private static Set<Node> visited = new HashSet<>();
-    private static List<Node> schedule = new ArrayList<>();
+    private final Map<Node, Set<Node>> live = new HashMap<>();
+    private boolean liveChanged;
 
-    public static InterferenceGraph calculateInterferenceGraph(IrGraph irGraph) {
-        visited.add(irGraph.endBlock());
-        scan(irGraph.endBlock());
-        if (Main.DEBUG) {
-            System.out.println("schedule: " + schedule);
-        }
+    public LivenessAnalysis(IrGraph graph) {
+        this.graph = graph;
+    }
 
-        for (int l = schedule.size() - 1; l >= 0; l--) {
-            Node node = schedule.get(l);
-            switch (node) {
-                case BinaryOperationNode binaryOperationNode -> J1(binaryOperationNode, schedule.get(l + 1));
-                case ReturnNode returnNode -> J2(returnNode);
-                case ConstIntNode constIntNode -> J3(constIntNode, schedule.get(l + 1));
-                default -> {
-                }
-            }
+    public InterferenceGraph calculateInterferenceGraph() {
+        for (Block block : this.graph.blocks()) {
+            applyJRules(block);
         }
 
         if (Main.DEBUG) {
@@ -75,77 +70,110 @@ public class LivenessAnalysis {
         return interferenceGraph;
     }
 
-    private static void scan(Node node) {
-        for (Node predecessor : node.predecessors()) {
-            if (visited.add(predecessor)) {
-                scan(predecessor);
-            }
-        }
+    private void applyJRules(Block block) {
+        List<Node> nodes = block.nodes();
 
-        if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block)) {
-            schedule.add(node);
+        for (int index = 0; index < nodes.size(); index++) {
+            Node l = nodes.get(index);
+
+            switch (l) {
+                case BinaryOperationNode binaryOperation -> J1Binary(binaryOperation, nodes.get(index + 1));
+                case UnaryOperationNode unaryOperation -> J1Unary(unaryOperation, nodes.get(index + 1));
+                case Phi phi -> J1Phi(phi, nodes.get(index + 1));
+                case ReturnNode ret -> J2(ret);
+                case ConstIntNode _,BoolNode _ -> J3(l, nodes.get(index + 1));
+                case JumpNode jump -> J4(jump);
+                case ConditionalJumpNode conditionalJump -> J5(conditionalJump);
+                default -> {
+                    continue;
+                }
+            }
         }
     }
 
-    private static void J1(BinaryOperationNode binaryOperationNode, Node lPlusOne) {
-        Node l = binaryOperationNode;
-
-        Node x = binaryOperationNode;
-        Node y = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.LEFT);
-        Node z = predecessorSkipProj(binaryOperationNode, BinaryOperationNode.RIGHT);
+    private void J1Binary(BinaryOperationNode l, Node lPlusOne) {
+        Node x = l;
+        Node y = predecessorSkipProj(l, BinaryOperationNode.LEFT);
+        Node z = predecessorSkipProj(l, BinaryOperationNode.RIGHT);
 
         addFact(def, l, x);
         addFact(use, l, y);
         addFact(use, l, z);
         addFact(succ, l, lPlusOne);
 
-        if (binaryOperationNode instanceof DivNode) {
-            Node sideEffect = predecessorSkipProj(binaryOperationNode, DivNode.SIDE_EFFECT);
-            addSideEffectUse(l, sideEffect);
-        } else if (binaryOperationNode instanceof ModNode) {
-            Node sideEffect = predecessorSkipProj(binaryOperationNode, ModNode.SIDE_EFFECT);
-            addSideEffectUse(l, sideEffect);
-        }
+        // if (l instanceof DivNode) {
+        // Node sideEffect = predecessorSkipProj(l, DivNode.SIDE_EFFECT);
+        // addSideEffectUse(l, sideEffect);
+        // } else if (l instanceof ModNode) {
+        // Node sideEffect = predecessorSkipProj(l, ModNode.SIDE_EFFECT);
+        // addSideEffectUse(l, sideEffect);
+        // }
     }
 
-    private static void J2(ReturnNode returnNode) {
-        Node l = returnNode;
+    private void J1Unary(UnaryOperationNode l, Node lPlusOne) {
+        Node x = l;
+        Node y = predecessorSkipProj(l, UnaryOperationNode.IN);
 
-        Node x = predecessorSkipProj(returnNode, ReturnNode.RESULT);
+        addFact(def, l, x);
+        addFact(use, l, y);
+        addFact(succ, l, lPlusOne);
+    }
+
+    // x <- φ(y1, ...)
+    private void J1Phi(Phi l, Node lPlusOne) {
+        if (l.isSideEffectPhi()) {
+            // Side effect nodes don't need to be considered for liveness analysis
+            return;
+        }
+
+        Node x = l;
+
+        addFact(def, l, x);
+        for (Node yi : l.operands()) {
+            addFact(use, l, yi);
+        }
+        addFact(succ, l, lPlusOne);
+    }
+
+    private void J2(ReturnNode l) {
+        Node x = predecessorSkipProj(l, ReturnNode.RESULT);
 
         addFact(use, l, x);
 
-        // I don't know if this is needed
-        Node sideEffect = predecessorSkipProj(returnNode, ReturnNode.SIDE_EFFECT);
-        addSideEffectUse(l, sideEffect);
+        // Node sideEffect = predecessorSkipProj(l, ReturnNode.SIDE_EFFECT);
+        // addSideEffectUse(l, sideEffect);
     }
 
-    private static void J3(ConstIntNode constIntNode, Node lPlusOne) {
-        Node l = constIntNode;
-
-        Node x = constIntNode;
+    private void J3(Node l, Node lPlusOne) {
+        Node x = l;
 
         addFact(def, l, x);
         addFact(succ, l, lPlusOne);
     }
 
-    // Not yet necessary
-    private static void J4() {
+    private void J4(JumpNode l) {
+        Node lPrime = l.target(JumpNode.TARGET).nodes().get(0);
 
+        addFact(succ, l, lPrime);
     }
 
-    // Not yet necessary
-    private static void J5() {
+    private void J5(ConditionalJumpNode l) {
+        Node x = l.predecessor(ConditionalJumpNode.CONDITION);
+        Node lPrime = l.target(ConditionalJumpNode.TRUE_TARGET).nodes().get(0);
+        Node lPlusOne = l.target(ConditionalJumpNode.FALSE_TARGET).nodes().get(0);
 
+        addFact(use, l, x);
+        addFact(succ, l, lPrime);
+        addFact(succ, l, lPlusOne);
     }
 
-    private static void K1(Node l) {
+    private void K1(Node l) {
         for (Node x : use.get(l)) {
             addFact(live, l, x);
         }
     }
 
-    private static void K2(Node l) {
+    private void K2(Node l) {
         for (Node lPrime : succ.get(l)) {
             if (live.get(lPrime) == null) {
                 continue;
@@ -159,21 +187,19 @@ public class LivenessAnalysis {
         }
     }
 
-    private static boolean addFact(
-        Map<Node, Set<Node>> predicate, Node line, Node subject
-    ) {
-        if (!predicate.containsKey(line)) {
-            predicate.put(line, new HashSet<>());
+    private boolean addFact(Map<Node, Set<Node>> predicate, Node l, Node subject) {
+        if (!predicate.containsKey(l)) {
+            predicate.put(l, new HashSet<>());
         }
 
-        return predicate.get(line).add(subject);
+        return predicate.get(l).add(subject);
     }
 
-    private static void addSideEffectUse(Node l, Node sideEffect) {
-        if (sideEffect instanceof StartNode) {
-            return;
-        }
+    // private boolean addSideEffectUse(Node l, Node sideEffect) {
+    // if (sideEffect instanceof StartNode) {
+    // return false;
+    // }
 
-        addFact(use, l, sideEffect);
-    }
+    // return addFact(use, l, sideEffect);
+    // }
 }

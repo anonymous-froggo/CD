@@ -8,7 +8,10 @@ public sealed abstract class UnaryOperationNode extends Node permits
     BitwiseNotNode,
     NegateNode
 {
-    protected UnaryOperationNode(Block block, Node input) {
+
+    public static final int IN = 0;
+
+    public UnaryOperationNode(Block block, Node input) {
         super(block, input);
     }
 }

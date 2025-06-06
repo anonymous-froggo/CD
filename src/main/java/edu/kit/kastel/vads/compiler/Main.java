@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler;
 
+import edu.kit.kastel.vads.compiler.codegen.CodeGenerator;
 import edu.kit.kastel.vads.compiler.codegen.x86_64.X8664CodeGenerator;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.SsaTranslation;
@@ -37,10 +38,10 @@ public class Main {
 
         Path input = Path.of(args[0]);
         Path output = Path.of(args[1]);
-        ProgramTree program = lexAndParse(input);
+        ProgramTree programTree = lexAndParse(input);
 
         try {
-            new SemanticAnalysis(program).analyze();
+            new SemanticAnalysis(programTree).analyze();
         } catch (SemanticException e) {
             e.printStackTrace();
             System.exit(7);
@@ -48,7 +49,7 @@ public class Main {
         }
 
         List<IrGraph> graphs = new ArrayList<>();
-        for (FunctionTree functionTree : program.topLevelTrees()) {
+        for (FunctionTree functionTree : programTree.topLevelTrees()) {
             SsaTranslation ssaTranslation = new SsaTranslation(functionTree, new LocalValueNumbering());
             graphs.add(ssaTranslation.translate());
         }
@@ -60,7 +61,8 @@ public class Main {
             }
         }
 
-        String generatedCode = new X8664CodeGenerator().generateCode(graphs);
+        CodeGenerator codeGenerator = new X8664CodeGenerator(graphs);
+        String generatedCode = codeGenerator.generateCode();
 
         assembleAndLink(generatedCode, output);
     }

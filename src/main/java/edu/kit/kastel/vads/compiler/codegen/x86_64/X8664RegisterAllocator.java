@@ -16,18 +16,18 @@ import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 public class X8664RegisterAllocator implements RegisterAllocator {
 
     private List<Register> registers;
-    private final IrGraph irGraph;
+    private final IrGraph graph;
     private final Map<Node, Register> registerAllocation = new HashMap<>();
     private int numberOfStackRegisters;
 
-    public X8664RegisterAllocator(IrGraph irGraph) {
+    public X8664RegisterAllocator(IrGraph graph) {
         this.registers = new ArrayList<>(Arrays.asList(X8664Register.getGeneralPurposeRegisters()));
-        this.irGraph = irGraph;
+        this.graph = graph;
     }
 
     @Override
     public Map<Node, Register> allocateRegisters() {
-        InterferenceGraph interferenceGraph = LivenessAnalysis.calculateInterferenceGraph(irGraph);
+        InterferenceGraph interferenceGraph = new LivenessAnalysis(graph).calculateInterferenceGraph();
         interferenceGraph.color();
 
         Map<Node, Integer> nodeColors = interferenceGraph.getNodeColors();

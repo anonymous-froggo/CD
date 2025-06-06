@@ -10,7 +10,7 @@ public final class BoolNode extends Node {
     }
 
     public boolean value() {
-        return this.value();
+        return this.value;
     }
 
     // This is used in order to enable optimization -> if one constant is used

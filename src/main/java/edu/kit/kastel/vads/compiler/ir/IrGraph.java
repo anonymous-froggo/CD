@@ -45,16 +45,20 @@ public class IrGraph {
         return Set.copyOf(successors);
     }
 
+    public List<Block> blocks() {
+        return new ArrayList<>(this.blocks);
+    }
+
+    public void addBlock(Block block) {
+        this.blocks.add(block);
+    }
+
     public Block startBlock() {
         return this.startBlock;
     }
 
     public Block endBlock() {
         return this.endBlock;
-    }
-
-    public void addBlock(Block block) {
-        this.blocks.add(block);
     }
 
     /// {@return the name of this graph}
