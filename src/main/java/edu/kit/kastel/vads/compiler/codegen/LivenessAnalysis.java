@@ -16,9 +16,12 @@ import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
 
 public class LivenessAnalysis {
@@ -96,13 +99,13 @@ public class LivenessAnalysis {
         addFact(use, l, z);
         addFact(succ, l, lPlusOne);
 
-        // if (l instanceof DivNode) {
-        // Node sideEffect = predecessorSkipProj(l, DivNode.SIDE_EFFECT);
-        // addSideEffectUse(l, sideEffect);
-        // } else if (l instanceof ModNode) {
-        // Node sideEffect = predecessorSkipProj(l, ModNode.SIDE_EFFECT);
-        // addSideEffectUse(l, sideEffect);
-        // }
+        if (l instanceof DivNode) {
+            Node sideEffect = predecessorSkipProj(l, DivNode.SIDE_EFFECT);
+            addSideEffectUse(l, sideEffect);
+        } else if (l instanceof ModNode) {
+            Node sideEffect = predecessorSkipProj(l, ModNode.SIDE_EFFECT);
+            addSideEffectUse(l, sideEffect);
+        }
     }
 
     private void J1Unary(UnaryOperationNode l, Node lPlusOne) {
@@ -117,7 +120,9 @@ public class LivenessAnalysis {
     // x <- φ(y1, ...)
     private void J1Phi(Phi l, Node lPlusOne) {
         if (l.isSideEffectPhi()) {
-            // Side effect nodes don't need to be considered for liveness analysis
+            for (Node sideEffect : l.operands()) {
+                addSideEffectUse(l, sideEffect);
+            }
             return;
         }
 
@@ -135,8 +140,8 @@ public class LivenessAnalysis {
 
         addFact(use, l, x);
 
-        // Node sideEffect = predecessorSkipProj(l, ReturnNode.SIDE_EFFECT);
-        // addSideEffectUse(l, sideEffect);
+        Node sideEffect = predecessorSkipProj(l, ReturnNode.SIDE_EFFECT);
+        addSideEffectUse(l, sideEffect);
     }
 
     private void J3(Node l, Node lPlusOne) {
@@ -190,11 +195,11 @@ public class LivenessAnalysis {
         return predicate.get(l).add(subject);
     }
 
-    // private boolean addSideEffectUse(Node l, Node sideEffect) {
-    // if (sideEffect instanceof StartNode) {
-    // return false;
-    // }
+    private boolean addSideEffectUse(Node l, Node sideEffect) {
+        if (sideEffect instanceof StartNode) {
+            return false;
+        }
 
-    // return addFact(use, l, sideEffect);
-    // }
+        return addFact(use, l, sideEffect);
+    }
 }
