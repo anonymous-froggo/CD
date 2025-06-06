@@ -2,7 +2,6 @@ package edu.kit.kastel.vads.compiler.codegen;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,14 +15,10 @@ import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
-import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
 
 public class LivenessAnalysis {

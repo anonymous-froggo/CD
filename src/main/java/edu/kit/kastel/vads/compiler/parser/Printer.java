@@ -4,7 +4,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;

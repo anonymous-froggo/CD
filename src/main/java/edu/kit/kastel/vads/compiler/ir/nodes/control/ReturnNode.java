@@ -1,7 +1,5 @@
 package edu.kit.kastel.vads.compiler.ir.nodes.control;
 
-import java.util.Set;
-
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 

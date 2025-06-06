@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
-import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 
 public final class Block extends Node {
     private static int idCounter = 0;

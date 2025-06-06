@@ -1,9 +1,7 @@
 package edu.kit.kastel.vads.compiler.codegen.x86_64;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.codegen.CodeGenerator;
 import edu.kit.kastel.vads.compiler.codegen.Register;
@@ -113,6 +111,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
             case BoolNode bool -> constant(fromBoolean(bool.value()), this.registers.get(bool));
             case ConstIntNode constInt -> constant(fromInt(constInt.value()), this.registers.get(constInt));
             case Phi _ -> {
+                // TODO implement phis
             }
             case Block _,ProjNode _,StartNode _ -> {
                 // do nothing
@@ -219,21 +218,26 @@ public final class X8664CodeGenerator implements CodeGenerator {
     // Control flow
 
     // TODO maybe change how conditions are handled -> actually leverage the
-    // different jump instructions instead of calling test condition, true
+    // different jump instructions instead of calling test condition, condition
     private void conditionalJump(ConditionalJumpNode node) {
         Register condition = this.registers.get(predecessorSkipProj(node, ConditionalJumpNode.CONDITION));
+        // Sets ZF to 0 if condition == false
         this.builder.repeat(" ", 2)
             .append("test ")
             .append(condition.name(8))
             .append(", ")
             .append(condition.name(8)).append("\n");
+
+        // Activated when ZF != 0 (condition == true)
         this.builder.repeat(" ", 2)
-            .append("je ")
-            .append(node.target(ConditionalJumpNode.FALSE_TARGET).label())
+            .append("jne ")
+            .append(node.target(ConditionalJumpNode.TRUE_TARGET).label())
             .append("\n");
+
+        // Activated when ZF == 0 (condition == false)
         this.builder.repeat(" ", 2)
             .append("jmp ")
-            .append(node.target(ConditionalJumpNode.TRUE_TARGET).label())
+            .append(node.target(ConditionalJumpNode.FALSE_TARGET).label())
             .append("\n");
     }
 
