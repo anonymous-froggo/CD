@@ -15,7 +15,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.EmptyTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
@@ -47,8 +46,6 @@ public interface Visitor<T, R> {
     R visit(ContinueTree continueTree, T data);
 
     R visit(DeclarationTree declarationTree, T data);
-
-    R visit(ElseOptTree elseOptTree, T data);
 
     R visit(EmptyTree forTree, T data);
 

@@ -4,6 +4,7 @@ import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
@@ -18,13 +19,10 @@ public sealed abstract class Node permits
     BinaryOperationNode,
     Block,
     BoolNode,
+    ControlFlowNode,
     ConstIntNode,
-    ConditionalJumpNode,
-    JumpNode,
     Phi,
     ProjNode,
-    ReturnNode,
-    StartNode,
     UnaryOperationNode
 {
 

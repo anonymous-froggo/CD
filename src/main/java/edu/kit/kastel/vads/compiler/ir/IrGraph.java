@@ -1,7 +1,9 @@
 package edu.kit.kastel.vads.compiler.ir;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.SequencedSet;
 import java.util.Set;
@@ -12,14 +14,18 @@ import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 public class IrGraph {
 
     private final Map<Node, SequencedSet<Node>> successors = new IdentityHashMap<>();
+
+    private final List<Block> blocks = new ArrayList<>();
     private final Block startBlock;
     private final Block endBlock;
+
     private final String name;
 
     public IrGraph(String name) {
+        this.startBlock = new Block(this);
+        this.endBlock = new Block(this);
+
         this.name = name;
-        this.startBlock = new Block(0, this);
-        this.endBlock = new Block(-1, this);
     }
 
     public void registerSuccessor(Node node, Node successor) {
@@ -45,6 +51,10 @@ public class IrGraph {
 
     public Block endBlock() {
         return this.endBlock;
+    }
+
+    public void addBlock(Block block) {
+        this.blocks.add(block);
     }
 
     /// {@return the name of this graph}

@@ -25,6 +25,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftLeftNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.SubNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
@@ -33,6 +34,9 @@ import edu.kit.kastel.vads.compiler.ir.nodes.unary.LogicalNotNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
+import edu.kit.kastel.vads.compiler.semantic.SemanticException;
+
+import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorsSkipProj;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,15 +53,52 @@ class GraphConstructor {
     private final Map<Block, Phi> incompleteSideEffectPhis = new HashMap<>();
     private final Set<Block> sealedBlocks = new HashSet<>();
     private Block currentBlock;
-    private int currentBlockId;
 
     public GraphConstructor(Optimizer optimizer, String name) {
         this.optimizer = optimizer;
         this.graph = new IrGraph(name);
-        this.currentBlock = this.graph.startBlock();
-        this.currentBlockId = 0;
+        this.currentBlock = graph().startBlock();
+        
         // the start block never gets any more predecessors
-        sealBlock(this.currentBlock);
+        sealBlock(graph().startBlock());
+    }
+
+    public void collectNodes() {
+        Set<Node> scanned = new HashSet<>();
+        scanned.add(graph().endBlock());
+        
+        scanBlock(graph().endBlock(), scanned);
+        graph().addBlock(graph().endBlock());
+    }
+
+    private void scanBlock(Block block, Set<Node> scanned) {
+        for (Node controlFlowInput : predecessorsSkipProj(block)) {
+            if (!(controlFlowInput instanceof ControlFlowNode)) {
+                throw new SemanticException("Node " + controlFlowInput + " should be a control flow node");
+            }
+
+            if (scanned.add(controlFlowInput)) {
+                scan(controlFlowInput, scanned);
+            }
+
+            Block predecessorBlock = controlFlowInput.block();
+            if (scanned.add(predecessorBlock)) {
+                scanBlock(predecessorBlock, scanned);
+                graph().addBlock(predecessorBlock);
+            }
+        }
+    }
+
+    private void scan(Node node, Set<Node> scanned) {
+        for (Node predecessor : node.predecessors()) {
+            if (scanned.add(predecessor)) {
+                scan(predecessor, scanned);
+            }
+        }
+
+        if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block)) {
+            node.block().addNode(node);
+        }
     }
 
     // Binary operation nodes
@@ -163,18 +204,22 @@ class GraphConstructor {
     }
 
     public Block newBlock() {
-        this.currentBlockId++;
-        Block block = new Block(this.currentBlockId, graph());
+        Block block = new Block(graph());
         this.currentBlock = block;
         return block;
     }
 
+    // TODO check if currentBlock().setControlFlowNode() is needed
     public Node newConditionalJump(Node condition) {
-        return new ConditionalJumpNode(currentBlock(), condition);
+        Node conditionalJump = new ConditionalJumpNode(currentBlock(), condition);
+        // currentBlock().setControlFlowNode(conditionalJump);
+        return conditionalJump;
     }
 
     public Node newJump() {
-        return new JumpNode(currentBlock());
+        Node jump = new JumpNode(currentBlock());
+        // currentBlock().setControlFlowNode(jump);
+        return jump;
     }
 
     public Phi newPhi() {

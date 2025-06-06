@@ -1,17 +1,37 @@
 package edu.kit.kastel.vads.compiler.ir.nodes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
 
 public final class Block extends Node {
-    private final String info;
+    private static int idCounter = 0;
+    private final int id;
 
-    public Block(int id, IrGraph graph) {
+    private List<Node> nodes;
+
+    public Block(IrGraph graph) {
         super(graph);
-        this.info = String.valueOf(id);
+        this.id = idCounter++;
+
+        this.nodes = new ArrayList<>();
+    }
+
+    public void addNode(Node node) {
+        this.nodes.add(node);
     }
 
     @Override
-    protected String info() {
-        return "[" + this.info + "]";
+    public String info() {
+        return "[" + this.id + "]";
+    }
+
+    public int id() {
+        return this.id;
+    }
+
+    public List<Node> nodes() {
+        return new ArrayList<>(this.nodes);
     }
 }

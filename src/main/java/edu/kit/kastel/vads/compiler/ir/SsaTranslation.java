@@ -24,7 +24,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.EmptyTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
@@ -63,9 +62,7 @@ public class SsaTranslation {
         var visitor = new SsaTranslationVisitor();
         this.functionTree.accept(visitor, this);
 
-        for (Block block : this.graphConstructor.sealedBlocks()) {
-            System.out.println(block + " | " + block.predecessors());
-        }
+        this.graphConstructor.collectNodes();
 
         return this.graphConstructor.graph();
     }
@@ -226,10 +223,13 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(FunctionTree functionTree, SsaTranslation data) {
             pushSpan(functionTree);
+
             Node start = data.graphConstructor.newStart();
             data.graphConstructor.writeCurrentSideEffect(data.graphConstructor.newSideEffectProj(start));
             functionTree.body().accept(this, data);
+
             popSpan();
+
             return NOT_AN_EXPRESSION;
         }
 
@@ -245,6 +245,8 @@ public class SsaTranslation {
         public Optional<Node> visit(IfTree ifTree, SsaTranslation data) {
             pushSpan(ifTree);
 
+            boolean hasElse = !(ifTree.elseOpt() instanceof EmptyTree);
+
             Node condition = ifTree.condition().accept(this, data).orElseThrow();
 
             Node conditionalJump = data.graphConstructor.newConditionalJump(condition);
@@ -254,12 +256,21 @@ public class SsaTranslation {
             Block thenBlock = data.graphConstructor.newBlock();
             thenBlock.addPredecessor(projTrue);
             data.graphConstructor.sealBlock(thenBlock);
+            Node exitThen = data.graphConstructor.newJump();
             ifTree.thenStatement().accept(this, data);
-            Node exitThenBlock = data.graphConstructor.newJump();
+            
+            Node exitElse = null;
+            if (hasElse) {
+                Block elseBlock = data.graphConstructor.newBlock();
+                elseBlock.addPredecessor(projFalse);
+                data.graphConstructor.sealBlock(elseBlock);
+                exitElse = data.graphConstructor.newJump();
+            }
+            ifTree.elseOpt().accept(this, data);
             
             Block nextBlock = data.graphConstructor.newBlock();
-            nextBlock.addPredecessor(exitThenBlock);
-            nextBlock.addPredecessor(projFalse);
+            nextBlock.addPredecessor(exitThen);
+            nextBlock.addPredecessor(hasElse ? exitElse : projFalse);
             data.graphConstructor.sealBlock(nextBlock);
 
             popSpan();
@@ -333,14 +344,7 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(EmptyTree forTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
-        }
-
-        @Override
-        public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+            return NOT_AN_EXPRESSION;
         }
     }
 }

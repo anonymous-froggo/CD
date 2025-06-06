@@ -33,7 +33,6 @@ public class YCompPrinter {
     private final Map<Node, Integer> ids = new HashMap<>();
     private final IrGraph graph;
     private int nodeCounter = 0;
-    private int blockCounter = 0;
 
     public YCompPrinter(IrGraph graph) {
         this.graph = graph;
@@ -266,7 +265,7 @@ public class YCompPrinter {
 
     private int idFor(Node node) {
         if (node instanceof Block block) {
-            return this.ids.computeIfAbsent(block, _ -> this.blockCounter++);
+            return block.id();
         }
         return this.ids.computeIfAbsent(node, _ -> this.nodeCounter++);
     }
