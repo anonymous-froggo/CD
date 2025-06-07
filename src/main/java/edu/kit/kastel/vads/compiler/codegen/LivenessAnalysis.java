@@ -196,6 +196,10 @@ public class LivenessAnalysis {
     }
 
     private boolean addFact(Map<Node, Set<Node>> predicate, Node l, Node subject) {
+        if (predicate == use && subject instanceof StartNode) {
+            return false;
+        }
+
         if (!predicate.containsKey(l)) {
             predicate.put(l, new HashSet<>());
         }
@@ -210,7 +214,8 @@ public class LivenessAnalysis {
                 return;
             }
             case Phi phi -> {
-                // Forward the side effect use to phi's operands
+                // Recursively forward the side effect use to phi's operands
+                // -> in the end, all actual side effects will be used by l
                 for (Node sideEffectOperand : phi.operands()) {
                     addSideEffectUse(l, sideEffectOperand);
                 }

@@ -7,6 +7,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
@@ -256,28 +257,40 @@ public class SsaTranslation {
             Node projFalse = data.graphConstructor.newFalseProj(conditionalJump);
 
             Block thenBlock = data.graphConstructor.newBlock();
+            // Link projTrue and thenBlock
             conditionalJump.setTarget(ConditionalJumpNode.TRUE_TARGET, thenBlock);
             thenBlock.addPredecessor(projTrue);
+            // No more predecessors will be added, so seal
             data.graphConstructor.sealBlock(thenBlock);
-            ControlFlowNode exitThen = data.graphConstructor.newJump();
+            // Parse thenStatement
             ifTree.thenStatement().accept(this, data);
-            
-            ControlFlowNode exitElse = null;
+
+            // If the current block doesn't have predecessors it was created by a return, so
+            // no new block and no jump is needed
+            boolean needNewBlock = !data.graphConstructor.currentBlock().predecessors().isEmpty();
+            // Insert a jump into the current block which will be linked to the block
+            // following the if. This current block might be != thenBlock due to added
+            // control flows in thenStatement.
+            ControlFlowNode exitThen = needNewBlock ? data.graphConstructor.newJump() : null;
+
             if (hasElse) {
-                Block elseBlock = data.graphConstructor.newBlock();
-                conditionalJump.setTarget(ConditionalJumpNode.FALSE_TARGET, elseBlock);
-                elseBlock.addPredecessor(projFalse);
-                data.graphConstructor.sealBlock(elseBlock);
-                exitElse = data.graphConstructor.newJump();
+                // TODO
+            } else {
+                Block followBlock = needNewBlock ? data.graphConstructor.newBlock()
+                    : data.graphConstructor.currentBlock();
+
+                if (needNewBlock) {
+                    // Link exitThen and followBlock
+                    exitThen.setTarget(JumpNode.TARGET, followBlock);
+                    followBlock.addPredecessor(exitThen);
+                }
+
+                // Link projFalse and followBlock
+                conditionalJump.setTarget(ConditionalJumpNode.FALSE_TARGET, followBlock);
+                followBlock.addPredecessor(projFalse);
+                // No more predecessors will be added, so seal
+                data.graphConstructor.sealBlock(followBlock);
             }
-            ifTree.elseOpt().accept(this, data);
-            
-            Block nextBlock = data.graphConstructor.newBlock();
-            exitThen.setTarget(JumpNode.TARGET, nextBlock);
-            nextBlock.addPredecessor(exitThen);
-            (hasElse ? exitElse : conditionalJump).setTarget(hasElse ? JumpNode.TARGET : ConditionalJumpNode.FALSE_TARGET, nextBlock);
-            nextBlock.addPredecessor(hasElse ? exitElse : projFalse);
-            data.graphConstructor.sealBlock(nextBlock);
 
             popSpan();
 
@@ -319,10 +332,20 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(ReturnTree returnTree, SsaTranslation data) {
             pushSpan(returnTree);
+
             Node result = returnTree.expression().accept(this, data).orElseThrow();
-            Node ret = data.graphConstructor.newReturn(result);
+            ControlFlowNode ret = data.graphConstructor.newReturn(result);
+
+            // Link ret and endBlock
+            ret.setTarget(ReturnNode.TARGET, data.graphConstructor.graph().endBlock());
             data.graphConstructor.graph().endBlock().addPredecessor(ret);
+
+            // Create a new block with no predecessors and seal it
+            Block followBlock = data.graphConstructor.newBlock();
+            data.graphConstructor.sealBlock(followBlock);
+
             popSpan();
+
             return NOT_AN_EXPRESSION;
         }
 

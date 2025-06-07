@@ -66,21 +66,26 @@ class GraphConstructor {
     public void collectNodes() {
         Set<Node> scanned = new HashSet<>();
         scanned.add(graph().endBlock());
-        
+
         scanBlock(graph().endBlock(), scanned);
         graph().addBlock(graph().endBlock());
     }
 
     private void scanBlock(Block block, Set<Node> scanned) {
+        // Go through all of [block]'s control flow inputs
         for (Node controlFlowInput : predecessorsSkipProj(block)) {
             if (!(controlFlowInput instanceof ControlFlowNode)) {
+                // This shouldn't happen
                 throw new SemanticException("Node " + controlFlowInput + " should be a control flow node");
             }
 
+            // Recursively scan [controlFlowInput]
+            // System.out.println("Scanning controlFlowInput " + controlFlowInput);
             if (scanned.add(controlFlowInput)) {
                 scan(controlFlowInput, scanned);
             }
 
+            // Scan [controlFlowInput]'s block
             Block predecessorBlock = controlFlowInput.block();
             if (scanned.add(predecessorBlock)) {
                 scanBlock(predecessorBlock, scanned);
@@ -98,6 +103,7 @@ class GraphConstructor {
             }
         }
 
+        // System.out.println("node: " + node);
         if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block)) {
             node.block().addNode(node);
         }
