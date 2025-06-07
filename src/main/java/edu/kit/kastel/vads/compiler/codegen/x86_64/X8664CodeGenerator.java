@@ -31,6 +31,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
+import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.successorsSkipProj;
 
 public final class X8664CodeGenerator implements CodeGenerator {
 
@@ -63,12 +64,12 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     @Override
     public String fromInt(int value) {
-        return "$" + value;
+        return "$0x" + Integer.toHexString(value);
     }
 
     @Override
     public String fromBoolean(boolean value) {
-        return "$" + (value ? Integer.toHexString(0x1) : Integer.toHexString(0x0));
+        return "$" + (value ? 1 : 0);
     }
 
     private void generateForGraph(IrGraph graph) {
@@ -82,6 +83,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(":\n");
 
         for (Node node : block.nodes()) {
+            // Generate block-local code
             generateForNode(node);
         }
     }
@@ -103,15 +105,23 @@ public final class X8664CodeGenerator implements CodeGenerator {
             case SubNode sub -> defaultBinary(sub, "subl");
 
             // Control flow nodes
-            case ConditionalJumpNode conditionalJump -> conditionalJump(conditionalJump);
-            case JumpNode jump -> jump(jump);
+            case ConditionalJumpNode conditionalJump -> {
+                moveToPhis(conditionalJump.block());
+                conditionalJump(conditionalJump);
+            }
+            case JumpNode jump -> {
+                moveToPhis(jump.block());
+                jump(jump);
+            }
             case ReturnNode ret -> ret(ret);
 
             // Other nodes
             case BoolNode bool -> constant(fromBoolean(bool.value()), this.registers.get(bool));
             case ConstIntNode constInt -> constant(fromInt(constInt.value()), this.registers.get(constInt));
             case Phi _ -> {
-                // TODO implement phis
+                // Nothing to do, since a phi's operands write into that phi's register on their
+                // own
+                return;
             }
             case Block _,ProjNode _,StartNode _ -> {
                 // do nothing
@@ -120,6 +130,17 @@ public final class X8664CodeGenerator implements CodeGenerator {
             default -> throw new UnsupportedOperationException(
                 "code generation for " + node.getClass() + " not yet implemented"
             );
+        }
+    }
+
+    private void moveToPhis(Block block) {
+        for (Node node : block.nodes()) {
+            // Move values into successor phis if they're not a side effect phi
+            for (Node successor : successorsSkipProj(node)) {
+                if (successor instanceof Phi phi && !phi.isSideEffectPhi()) {
+                    move(this.registers.get(node), this.registers.get(successor));
+                }
+            }
         }
     }
 

@@ -120,6 +120,9 @@ public class Printer {
                 printTree(condition);
                 print(") ");
                 printTree(thenStatement);
+                if (!(elseOpt instanceof EmptyTree)) {
+                    print(" else ");
+                }
                 printTree(elseOpt);
                 // TODO maybe refine this line break as it generates an additional linebreak if
                 // thenStatement is not a block

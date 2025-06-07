@@ -175,7 +175,6 @@ public class SsaTranslation {
         public Optional<Node> visit(BlockTree blockTree, SsaTranslation data) {
             pushSpan(blockTree);
             for (StatementTree statement : blockTree.statements()) {
-                System.out.println(Printer.print(statement));
                 statement.accept(this, data);
                 // skip everything after a return in a block
                 if (statement instanceof ReturnTree) {

@@ -34,4 +34,20 @@ public final class NodeSupport {
 
         return predecessors;
     }
+
+    public static List<Node> successorsSkipProj(Node node) {
+        List<Node> successors = new ArrayList<>();
+
+        for (Node child : node.graph().successors(node)) {
+            if (child instanceof ProjNode) {
+                for (Node grandchild : child.graph().successors(child)) {
+                    successors.add(grandchild);
+                }
+            } else {
+                successors.add(child);
+            }
+        }
+
+        return successors;
+    }
 }

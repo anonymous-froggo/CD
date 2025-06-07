@@ -12,6 +12,18 @@ public final class Phi extends Node {
         super(block);
     }
 
+    @Override
+    public String info() {
+        StringBuilder info = new StringBuilder("[");
+        for (Node operand : this.operands()) {
+            info.append(operand.toString())
+                .append(", ");
+        }
+        info.append("]");
+
+        return info.toString();
+    }
+
     public boolean isSideEffectPhi() {
         // We only need to check the first predecessor since either none or all predecessors
         // are side effect projection nodes

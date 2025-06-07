@@ -88,7 +88,7 @@ class GraphConstructor {
             }
         }
 
-        System.out.println(block.nodes());
+        System.out.println(block.label() + ": " + block.nodes());
     }
 
     private void scan(Node node, Set<Node> scanned) {

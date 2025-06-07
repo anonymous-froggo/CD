@@ -255,10 +255,13 @@ public class YCompPrinter {
     }
 
     private String nodeLabel(Node node) {
-        if (node == this.graph.startBlock()) {
-            return "start-block";
-        } else if (node == this.graph.endBlock()) {
-            return "end-block";
+        if (node instanceof Block block) {
+            if (block == this.graph.startBlock()) {
+                return "start-block";
+            } else if (block == this.graph.endBlock()) {
+                return "end-block";
+            }
+            return "block-" + idFor(block);
         }
         return node.toString();
     }

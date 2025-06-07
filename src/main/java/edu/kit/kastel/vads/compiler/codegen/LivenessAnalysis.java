@@ -87,6 +87,8 @@ public class LivenessAnalysis {
                 }
             }
         }
+
+        System.out.println();
     }
 
     private void J1Binary(BinaryOperationNode l, Node lPlusOne) {
@@ -120,12 +122,12 @@ public class LivenessAnalysis {
     // x <- φ(y1, ...)
     private void J1Phi(Phi l, Node lPlusOne) {
         if (l.isSideEffectPhi()) {
-            for (Node sideEffect : l.operands()) {
-                addSideEffectUse(l, sideEffect);
-            }
+            // Phis which only collect side effects don't need to be considered, only add succ
+            addFact(succ, l, lPlusOne);
             return;
         }
 
+        // l collects actual results, apply J1
         Node x = l;
 
         addFact(def, l, x);
@@ -174,13 +176,19 @@ public class LivenessAnalysis {
     }
 
     private void K2(Node l) {
+        // Try to apply this rule for all l' with succ(l, l')
         for (Node lPrime : succ.get(l)) {
-            if (live.get(lPrime) == null) {
+            // Try to apply this rule for all u with live(l', u)
+            Set<Node> liveAtLPrime = live.get(lPrime);
+
+            if (liveAtLPrime == null) {
+                // There are no such u
                 continue;
             }
 
-            for (Node u : live.get(lPrime)) {
+            for (Node u : liveAtLPrime) {
                 if (def.get(l) == null || !def.get(l).contains(u)) {
+                    // ¬def(l, u) is fulfilled
                     liveChanged = addFact(live, l, u) || liveChanged;
                 }
             }
@@ -195,11 +203,19 @@ public class LivenessAnalysis {
         return predicate.get(l).add(subject);
     }
 
-    private boolean addSideEffectUse(Node l, Node sideEffect) {
-        if (sideEffect instanceof StartNode) {
-            return false;
+    private void addSideEffectUse(Node l, Node sideEffect) {
+        switch (sideEffect) {
+            case StartNode _ -> {
+                // The start node doesn't need to be considered
+                return;
+            }
+            case Phi phi -> {
+                // Forward the side effect use to phi's operands
+                for (Node sideEffectOperand : phi.operands()) {
+                    addSideEffectUse(l, sideEffectOperand);
+                }
+             }
+            default -> addFact(use, l, sideEffect);
         }
-
-        return addFact(use, l, sideEffect);
     }
 }
