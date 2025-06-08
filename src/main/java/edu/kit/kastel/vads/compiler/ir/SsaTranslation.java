@@ -265,21 +265,37 @@ public class SsaTranslation {
             // Parse thenStatement
             ifTree.thenStatement().accept(this, data);
 
-            // If the current block doesn't have predecessors it was created by a return, so
-            // no new block and no jump is needed
-            boolean needNewBlock = !data.graphConstructor.currentBlock().predecessors().isEmpty();
-            // Insert a jump into the current block which will be linked to the block
-            // following the if. This current block might be != thenBlock due to added
-            // control flows in thenStatement.
-            ControlFlowNode exitThen = needNewBlock ? data.graphConstructor.newJump() : null;
-
             if (hasElse) {
-                // TODO
-            } else {
-                Block followBlock = needNewBlock ? data.graphConstructor.newBlock()
-                    : data.graphConstructor.currentBlock();
+                Block elseBlock = data.graphConstructor.newBlock();
+                // Link projFalse and elseBlock
+                conditionalJump.setTarget(ConditionalJumpNode.FALSE_TARGET, elseBlock);
+                elseBlock.addPredecessor(projFalse);
+                // No more predecessors will be added, so seal
+                data.graphConstructor.sealBlock(elseBlock);
+                // Parse elseOpt
+                ifTree.elseOpt().accept(this, data);
 
-                if (needNewBlock) {
+                Block followBlock;
+                if (data.graphConstructor.currentBlock().predecessors().isEmpty()) {
+                    // If the current block doesn't have predecessors it was created by a return, so
+                    // no new block and no jump is needed
+                    followBlock = data.graphConstructor.currentBlock();
+                } else {
+                    followBlock = data.graphConstructor.newBlock();
+                    ControlFlowNode exitElse = data.graphConstructor.newJump();
+                    // Link exitThen and followBlock
+                    exitElse.setTarget(JumpNode.TARGET, followBlock);
+                    followBlock.addPredecessor(exitElse);
+                }
+            } else {
+                Block followBlock;
+                if (data.graphConstructor.currentBlock().predecessors().isEmpty()) {
+                    // If the current block doesn't have predecessors it was created by a return, so
+                    // no new block and no jump is needed
+                    followBlock = data.graphConstructor.currentBlock();
+                } else {
+                    followBlock = data.graphConstructor.newBlock();
+                    ControlFlowNode exitThen = data.graphConstructor.newJump();
                     // Link exitThen and followBlock
                     exitThen.setTarget(JumpNode.TARGET, followBlock);
                     followBlock.addPredecessor(exitThen);
