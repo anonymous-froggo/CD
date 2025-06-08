@@ -340,7 +340,8 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(ReturnTree returnTree, SsaTranslation data) {
-            if (data.graphConstructor.currentBlock().predecessors().isEmpty()) {
+            Block currentBlock = data.graphConstructor.currentBlock();
+            if (currentBlock != data.graphConstructor.graph().startBlock() && currentBlock.predecessors().isEmpty()) {
                 // Unreachable return, skip it
                 return NOT_AN_EXPRESSION;
             }
@@ -391,7 +392,6 @@ public class SsaTranslation {
             elseOptTree.elseStatement().accept(this, data);
 
             boolean newBlockAfterElse = !data.graphConstructor.currentBlock().predecessors().isEmpty();
-
 
             if (newBlockAfterElse) {
                 ControlFlowNode exitElse = data.graphConstructor.newJump();
