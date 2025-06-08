@@ -34,6 +34,10 @@ import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.BitwiseNotNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.LogicalNotNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.successorsSkipProj;
@@ -69,12 +73,12 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     @Override
     public String fromInt(int value) {
-        return "$0x" + Integer.toHexString(value);
+        return "$" + value;
     }
 
     @Override
     public String fromBoolean(boolean value) {
-        return "$" + (value ? 1 : 0);
+        return "$0x" + Integer.toHexString(value ? 0xFF : 0);
     }
 
     private void generateForGraph(IrGraph graph) {
@@ -124,6 +128,11 @@ public final class X8664CodeGenerator implements CodeGenerator {
                 jump(jump);
             }
             case ReturnNode ret -> ret(ret);
+
+            // Unary operation nodes
+            case BitwiseNotNode bitwiseNot -> unary(bitwiseNot, "not", 8);
+            case LogicalNotNode logicalNot -> unary(logicalNot, "not", 8);
+            case NegateNode negate -> unary(negate, "neg", 32);
 
             // Other nodes
             case BoolNode bool -> constant(fromBoolean(bool.value()), this.registers.get(bool));
@@ -183,6 +192,31 @@ public final class X8664CodeGenerator implements CodeGenerator {
         }
     }
 
+    private void unary(UnaryOperationNode node, String opcode, int bitlength) {
+        Register input = this.registers.get(predecessorSkipProj(node, UnaryOperationNode.IN));
+        Register dest = this.registers.get(node);
+
+        if (dest instanceof X8664StackRegister) {
+            move(input, X8664Register.RAX);
+
+            this.builder.repeat(" ", 2)
+                .append(opcode)
+                .append(" ")
+                .append(X8664Register.RAX.name(bitlength))
+                .append("\n");
+
+            move(X8664Register.RAX, dest);
+            return;
+        }
+
+        move(input, dest);
+        this.builder.repeat(" ", 2)
+            .append(opcode)
+            .append(" ")
+            .append(dest.name(bitlength))
+            .append("\n");
+    }
+
     private void shift(BinaryOperationNode node, String opcode) {
         Register src = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
         Register count = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
@@ -192,6 +226,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
         if (dest instanceof X8664StackRegister) {
             move(src, X8664Register.RAX);
+
             this.builder.repeat(" ", 2)
                 .append(opcode)
                 .append(" ")
@@ -199,6 +234,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
                 .append(", ")
                 .append(X8664Register.RAX.name(32))
                 .append("\n");
+
             move(X8664Register.RAX, dest);
             return;
         }

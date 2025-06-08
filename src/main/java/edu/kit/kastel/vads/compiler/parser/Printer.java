@@ -67,7 +67,7 @@ public class Printer {
             case IdentifierTree(var name) -> printTree(name);
             case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
             case UnaryOperationTree(var operator, var expression) -> {
-                this.builder.append(operator);
+                this.builder.append(operator.type());
                 print("(");
                 printTree(expression);
                 print(")");

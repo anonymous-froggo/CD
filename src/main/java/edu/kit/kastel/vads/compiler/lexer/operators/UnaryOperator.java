@@ -8,7 +8,7 @@ public record UnaryOperator(UnaryOperatorType type, Span span) implements Operat
 
         LOGICAL_NOT("!"),
         BITWISE_NOT("~"),
-        UNARY_MINUS("-");
+        NEGATE("-");
 
         private final String value;
 

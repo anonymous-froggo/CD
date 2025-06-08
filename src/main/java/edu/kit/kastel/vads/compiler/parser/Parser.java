@@ -318,7 +318,7 @@ public class Parser {
             case UnaryOperator operator -> new UnaryOperationTree(operator, parseAtom());
             case BinaryOperator operator when operator.isOperator(BinaryOperatorType.MINUS) -> {
                 // In this case BinaryOperatorType.MINUS is actually a unary minus
-                UnaryOperator unaryMinus = new UnaryOperator(UnaryOperatorType.UNARY_MINUS, operator.span());
+                UnaryOperator unaryMinus = new UnaryOperator(UnaryOperatorType.NEGATE, operator.span());
                 yield new UnaryOperationTree(unaryMinus, parseAtom());
             }
             default -> throw new ParseException("unexpected token '" + token + "'");

@@ -4,11 +4,11 @@ import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public record UnaryOperationTree(UnaryOperator operator, ExpressionTree expression) implements ExpressionTree {
+public record UnaryOperationTree(UnaryOperator operator, ExpressionTree operand) implements ExpressionTree {
 
     @Override
     public Span span() {
-        return operator.span().merge(expression().span());
+        return operator.span().merge(operand().span());
     }
 
     @Override

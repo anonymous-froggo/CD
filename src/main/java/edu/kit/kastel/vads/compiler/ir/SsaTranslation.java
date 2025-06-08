@@ -8,6 +8,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
@@ -134,6 +135,7 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(BinaryOperationTree binaryOperationTree, SsaTranslation data) {
             pushSpan(binaryOperationTree);
+
             Node lhs = binaryOperationTree.lhs().accept(this, data).orElseThrow();
             Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
             Node res = switch (binaryOperationTree.operatorType()) {
@@ -165,7 +167,9 @@ public class SsaTranslation {
 
                 case LOGICAL_OR -> data.graphConstructor.newLogicalOr(lhs, rhs);
             };
+
             popSpan();
+
             return Optional.of(res);
         }
 
@@ -325,11 +329,18 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(UnaryOperationTree negateTree, SsaTranslation data) {
-            pushSpan(negateTree);
-            Node node = negateTree.expression().accept(this, data).orElseThrow();
-            Node res = data.graphConstructor.newSub(data.graphConstructor.newConstInt(0), node);
+        public Optional<Node> visit(UnaryOperationTree unaryOperationTree, SsaTranslation data) {
+            pushSpan(unaryOperationTree);
+
+            Node input = unaryOperationTree.operand().accept(this, data).orElseThrow();
+            Node res = switch (unaryOperationTree.operator().type()) {
+                case BITWISE_NOT -> data.graphConstructor.newBitwiseNot(input);
+                case LOGICAL_NOT -> data.graphConstructor.newLogicalNot(input);
+                case NEGATE -> data.graphConstructor.newNegate(input);
+            };
+
             popSpan();
+
             return Optional.of(res);
         }
 

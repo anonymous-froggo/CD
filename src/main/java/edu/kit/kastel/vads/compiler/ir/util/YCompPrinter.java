@@ -13,6 +13,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -238,6 +239,7 @@ public class YCompPrinter {
             }
             case ReturnNode _ -> VcgColor.CONTROL_FLOW;
             case StartNode _ -> VcgColor.CONTROL_FLOW;
+            case UnaryOperationNode _ -> VcgColor.NORMAL;
             default -> throw new UnsupportedOperationException("unsupported node type " + node.getClass());
         };
     }

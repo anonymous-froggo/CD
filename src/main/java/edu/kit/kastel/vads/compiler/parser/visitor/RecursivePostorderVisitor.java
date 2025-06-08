@@ -64,7 +64,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
 
     @Override
     public R visit(UnaryOperationTree negateTree, T data) {
-        R r = negateTree.expression().accept(this, data);
+        R r = negateTree.operand().accept(this, data);
         r = this.visitor.visit(negateTree, accumulate(data, r));
         return r;
     }

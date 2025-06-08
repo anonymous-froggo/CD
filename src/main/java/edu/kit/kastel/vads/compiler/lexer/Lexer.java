@@ -8,6 +8,8 @@ import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator.UnaryOperatorType;
+import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator;
 
 import org.jspecify.annotations.Nullable;
 
@@ -37,7 +39,6 @@ public class Lexer {
             return Optional.empty();
         }
         Token t = switch (peek()) {
-            // TODO add !, ~, ==, and !=
             case '(' -> separator(SeparatorType.PAREN_OPEN);
             case ')' -> separator(SeparatorType.PAREN_CLOSE);
             case '{' -> separator(SeparatorType.BRACE_OPEN);
@@ -53,6 +54,8 @@ public class Lexer {
             case '|' -> or();
             case '<' -> lessThanOrShiftLeft();
             case '>' -> greaterThanOrShiftRight();
+            case '!' -> notOrNotEq();
+            case '~' -> new UnaryOperator(UnaryOperatorType.BITWISE_NOT, buildSpan(1));
             case '=' -> assignOrEqual();
             default -> {
                 if (isIdentifierChar(peek())) {
@@ -265,6 +268,15 @@ public class Lexer {
         }
         // >
         return new BinaryOperator(BinaryOperatorType.GREATER_THAN, buildSpan(1));
+    }
+
+    private Token notOrNotEq() {
+        if (hasMore(1) && peek(1) == '=') {
+            // !=
+            return new BinaryOperator(BinaryOperatorType.NOT_EQ, buildSpan(2));
+        }
+        // !
+        return new UnaryOperator(UnaryOperatorType.LOGICAL_NOT, buildSpan(1));
     }
 
     private Token assignOrEqual() {
