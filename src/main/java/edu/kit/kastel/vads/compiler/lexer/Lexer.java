@@ -53,7 +53,7 @@ public class Lexer {
             case '|' -> or();
             case '<' -> lessThanOrShiftLeft();
             case '>' -> greaterThanOrShiftRight();
-            case '=' -> new AssignmentOperator(AssignmentOperatorType.ASSIGN, buildSpan(1));
+            case '=' -> assignOrEqual();
             default -> {
                 if (isIdentifierChar(peek())) {
                     if (isNumeric(peek())) {
@@ -265,6 +265,15 @@ public class Lexer {
         }
         // >
         return new BinaryOperator(BinaryOperatorType.GREATER_THAN, buildSpan(1));
+    }
+
+    private Token assignOrEqual() {
+        if (hasMore(1) && peek(1) == '=') {
+            // ==
+            return new BinaryOperator(BinaryOperatorType.EQ, buildSpan(2));
+        }
+        // =
+        return new AssignmentOperator(AssignmentOperatorType.ASSIGN, buildSpan(1));
     }
 
     private Span buildSpan(int proceed) {

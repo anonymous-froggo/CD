@@ -18,6 +18,11 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.BitwiseAndNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.BitwiseOrNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.BitwiseXorNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.EqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.GreaterThanEqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.GreaterThanNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.LessThanEqNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.LessThanNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.LogicalAndNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.LogicalOrNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
@@ -96,6 +101,11 @@ public final class X8664CodeGenerator implements CodeGenerator {
             case BitwiseOrNode bitwiseOr -> defaultBinary(bitwiseOr, "orl");
             case BitwiseXorNode bitwiseXor -> defaultBinary(bitwiseXor, "xorl");
             case DivNode div -> division(div);
+            case EqNode eq -> compare(eq, "sete");
+            case GreaterThanEqNode greaterThanEq -> compare(greaterThanEq, "setge");
+            case GreaterThanNode greaterThan -> compare(greaterThan, "setg");
+            case LessThanEqNode lessThanEq -> compare(lessThanEq, "setle");
+            case LessThanNode lessThan -> compare(lessThan, "setl");
             case LogicalAndNode logicalAnd -> defaultBinary(logicalAnd, "andl");
             case LogicalOrNode logicalOr -> defaultBinary(logicalOr, "orl");
             case ModNode mod -> division(mod);
@@ -203,6 +213,26 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(X8664Register.RCX.name(8))
             .append(", ")
             .append(dest.name(32))
+            .append("\n");
+    }
+
+    private void compare(BinaryOperationNode node, String opcode) {
+        Register left = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.LEFT));
+        Register right = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
+        Register dest = this.registers.get(node);
+
+        // Compare operands are switched in at&t for some reason
+        this.builder.repeat(" ", 2)
+            .append("cmp ")
+            .append(right.name(32))
+            .append(", ")
+            .append(left.name(32))
+            .append("\n");
+
+        this.builder.repeat(" ", 2)
+            .append(opcode)
+            .append(" ")
+            .append(dest.name(8))
             .append("\n");
     }
 
