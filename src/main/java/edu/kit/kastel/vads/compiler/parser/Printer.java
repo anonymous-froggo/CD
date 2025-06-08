@@ -134,9 +134,13 @@ public class Printer {
                 printTree(expr);
                 semicolon();
             }
-            case WhileTree() -> throw new UnsupportedOperationException(
-                "printing '" + tree.getClass() + "' is not implemented"
-            );
+            case WhileTree(var condition, var statement, _) -> {
+                print("while (");
+                printTree(condition);
+                print(") ");
+                printTree(statement);
+                lineBreak();
+            }
 
             // Others
             case FunctionTree(var returnType, var name, var body) -> {

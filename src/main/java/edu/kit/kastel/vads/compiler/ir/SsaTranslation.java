@@ -99,38 +99,7 @@ public class SsaTranslation {
             DebugInfoHelper.setDebugInfo(this.debugStack.pop());
         }
 
-        // TODO reorder methods according to package structure
-
-        @Override
-        public Optional<Node> visit(AssignmentTree assignmentTree, SsaTranslation data) {
-            pushSpan(assignmentTree);
-            BinaryOperator<Node> desugar = switch (assignmentTree.operatorType()) {
-                case ASSIGN_PLUS -> data.graphConstructor::newAdd;
-                case ASSIGN_MINUS -> data.graphConstructor::newSub;
-                case ASSIGN_MUL -> data.graphConstructor::newMul;
-                case ASSIGN_DIV -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
-                case ASSIGN_MOD -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
-                case ASSIGN_AND -> data.graphConstructor::newBitwiseAnd;
-                case ASSIGN_XOR -> data.graphConstructor::newBitwiseXor;
-                case ASSIGN_OR -> data.graphConstructor::newBitwiseOr;
-                case ASSIGN_SHIFT_LEFT -> data.graphConstructor::newShiftLeft;
-                case ASSIGN_SHIFT_RIGHT -> data.graphConstructor::newShiftRight;
-                case ASSIGN -> null;
-            };
-
-            switch (assignmentTree.lValue()) {
-                case LValueIdentifierTree(var name) -> {
-                    Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
-                    if (desugar != null) {
-                        rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
-                    }
-                    data.writeVariable(name.name(), data.currentBlock(), rhs);
-                }
-            }
-
-            popSpan();
-            return NOT_AN_EXPRESSION;
-        }
+        // Expression trees
 
         @Override
         public Optional<Node> visit(BinaryOperationTree binaryOperationTree, SsaTranslation data) {
@@ -174,6 +143,79 @@ public class SsaTranslation {
         }
 
         @Override
+        public Optional<Node> visit(BoolTree boolTree, SsaTranslation data) {
+            pushSpan(boolTree);
+            Node node = data.graphConstructor.newBoolNode(boolTree.value());
+            popSpan();
+            return Optional.of(node);
+        }
+
+        @Override
+        public Optional<Node> visit(IdentifierTree identifierTree, SsaTranslation data) {
+            pushSpan(identifierTree);
+            Node value = data.readVariable(identifierTree.name().name(), data.currentBlock());
+            popSpan();
+            return Optional.of(value);
+        }
+
+        @Override
+        public Optional<Node> visit(NumberLiteralTree numberLiteralTree, SsaTranslation data) {
+            pushSpan(numberLiteralTree);
+            Node node = data.graphConstructor.newConstInt((int) numberLiteralTree.parseValue().orElseThrow());
+            popSpan();
+            return Optional.of(node);
+        }
+
+        @Override
+        public Optional<Node> visit(UnaryOperationTree unaryOperationTree, SsaTranslation data) {
+            pushSpan(unaryOperationTree);
+
+            Node input = unaryOperationTree.operand().accept(this, data).orElseThrow();
+            Node res = switch (unaryOperationTree.operator().type()) {
+                case BITWISE_NOT -> data.graphConstructor.newBitwiseNot(input);
+                case LOGICAL_NOT -> data.graphConstructor.newLogicalNot(input);
+                case NEGATE -> data.graphConstructor.newNegate(input);
+            };
+
+            popSpan();
+
+            return Optional.of(res);
+        }
+
+        // Statement trees
+
+        @Override
+        public Optional<Node> visit(AssignmentTree assignmentTree, SsaTranslation data) {
+            pushSpan(assignmentTree);
+            BinaryOperator<Node> desugar = switch (assignmentTree.operatorType()) {
+                case ASSIGN_PLUS -> data.graphConstructor::newAdd;
+                case ASSIGN_MINUS -> data.graphConstructor::newSub;
+                case ASSIGN_MUL -> data.graphConstructor::newMul;
+                case ASSIGN_DIV -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
+                case ASSIGN_MOD -> (lhs, rhs) -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
+                case ASSIGN_AND -> data.graphConstructor::newBitwiseAnd;
+                case ASSIGN_XOR -> data.graphConstructor::newBitwiseXor;
+                case ASSIGN_OR -> data.graphConstructor::newBitwiseOr;
+                case ASSIGN_SHIFT_LEFT -> data.graphConstructor::newShiftLeft;
+                case ASSIGN_SHIFT_RIGHT -> data.graphConstructor::newShiftRight;
+                case ASSIGN -> null;
+            };
+
+            switch (assignmentTree.lValue()) {
+                case LValueIdentifierTree(var name) -> {
+                    Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
+                    if (desugar != null) {
+                        rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
+                    }
+                    data.writeVariable(name.name(), data.currentBlock(), rhs);
+                }
+            }
+
+            popSpan();
+            return NOT_AN_EXPRESSION;
+        }
+
+        @Override
         public Optional<Node> visit(BlockTree blockTree, SsaTranslation data) {
             pushSpan(blockTree);
             for (StatementTree statement : blockTree.statements()) {
@@ -185,14 +227,6 @@ public class SsaTranslation {
             }
             popSpan();
             return NOT_AN_EXPRESSION;
-        }
-
-        @Override
-        public Optional<Node> visit(BoolTree boolTree, SsaTranslation data) {
-            pushSpan(boolTree);
-            Node node = data.graphConstructor.newBoolNode(boolTree.value());
-            popSpan();
-            return Optional.of(node);
         }
 
         @Override
@@ -219,30 +253,27 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(ForTree forTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
-        }
+        public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
+            // Parse else statement
+            elseOptTree.elseStatement().accept(this, data);
 
-        @Override
-        public Optional<Node> visit(FunctionTree functionTree, SsaTranslation data) {
-            pushSpan(functionTree);
+            boolean newBlockAfterElse = !data.graphConstructor.currentBlock().predecessors().isEmpty();
 
-            Node start = data.graphConstructor.newStart();
-            data.graphConstructor.writeCurrentSideEffect(data.graphConstructor.newSideEffectProj(start));
-            functionTree.body().accept(this, data);
-
-            popSpan();
+            if (newBlockAfterElse) {
+                ControlFlowNode exitElse = data.graphConstructor.newJump();
+                Block followBlock = data.graphConstructor.newBlock();
+                // Link exitThen and followBlock
+                exitElse.setTarget(JumpNode.TARGET, followBlock);
+                followBlock.addPredecessor(exitElse);
+            }
 
             return NOT_AN_EXPRESSION;
         }
 
         @Override
-        public Optional<Node> visit(IdentifierTree identifierTree, SsaTranslation data) {
-            pushSpan(identifierTree);
-            Node value = data.readVariable(identifierTree.name().name(), data.currentBlock());
-            popSpan();
-            return Optional.of(value);
+        public Optional<Node> visit(ForTree forTree, SsaTranslation data) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'visit'");
         }
 
         @Override
@@ -251,13 +282,13 @@ public class SsaTranslation {
 
             Node condition = ifTree.condition().accept(this, data).orElseThrow();
 
-            ControlFlowNode conditionalJump = data.graphConstructor.newConditionalJump(condition);
-            Node projTrue = data.graphConstructor.newTrueProj(conditionalJump);
-            Node projFalse = data.graphConstructor.newFalseProj(conditionalJump);
+            ControlFlowNode checkCondition = data.graphConstructor.newConditionalJump(condition);
+            Node projTrue = data.graphConstructor.newTrueProj(checkCondition);
+            Node projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
             Block thenBlock = data.graphConstructor.newBlock();
             // Link projTrue and thenBlock and seal
-            conditionalJump.setTarget(ConditionalJumpNode.TRUE_TARGET, thenBlock);
+            checkCondition.setTarget(ConditionalJumpNode.TRUE_TARGET, thenBlock);
             thenBlock.addPredecessor(projTrue);
             data.graphConstructor.sealBlock(thenBlock);
             // Parse thenStatement
@@ -273,7 +304,7 @@ public class SsaTranslation {
                     : data.graphConstructor.currentBlock();
 
                 // Link projFalse and elseBlock and seal
-                conditionalJump.setTarget(ConditionalJumpNode.FALSE_TARGET, elseBlock);
+                checkCondition.setTarget(ConditionalJumpNode.FALSE_TARGET, elseBlock);
                 elseBlock.addPredecessor(projFalse);
                 data.graphConstructor.sealBlock(elseBlock);
 
@@ -300,7 +331,7 @@ public class SsaTranslation {
                 }
 
                 // Link projFalse and followBlock and seal
-                conditionalJump.setTarget(ConditionalJumpNode.FALSE_TARGET, followBlock);
+                checkCondition.setTarget(ConditionalJumpNode.FALSE_TARGET, followBlock);
                 followBlock.addPredecessor(projFalse);
                 data.graphConstructor.sealBlock(followBlock);
             }
@@ -308,45 +339,6 @@ public class SsaTranslation {
             popSpan();
 
             return NOT_AN_EXPRESSION;
-        }
-
-        @Override
-        public Optional<Node> visit(NumberLiteralTree numberLiteralTree, SsaTranslation data) {
-            pushSpan(numberLiteralTree);
-            Node node = data.graphConstructor.newConstInt((int) numberLiteralTree.parseValue().orElseThrow());
-            popSpan();
-            return Optional.of(node);
-        }
-
-        @Override
-        public Optional<Node> visit(LValueIdentifierTree lValueIdentTree, SsaTranslation data) {
-            return NOT_AN_EXPRESSION;
-        }
-
-        @Override
-        public Optional<Node> visit(NameTree nameTree, SsaTranslation data) {
-            return NOT_AN_EXPRESSION;
-        }
-
-        @Override
-        public Optional<Node> visit(UnaryOperationTree unaryOperationTree, SsaTranslation data) {
-            pushSpan(unaryOperationTree);
-
-            Node input = unaryOperationTree.operand().accept(this, data).orElseThrow();
-            Node res = switch (unaryOperationTree.operator().type()) {
-                case BITWISE_NOT -> data.graphConstructor.newBitwiseNot(input);
-                case LOGICAL_NOT -> data.graphConstructor.newLogicalNot(input);
-                case NEGATE -> data.graphConstructor.newNegate(input);
-            };
-
-            popSpan();
-
-            return Optional.of(res);
-        }
-
-        @Override
-        public Optional<Node> visit(ProgramTree programTree, SsaTranslation data) {
-            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -376,6 +368,81 @@ public class SsaTranslation {
         }
 
         @Override
+        public Optional<Node> visit(WhileTree whileTree, SsaTranslation data) {
+            pushSpan(whileTree);
+
+            ControlFlowNode jumpIntoCondition = data.graphConstructor.newJump();
+            Block conditionBlock = data.graphConstructor.newBlock();
+            // Link jumpIntoCondition and conditionBlock, but don't seal yet,
+            // since exitBody will also link to conditionBlock
+            jumpIntoCondition.setTarget(JumpNode.TARGET, conditionBlock);
+            conditionBlock.addPredecessor(jumpIntoCondition);
+
+            Node condition = whileTree.condition().accept(this, data).orElseThrow();
+            ControlFlowNode checkCondition = data.graphConstructor.newConditionalJump(condition);
+            Node projTrue = data.graphConstructor.newTrueProj(checkCondition);
+            Node projFalse = data.graphConstructor.newFalseProj(checkCondition);
+
+            Block bodyBlock = data.graphConstructor.newBlock();
+            // Link projTrue and bodyBlock and seal
+            checkCondition.setTarget(ConditionalJumpNode.TRUE_TARGET, bodyBlock);
+            bodyBlock.addPredecessor(projTrue);
+            data.graphConstructor.sealBlock(bodyBlock);
+
+            // Parse body
+            whileTree.body().accept(this, data);
+
+            ControlFlowNode exitBody = data.graphConstructor.newJump();
+            // Link exitBody and conditionBlock and seal
+            exitBody.setTarget(JumpNode.TARGET, conditionBlock);
+            conditionBlock.addPredecessor(exitBody);
+            data.graphConstructor.sealBlock(conditionBlock);
+
+            // TODO add check for newBlockAfterBody
+            // boolean newBlockAfterBody = !data.graphConstructor.currentBlock().predecessors().isEmpty();
+
+            Block followBlock = data.graphConstructor.newBlock();
+            // Link projFalse and followBlock and seal
+            checkCondition.setTarget(ConditionalJumpNode.FALSE_TARGET, followBlock);
+            followBlock.addPredecessor(projFalse);
+            data.graphConstructor.sealBlock(followBlock);
+
+            popSpan();
+
+            return NOT_AN_EXPRESSION;
+        }
+
+        // Other trees
+
+        @Override
+        public Optional<Node> visit(FunctionTree functionTree, SsaTranslation data) {
+            pushSpan(functionTree);
+
+            Node start = data.graphConstructor.newStart();
+            data.graphConstructor.writeCurrentSideEffect(data.graphConstructor.newSideEffectProj(start));
+            functionTree.body().accept(this, data);
+
+            popSpan();
+
+            return NOT_AN_EXPRESSION;
+        }
+
+        @Override
+        public Optional<Node> visit(LValueIdentifierTree lValueIdentTree, SsaTranslation data) {
+            return NOT_AN_EXPRESSION;
+        }
+
+        @Override
+        public Optional<Node> visit(NameTree nameTree, SsaTranslation data) {
+            return NOT_AN_EXPRESSION;
+        }
+
+        @Override
+        public Optional<Node> visit(ProgramTree programTree, SsaTranslation data) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public Optional<Node> visit(TypeTree typeTree, SsaTranslation data) {
             throw new UnsupportedOperationException();
         }
@@ -389,30 +456,6 @@ public class SsaTranslation {
             Node projSideEffect = data.graphConstructor.newSideEffectProj(divMod);
             data.graphConstructor.writeCurrentSideEffect(projSideEffect);
             return data.graphConstructor.newResultProj(divMod);
-        }
-
-        @Override
-        public Optional<Node> visit(WhileTree whileTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
-        }
-
-        @Override
-        public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
-            // Parse else statement
-            elseOptTree.elseStatement().accept(this, data);
-
-            boolean newBlockAfterElse = !data.graphConstructor.currentBlock().predecessors().isEmpty();
-
-            if (newBlockAfterElse) {
-                ControlFlowNode exitElse = data.graphConstructor.newJump();
-                Block followBlock = data.graphConstructor.newBlock();
-                // Link exitThen and followBlock
-                exitElse.setTarget(JumpNode.TARGET, followBlock);
-                followBlock.addPredecessor(exitElse);
-            }
-
-            return NOT_AN_EXPRESSION;
         }
     }
 }

@@ -146,8 +146,10 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
 
     @Override
     public R visit(WhileTree whileTree, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        R r = whileTree.condition().accept(this, data);
+        r = whileTree.body().accept(this, accumulate(data, r));
+        r = this.visitor.visit(whileTree, accumulate(data, r));
+        return r;
     }
 
     // Others

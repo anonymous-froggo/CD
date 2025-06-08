@@ -214,13 +214,6 @@ public class LivenessAnalysis {
                 // The start node doesn't need to be considered
                 return;
             }
-            case Phi phi -> {
-                // Recursively forward the side effect use to phi's operands
-                // -> in the end, all actual side effects will be used by l
-                for (Node sideEffectOperand : phi.operands()) {
-                    addSideEffectUse(l, sideEffectOperand);
-                }
-            }
             default -> addFact(use, l, sideEffect);
         }
     }

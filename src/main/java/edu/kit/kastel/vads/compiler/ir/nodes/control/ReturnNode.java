@@ -2,6 +2,7 @@ package edu.kit.kastel.vads.compiler.ir.nodes.control;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 
 public final class ReturnNode extends ControlFlowNode {
 
@@ -16,6 +17,10 @@ public final class ReturnNode extends ControlFlowNode {
 
     public ReturnNode(Block block, Node sideEffect, Node result) {
         super(block, sideEffect, result);
+
+        if (sideEffect instanceof Phi phi) {
+            phi.setSideEffectPhi();
+        }
     }
 
     @Override

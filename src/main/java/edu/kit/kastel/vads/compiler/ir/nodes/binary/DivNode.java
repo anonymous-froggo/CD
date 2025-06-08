@@ -2,6 +2,7 @@ package edu.kit.kastel.vads.compiler.ir.nodes.binary;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 
 public final class DivNode extends BinaryOperationNode {
 
@@ -9,6 +10,10 @@ public final class DivNode extends BinaryOperationNode {
 
     public DivNode(Block block, Node left, Node right, Node sideEffect) {
         super(block, left, right, sideEffect);
+
+        if (sideEffect instanceof Phi phi) {
+            phi.setSideEffectPhi();
+        }
     }
 
     @Override

@@ -242,8 +242,18 @@ public class Parser {
     }
 
     private StatementTree parseWhile() {
-        // TODO: implement parseWhile
-        return new WhileTree();
+        // while
+        Token whileToken = this.tokenSource.consume();
+
+        // ( ⟨exp⟩ )
+        this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
+        ExpressionTree condition = parseExpression();
+        this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
+
+        // ⟨stmt⟩
+        StatementTree body = parseStatement();
+
+        return new WhileTree(condition, body, whileToken.span().start());
     }
 
     private StatementTree parseFor() {
