@@ -11,7 +11,6 @@ import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
-import edu.kit.kastel.vads.compiler.parser.Printer;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
@@ -28,7 +27,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.EmptyTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
@@ -119,9 +118,7 @@ public class SsaTranslation {
             };
 
             switch (assignmentTree.lValue()) {
-                case
-
-                    LValueIdentifierTree(var name) -> {
+                case LValueIdentifierTree(var name) -> {
                     Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
                     if (desugar != null) {
                         rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
@@ -248,8 +245,6 @@ public class SsaTranslation {
         public Optional<Node> visit(IfTree ifTree, SsaTranslation data) {
             pushSpan(ifTree);
 
-            boolean hasElse = !(ifTree.elseOpt() instanceof EmptyTree);
-
             Node condition = ifTree.condition().accept(this, data).orElseThrow();
 
             ControlFlowNode conditionalJump = data.graphConstructor.newConditionalJump(condition);
@@ -257,54 +252,52 @@ public class SsaTranslation {
             Node projFalse = data.graphConstructor.newFalseProj(conditionalJump);
 
             Block thenBlock = data.graphConstructor.newBlock();
-            // Link projTrue and thenBlock
+            // Link projTrue and thenBlock and seal
             conditionalJump.setTarget(ConditionalJumpNode.TRUE_TARGET, thenBlock);
             thenBlock.addPredecessor(projTrue);
-            // No more predecessors will be added, so seal
             data.graphConstructor.sealBlock(thenBlock);
             // Parse thenStatement
             ifTree.thenStatement().accept(this, data);
 
-            if (hasElse) {
-                Block elseBlock = data.graphConstructor.newBlock();
-                // Link projFalse and elseBlock
+            boolean newBlockAfterThen = !data.graphConstructor.currentBlock().predecessors().isEmpty();
+
+            ControlFlowNode exitThen = newBlockAfterThen ? data.graphConstructor.newJump() : null;
+
+            if (ifTree.elseOpt() != null) {
+                Block elseBlock = newBlockAfterThen
+                    ? data.graphConstructor.newBlock()
+                    : data.graphConstructor.currentBlock();
+
+                // Link projFalse and elseBlock and seal
                 conditionalJump.setTarget(ConditionalJumpNode.FALSE_TARGET, elseBlock);
                 elseBlock.addPredecessor(projFalse);
-                // No more predecessors will be added, so seal
                 data.graphConstructor.sealBlock(elseBlock);
-                // Parse elseOpt
+
                 ifTree.elseOpt().accept(this, data);
 
-                Block followBlock;
-                if (data.graphConstructor.currentBlock().predecessors().isEmpty()) {
-                    // If the current block doesn't have predecessors it was created by a return, so
-                    // no new block and no jump is needed
-                    followBlock = data.graphConstructor.currentBlock();
-                } else {
-                    followBlock = data.graphConstructor.newBlock();
-                    ControlFlowNode exitElse = data.graphConstructor.newJump();
-                    // Link exitThen and followBlock
-                    exitElse.setTarget(JumpNode.TARGET, followBlock);
-                    followBlock.addPredecessor(exitElse);
+                if (newBlockAfterThen) {
+                    // Link exitThen and currentBlock() and seal
+                    Block followBlock = data.graphConstructor.currentBlock();
+                    exitThen.setTarget(JumpNode.TARGET, followBlock);
+                    followBlock.addPredecessor(exitThen);
+                    data.graphConstructor.sealBlock(followBlock);
                 }
             } else {
                 Block followBlock;
-                if (data.graphConstructor.currentBlock().predecessors().isEmpty()) {
-                    // If the current block doesn't have predecessors it was created by a return, so
-                    // no new block and no jump is needed
-                    followBlock = data.graphConstructor.currentBlock();
-                } else {
+                if (newBlockAfterThen) {
                     followBlock = data.graphConstructor.newBlock();
-                    ControlFlowNode exitThen = data.graphConstructor.newJump();
                     // Link exitThen and followBlock
                     exitThen.setTarget(JumpNode.TARGET, followBlock);
                     followBlock.addPredecessor(exitThen);
+                } else {
+                    // If the current block doesn't have predecessors it was created by a return, so
+                    // no new block and no jump is needed
+                    followBlock = data.graphConstructor.currentBlock();
                 }
 
-                // Link projFalse and followBlock
+                // Link projFalse and followBlock and seal
                 conditionalJump.setTarget(ConditionalJumpNode.FALSE_TARGET, followBlock);
                 followBlock.addPredecessor(projFalse);
-                // No more predecessors will be added, so seal
                 data.graphConstructor.sealBlock(followBlock);
             }
 
@@ -347,6 +340,11 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(ReturnTree returnTree, SsaTranslation data) {
+            if (data.graphConstructor.currentBlock().predecessors().isEmpty()) {
+                // Unreachable return, skip it
+                return NOT_AN_EXPRESSION;
+            }
+
             pushSpan(returnTree);
 
             Node result = returnTree.expression().accept(this, data).orElseThrow();
@@ -388,7 +386,21 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(EmptyTree forTree, SsaTranslation data) {
+        public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
+            // Parse else statement
+            elseOptTree.elseStatement().accept(this, data);
+
+            boolean newBlockAfterElse = !data.graphConstructor.currentBlock().predecessors().isEmpty();
+
+
+            if (newBlockAfterElse) {
+                ControlFlowNode exitElse = data.graphConstructor.newJump();
+                Block followBlock = data.graphConstructor.newBlock();
+                // Link exitThen and followBlock
+                exitElse.setTarget(JumpNode.TARGET, followBlock);
+                followBlock.addPredecessor(exitElse);
+            }
+
             return NOT_AN_EXPRESSION;
         }
     }

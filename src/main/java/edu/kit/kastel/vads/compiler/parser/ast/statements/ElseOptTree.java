@@ -4,11 +4,11 @@ import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public final record EmptyTree(Position position) implements StatementTree {
+public record ElseOptTree(StatementTree elseStatement, Position start) implements StatementTree {
 
     @Override
     public Span span() {
-        return new Span.SimpleSpan(position, position);
+        return new Span.SimpleSpan(start(), elseStatement().span().end());
     }
 
     @Override

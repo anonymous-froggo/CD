@@ -12,7 +12,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.EmptyTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
@@ -110,7 +110,9 @@ public class Printer {
                 }
                 semicolon();
             }
-            case EmptyTree(_) -> {
+            case ElseOptTree(var elseStatement, _) -> {
+                print(" else ");
+                printTree(elseStatement);
             }
             case ForTree() -> throw new UnsupportedOperationException(
                 "printing '" + tree.getClass() + "' is not implemented"
@@ -120,10 +122,9 @@ public class Printer {
                 printTree(condition);
                 print(") ");
                 printTree(thenStatement);
-                if (!(elseOpt instanceof EmptyTree)) {
-                    print(" else ");
+                if (elseOpt != null) {
+                    printTree(elseOpt);
                 }
-                printTree(elseOpt);
                 // TODO maybe refine this line break as it generates an additional linebreak if
                 // thenStatement is not a block
                 lineBreak();

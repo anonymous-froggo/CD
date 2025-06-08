@@ -36,7 +36,8 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.EmptyTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
@@ -223,21 +224,22 @@ public class Parser {
         StatementTree thenStatement = parseStatement();
 
         // ⟨elseopt⟩
-        StatementTree elseOpt = parseElseOpt();
+        ElseOptTree elseOpt = parseElseOpt();
 
         return new IfTree(condition, thenStatement, elseOpt, ifToken.span().start());
     }
 
-    private StatementTree parseElseOpt() {
+    private ElseOptTree parseElseOpt() {
         Token token = this.tokenSource.peek();
         if (!token.isKeyword(ControlKeywordType.ELSE)) {
             // 𝜀
-            return new EmptyTree(this.tokenSource.peek().span().start());
+            return null;
         }
 
         // else ⟨stmt⟩
         this.tokenSource.consume();
-        return parseStatement();
+        StatementTree elseStatement = parseStatement();
+        return new ElseOptTree(elseStatement, token.span().start());
     }
 
     private StatementTree parseWhile() {
@@ -272,8 +274,7 @@ public class Parser {
         while (
             this.tokenSource.peek() instanceof BinaryOperator operator
                 && operator.type().precedence() >= minPrecedence
-        )
-        {
+        ) {
             this.tokenSource.consume();
             precedence = operator.type().precedence();
             associativity = operator.type().associativity();
