@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler.ir;
 
+import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
@@ -69,6 +70,15 @@ class GraphConstructor {
 
         scanBlock(graph().endBlock(), scanned);
         graph().addBlock(graph().endBlock());
+
+        // Append all blocks' control flow exits to their nodes
+        for (Block block : graph().blocks()) {
+            block.appendControlFlowExit();
+
+            if (Main.DEBUG) {
+                System.out.println(block.label() + ": " + block.nodes());
+            }
+        }
     }
 
     private void scanBlock(Block block, Set<Node> scanned) {
@@ -92,8 +102,6 @@ class GraphConstructor {
                 graph().addBlock(predecessorBlock);
             }
         }
-
-        System.out.println(block.label() + ": " + block.nodes());
     }
 
     private void scan(Node node, Set<Node> scanned) {

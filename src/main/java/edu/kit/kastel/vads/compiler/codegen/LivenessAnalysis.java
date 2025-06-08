@@ -19,6 +19,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
@@ -71,6 +72,7 @@ public class LivenessAnalysis {
     private void applyJRules(Block block) {
         List<Node> nodes = block.nodes();
 
+        // Apply to non-control flow nodes
         for (int index = 0; index < nodes.size(); index++) {
             Node l = nodes.get(index);
 
@@ -87,8 +89,6 @@ public class LivenessAnalysis {
                 }
             }
         }
-
-        System.out.println();
     }
 
     private void J1Binary(BinaryOperationNode l, Node lPlusOne) {
@@ -122,7 +122,8 @@ public class LivenessAnalysis {
     // x <- φ(y1, ...)
     private void J1Phi(Phi l, Node lPlusOne) {
         if (l.isSideEffectPhi()) {
-            // Phis which only collect side effects don't need to be considered, only add succ
+            // Phis which only collect side effects don't need to be considered, only add
+            // succ
             addFact(succ, l, lPlusOne);
             return;
         }
@@ -219,7 +220,7 @@ public class LivenessAnalysis {
                 for (Node sideEffectOperand : phi.operands()) {
                     addSideEffectUse(l, sideEffectOperand);
                 }
-             }
+            }
             default -> addFact(use, l, sideEffect);
         }
     }

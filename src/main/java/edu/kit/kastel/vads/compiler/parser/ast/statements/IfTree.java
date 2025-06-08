@@ -8,7 +8,7 @@ import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 public record IfTree(
     ExpressionTree condition,
     StatementTree thenStatement,
-    StatementTree elseOpt,
+    StatementTree elseOpt, // TODO maybe use @Nullable instead of EmptyTree (see [DeclarationTree])
     Position start
 ) implements StatementTree
 {

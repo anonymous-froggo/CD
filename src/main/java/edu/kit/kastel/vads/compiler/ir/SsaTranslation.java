@@ -237,9 +237,9 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(IdentifierTree identExpressionTree, SsaTranslation data) {
-            pushSpan(identExpressionTree);
-            Node value = data.readVariable(identExpressionTree.name().name(), data.currentBlock());
+        public Optional<Node> visit(IdentifierTree identifierTree, SsaTranslation data) {
+            pushSpan(identifierTree);
+            Node value = data.readVariable(identifierTree.name().name(), data.currentBlock());
             popSpan();
             return Optional.of(value);
         }
@@ -298,9 +298,9 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(NumberLiteralTree literalTree, SsaTranslation data) {
-            pushSpan(literalTree);
-            Node node = data.graphConstructor.newConstInt((int) literalTree.parseValue().orElseThrow());
+        public Optional<Node> visit(NumberLiteralTree numberLiteralTree, SsaTranslation data) {
+            pushSpan(numberLiteralTree);
+            Node node = data.graphConstructor.newConstInt((int) numberLiteralTree.parseValue().orElseThrow());
             popSpan();
             return Optional.of(node);
         }
@@ -340,9 +340,9 @@ public class SsaTranslation {
             ret.setTarget(ReturnNode.TARGET, data.graphConstructor.graph().endBlock());
             data.graphConstructor.graph().endBlock().addPredecessor(ret);
 
-            // Create a new block with no predecessors and seal it
-            Block followBlock = data.graphConstructor.newBlock();
-            data.graphConstructor.sealBlock(followBlock);
+            // Create a new block with no predecessors but don't seal it,
+            // since predecessors will be added
+            data.graphConstructor.newBlock();
 
             popSpan();
 
