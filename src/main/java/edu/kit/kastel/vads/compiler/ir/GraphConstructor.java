@@ -207,25 +207,25 @@ class GraphConstructor {
     // Other nodes
 
     // TODO try to reinduce consts always being in startBlock
-    public Node newConstInt(int value) {
-        // always move const into start block, this allows better deduplication
-        // and resultingly in better value numbering
-        return this.optimizer.transform(new ConstIntNode(graph().startBlock(), value));
-    }
-
-    public Node newBoolNode(boolean value) {
-        // always move const into start block, this allows better deduplication
-        // and resultingly in better value numbering
-        return this.optimizer.transform(new BoolNode(graph().startBlock(), value));
-    }
-
     // public Node newConstInt(int value) {
-    //     return this.optimizer.transform(new ConstIntNode(currentBlock(), value));
+    //     // always move const into start block, this allows better deduplication
+    //     // and resultingly in better value numbering
+    //     return this.optimizer.transform(new ConstIntNode(graph().startBlock(), value));
     // }
 
     // public Node newBoolNode(boolean value) {
-    //     return this.optimizer.transform(new BoolNode(currentBlock(), value));
+    //     // always move const into start block, this allows better deduplication
+    //     // and resultingly in better value numbering
+    //     return this.optimizer.transform(new BoolNode(graph().startBlock(), value));
     // }
+
+    public Node newConstInt(int value) {
+        return this.optimizer.transform(new ConstIntNode(currentBlock(), value));
+    }
+
+    public Node newBoolNode(boolean value) {
+        return this.optimizer.transform(new BoolNode(currentBlock(), value));
+    }
 
     public Block newBlock() {
         Block block = new Block(graph());
