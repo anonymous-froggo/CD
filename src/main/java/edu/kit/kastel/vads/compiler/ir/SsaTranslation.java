@@ -8,7 +8,6 @@ import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;

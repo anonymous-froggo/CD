@@ -31,7 +31,6 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftLeftNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.SubNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
@@ -41,7 +40,6 @@ import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
-import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.successorsSkipProj;
 
 public final class X8664CodeGenerator implements CodeGenerator {
 
@@ -80,7 +78,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
     // TODO check whether to use 0xFF or 1 for true (I think it's 1)
     @Override
     public String fromBoolean(boolean value) {
-        return "$0x" + Integer.toHexString(value ? 0xFF : 0);
+        return "$0x" + Integer.toHexString(value ? 1 : 0);
     }
 
     private void generateForGraph(IrGraph graph) {
@@ -127,6 +125,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
             // Unary operation nodes
             case BitwiseNotNode bitwiseNot -> unary(bitwiseNot, "not", 8);
+            // Logical not is implemented using xor
             case LogicalNotNode logicalNot -> unary(logicalNot, "not", 8);
             case NegateNode negate -> unary(negate, "neg", 32);
 
@@ -182,23 +181,13 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
         if (dest instanceof X8664StackRegister) {
             move(input, X8664Register.RAX);
-
-            this.builder.repeat(" ", 2)
-                .append(opcode)
-                .append(" ")
-                .append(X8664Register.RAX.name(bitlength))
-                .append("\n");
-
+            unaryDest(opcode, X8664Register.RAX);
             move(X8664Register.RAX, dest);
             return;
         }
 
         move(input, dest);
-        this.builder.repeat(" ", 2)
-            .append(opcode)
-            .append(" ")
-            .append(dest.name(bitlength))
-            .append("\n");
+        unaryDest(opcode, dest);
     }
 
     private void shift(BinaryOperationNode node, String opcode) {
@@ -359,6 +348,14 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(srcRegister.name(32))
             .append(", ")
             .append(destRegister.name(32))
+            .append("\n");
+    }
+
+    private void unaryDest(String opcode, Register dest) {
+        this.builder.repeat(" ", 2)
+            .append(opcode)
+            .append(" ")
+            .append(dest.name(32))
             .append("\n");
     }
 

@@ -324,6 +324,7 @@ public class Parser {
             case NumberLiteral numberLiteral -> new NumberLiteralTree(
                 numberLiteral.value(), numberLiteral.base(), numberLiteral.span()
             );
+            // TODO implement unaries using binary trees (unary trees cause trouble in codegen)
             // ⟨unop⟩ ⟨exp⟩
             case UnaryOperator operator -> new UnaryOperationTree(operator, parseAtom());
             case BinaryOperator operator when operator.isOperator(BinaryOperatorType.MINUS) -> {
