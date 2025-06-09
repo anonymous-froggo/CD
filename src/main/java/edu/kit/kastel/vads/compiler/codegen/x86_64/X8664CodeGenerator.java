@@ -31,6 +31,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftLeftNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.SubNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.StartNode;
@@ -76,6 +77,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         return "$" + value;
     }
 
+    // TODO check whether to use 0xFF or 1 for true (I think it's 1)
     @Override
     public String fromBoolean(boolean value) {
         return "$0x" + Integer.toHexString(value ? 0xFF : 0);
@@ -93,11 +95,11 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
         for (Node node : block.nodes()) {
             // Generate block-local code
-            generateForNode(node);
+            generateForNode(node, block);
         }
     }
 
-    private void generateForNode(Node node) {
+    private void generateForNode(Node node, Block block) {
         switch (node) {
             // Binary operation nodes
             case AddNode add -> defaultBinary(add, "addl");
@@ -119,14 +121,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
             case SubNode sub -> defaultBinary(sub, "subl");
 
             // Control flow nodes
-            case ConditionalJumpNode conditionalJump -> {
-                moveToPhis(conditionalJump.block());
-                conditionalJump(conditionalJump);
-            }
-            case JumpNode jump -> {
-                moveToPhis(jump.block());
-                jump(jump);
-            }
+            case ConditionalJumpNode conditionalJump -> conditionalJump(conditionalJump);
+            case JumpNode jump -> jump(jump);
             case ReturnNode ret -> ret(ret);
 
             // Unary operation nodes
@@ -137,29 +133,17 @@ public final class X8664CodeGenerator implements CodeGenerator {
             // Other nodes
             case BoolNode bool -> constant(fromBoolean(bool.value()), this.registers.get(bool));
             case ConstIntNode constInt -> constant(fromInt(constInt.value()), this.registers.get(constInt));
-            case Phi _ -> {
-                // Nothing to do, since a phi's operands write into that phi's register on their
-                // own
-                return;
+            case Phi phi -> {
+                // Write phis corresponding predecessor value into phi
+                Node src = predecessorSkipProj(phi, block.phiIndex(phi));
+                move(this.registers.get(src), this.registers.get(phi));
             }
             case Block _,ProjNode _,StartNode _ -> {
                 // do nothing
-                return;
             }
             default -> throw new UnsupportedOperationException(
                 "code generation for " + node.getClass() + " not yet implemented"
             );
-        }
-    }
-
-    private void moveToPhis(Block block) {
-        for (Node node : block.nodes()) {
-            // Move values into successor phis if they're not a side effect phi
-            for (Node successor : successorsSkipProj(node)) {
-                if (successor instanceof Phi phi && !phi.isSideEffectPhi()) {
-                    move(this.registers.get(node), this.registers.get(successor));
-                }
-            }
         }
     }
 
@@ -357,6 +341,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(", ")
             .append(destRegister.name(32))
             .append("\n");
+
+        System.out.println(this.builder);
     }
 
     private void constant(String constant, Register destRegister) {

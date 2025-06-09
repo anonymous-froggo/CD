@@ -1,6 +1,7 @@
 package edu.kit.kastel.vads.compiler.codegen;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
+import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorsSkipProj;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -132,7 +133,7 @@ public class LivenessAnalysis {
         Node x = l;
 
         addFact(def, l, x);
-        for (Node yi : l.operands()) {
+        for (Node yi : predecessorsSkipProj(l)) {
             addFact(use, l, yi);
         }
         addFact(succ, l, lPlusOne);

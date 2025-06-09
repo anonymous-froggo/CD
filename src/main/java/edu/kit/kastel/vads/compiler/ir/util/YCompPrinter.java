@@ -46,9 +46,9 @@ public class YCompPrinter {
 
         if (!(node instanceof Block)) {
             this.clusters.computeIfAbsent(
-                    node.block(),
-                    _ -> Collections.newSetFromMap(new IdentityHashMap<>())
-                )
+                node.block(),
+                _ -> Collections.newSetFromMap(new IdentityHashMap<>())
+            )
                 .add(node);
             prepare(node.block(), seen);
         }
@@ -169,10 +169,11 @@ public class YCompPrinter {
     private String formatControlflowEdges(Block block) {
         StringJoiner result = new StringJoiner("\n");
         List<? extends Node> parents = block.predecessors();
-        for (Node parent : parents) {
+        for (int index = 0; index< parents.size(); index++) {
+            Node parent = parents.get(index);
             if (parent instanceof ReturnNode || parent instanceof ProjNode || parent instanceof JumpNode) {
                 // Return needs no label
-                result.add(formatControlflowEdge(parent, block, ""));
+                result.add(formatControlflowEdge(parent, block, String.valueOf(index)));
             } else {
                 throw new RuntimeException("Unknown paren type: " + parent);
             }
@@ -195,7 +196,8 @@ public class YCompPrinter {
         StringJoiner result = new StringJoiner("\n");
         for (Edge edge : edges) {
             StringBuilder inner = new StringBuilder();
-            // edge: {sourcename: "n74" targetname: "n71" label: "0" class:14 priority:50 color:blue}
+            // edge: {sourcename: "n74" targetname: "n71" label: "0" class:14 priority:50
+            // color:blue}
             inner.append("edge: {");
             inner.append("\n  sourcename: ").append('"').append(nodeTitle(edge.src())).append('"');
             inner.append("\n  targetname: ").append('"').append(nodeTitle(edge.dst())).append('"');
@@ -223,7 +225,13 @@ public class YCompPrinter {
             case ConditionalJumpNode _ -> VcgColor.CONTROL_FLOW;
             case ConstIntNode _ -> VcgColor.NORMAL;
             case JumpNode _ -> VcgColor.CONTROL_FLOW;
-            case Phi _ -> VcgColor.PHI;
+            case Phi phi -> {
+                if (phi.isSideEffectPhi()) {
+                    yield VcgColor.MEMORY;
+                } else {
+                    yield VcgColor.PHI;
+                }
+            }
             case ProjNode proj -> {
                 if (proj.projectionInfo() == SimpleProjectionInfo.SIDE_EFFECT) {
                     yield VcgColor.MEMORY;
@@ -263,7 +271,7 @@ public class YCompPrinter {
             } else if (block == this.graph.endBlock()) {
                 return "end-block";
             }
-            return "block-" + idFor(block);
+            return block.label();
         }
         return node.toString();
     }
@@ -280,17 +288,18 @@ public class YCompPrinter {
     }
 
     private enum VcgColor {
-        // colorentry 100: 204 204 204  gray
-        // colorentry 101: 222 239 234  faint green
-        // colorentry 103: 242 242 242  white-ish
-        // colorentry 104: 153 255 153  light green
-        // colorentry 105: 153 153 255  blue
-        // colorentry 106: 255 153 153  red
-        // colorentry 107: 255 255 153  yellow
-        // colorentry 108: 255 153 255  pink
-        // colorentry 110: 127 127 127  dark gray
-        // colorentry 111: 153 255 153  light green
-        // colorentry 114: 153 153 255  blue
+
+        // colorentry 100: 204 204 204 gray
+        // colorentry 101: 222 239 234 faint green
+        // colorentry 103: 242 242 242 white-ish
+        // colorentry 104: 153 255 153 light green
+        // colorentry 105: 153 153 255 blue
+        // colorentry 106: 255 153 153 red
+        // colorentry 107: 255 255 153 yellow
+        // colorentry 108: 255 153 255 pink
+        // colorentry 110: 127 127 127 dark gray
+        // colorentry 111: 153 255 153 light green
+        // colorentry 114: 153 153 255 blue
         CONTROL_FLOW("255 153 153"),
         MEMORY("153 153 255"),
         NORMAL("242 242 242"),

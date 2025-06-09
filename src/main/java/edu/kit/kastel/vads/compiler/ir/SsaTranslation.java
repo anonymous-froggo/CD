@@ -398,7 +398,7 @@ public class SsaTranslation {
             conditionBlock.addPredecessor(exitBody);
             data.graphConstructor.sealBlock(conditionBlock);
 
-            // TODO add check for newBlockAfterBody
+            // TODO add check for newBlockAfterBody -> not sure if needed, but we'll see
             // boolean newBlockAfterBody = !data.graphConstructor.currentBlock().predecessors().isEmpty();
 
             Block followBlock = data.graphConstructor.newBlock();

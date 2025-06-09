@@ -16,7 +16,7 @@ public final class Phi extends Node {
     public String info() {
         StringBuilder info = new StringBuilder("[");
 
-        List<Node> operands = operands();
+        List<Node> operands = predecessorsSkipProj(this);
         for (int i = 0; i < operands.size(); i++) {
             Node operand = operands.get(i);
             if (operand instanceof Phi) {
@@ -40,11 +40,16 @@ public final class Phi extends Node {
     }
 
     public void setSideEffectPhi() {
-        this.isSideEffectPhi = true;
-    }
+        if (isSideEffectPhi()) {
+            return;
+        }
 
-    public List<Node> operands() {
-        return predecessorsSkipProj(this);
+        this.isSideEffectPhi = true;
+        for (Node operand : predecessorsSkipProj(this)) {
+            if (operand instanceof Phi phi) {
+                phi.setSideEffectPhi();
+            }
+        }
     }
 
     public void appendOperand(Node node) {

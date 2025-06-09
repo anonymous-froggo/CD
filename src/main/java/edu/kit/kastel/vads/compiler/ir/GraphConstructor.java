@@ -41,6 +41,7 @@ import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorsSkipP
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -73,7 +74,7 @@ class GraphConstructor {
 
         // Append all blocks' control flow exits to their nodes
         for (Block block : graph().blocks()) {
-            block.appendControlFlowExit();
+            block.appendPhisAndControlFlowExit();
 
             if (Main.DEBUG) {
                 System.out.println(block.label() + ": " + block.nodes());
@@ -111,8 +112,16 @@ class GraphConstructor {
             }
         }
 
-        if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block)) {
+        if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block || node instanceof Phi)) {
             node.block().addNode(node);
+        }
+
+        if (node instanceof Phi phi && !phi.isSideEffectPhi()) {
+            // Add each phi to the corresponding predecessor blocks
+            List<Node> operands = predecessorsSkipProj(phi);
+            for (int index = 0; index < operands.size(); index++) {
+                phi.block().predecessor(index).block().addPhi(phi, index);
+            }
         }
     }
 
@@ -206,25 +215,16 @@ class GraphConstructor {
 
     // Other nodes
 
-    // TODO try to reinduce consts always being in startBlock
-    // public Node newConstInt(int value) {
-    //     // always move const into start block, this allows better deduplication
-    //     // and resultingly in better value numbering
-    //     return this.optimizer.transform(new ConstIntNode(graph().startBlock(), value));
-    // }
-
-    // public Node newBoolNode(boolean value) {
-    //     // always move const into start block, this allows better deduplication
-    //     // and resultingly in better value numbering
-    //     return this.optimizer.transform(new BoolNode(graph().startBlock(), value));
-    // }
-
     public Node newConstInt(int value) {
-        return this.optimizer.transform(new ConstIntNode(currentBlock(), value));
+        // always move const into start block, this allows better deduplication
+        // and resultingly in better value numbering
+        return this.optimizer.transform(new ConstIntNode(graph().startBlock(), value));
     }
 
     public Node newBoolNode(boolean value) {
-        return this.optimizer.transform(new BoolNode(currentBlock(), value));
+        // always move const into start block, this allows better deduplication
+        // and resultingly in better value numbering
+        return this.optimizer.transform(new BoolNode(graph().startBlock(), value));
     }
 
     public Block newBlock() {

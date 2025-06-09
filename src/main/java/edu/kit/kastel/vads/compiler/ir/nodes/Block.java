@@ -1,7 +1,11 @@
 package edu.kit.kastel.vads.compiler.ir.nodes;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.SequencedSet;
+import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
@@ -14,8 +18,11 @@ public final class Block extends Node {
     private final int id;
 
     private List<Node> nodes = new ArrayList<>();
-    // The control flow exit point of this Block. Is null for graph().endBlock()
+    // The control flow exit point of this Block. Is null for graph().endBlock().
     private @Nullable ControlFlowNode controlFlowExit = null;
+    // Contains the phis this block needs to write to in order they were added,
+    // mapped to the control flow index this block leads into
+    private Map<Phi, Integer> phiIndices = new LinkedHashMap<>();
 
     public Block(IrGraph graph) {
         super(graph);
@@ -42,7 +49,34 @@ public final class Block extends Node {
         }
     }
 
-    public void appendControlFlowExit() {
+    public int phiIndex(Phi phi) {
+        if (!this.phiIndices.containsKey(phi)) {
+            throw new IllegalArgumentException(phi + " not present in block " + this);
+        }
+
+        return this.phiIndices.get(phi);
+    }
+
+    // Adds a phi from a successor block that needs to be written into from this
+    // block
+    public void addPhi(Phi phi, int index) {
+        this.phiIndices.put(phi, index);
+    }
+
+    public void appendPhisAndControlFlowExit() {
+        int size = this.phiIndices.keySet().size();\
+        
+        List<Phi> phis = new ArrayList<>(size);
+        // Collect phis
+        for (Phi phi : this.phiIndices.keySet()) {
+            phis.add(phi);
+        }
+
+        // Need to append phis in reverse order
+        for (int i = size - 1; i >= 0; i--) {
+            this.nodes.add(phis.get(i));
+        }
+
         if (controlFlowExit != null) {
             this.nodes.add(controlFlowExit);
         }
