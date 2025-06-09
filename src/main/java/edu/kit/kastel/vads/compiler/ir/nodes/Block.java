@@ -64,8 +64,8 @@ public final class Block extends Node {
     }
 
     public void appendPhisAndControlFlowExit() {
-        int size = this.phiIndices.keySet().size();\
-        
+        int size = this.phiIndices.keySet().size();
+
         List<Phi> phis = new ArrayList<>(size);
         // Collect phis
         for (Phi phi : this.phiIndices.keySet()) {
