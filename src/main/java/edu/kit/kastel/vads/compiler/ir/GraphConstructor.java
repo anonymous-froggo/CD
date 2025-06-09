@@ -91,7 +91,6 @@ class GraphConstructor {
             }
 
             // Recursively scan [controlFlowInput]
-            // System.out.println("Scanning controlFlowInput " + controlFlowInput);
             if (scanned.add(controlFlowInput)) {
                 scan(controlFlowInput, scanned);
             }

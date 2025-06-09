@@ -341,8 +341,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(", ")
             .append(destRegister.name(32))
             .append("\n");
-
-        System.out.println(this.builder);
     }
 
     private void constant(String constant, Register destRegister) {
