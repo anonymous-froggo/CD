@@ -234,35 +234,6 @@ class GraphConstructor {
         return block;
     }
 
-    // Adds jump from currentBlock to a new block and returns that jump
-    // Returns null if the current block is empty,
-    // i.e. no jump and no new block is needed
-    @Nullable
-    public Block jumpToNewBlock() {
-        if (currentBlock().isEmpty()) {
-            // No jump and no new block is needed
-            return currentBlock();
-        }
-
-        JumpNode jump = newJump();
-        Block newBlock = newBlock();
-        // Link jump and newBlock
-        jump.setTarget(JumpNode.TARGET, newBlock);
-        newBlock.addPredecessor(jump);
-
-        return newBlock;
-    }
-
-    public Block linkToNewBlock(ConditionalJumpNode conditionalJump, ProjNode branch, int idx) {
-        // If currentBlock is empty, no new block is needed
-        Block newBlock = currentBlock().isEmpty() ? currentBlock() : newBlock();
-        // Link conditionalJump's idx branch and newBlock
-        conditionalJump.setTarget(idx, newBlock);
-        newBlock.addPredecessor(branch);
-
-        return newBlock;
-    }
-
     public ConditionalJumpNode newConditionalJump(Node condition) {
         return new ConditionalJumpNode(currentBlock(), condition);
     }
@@ -299,6 +270,39 @@ class GraphConstructor {
     public StartNode newStart() {
         assert currentBlock() == this.graph.startBlock() : "start must be in start block";
         return new StartNode(currentBlock());
+    }
+
+    // Adds jump from currentBlock to a new block and returns that jump.
+    // If currentBlock is empty, no jump and no new block are needed
+    public Block jumpToNewBlock() {
+        if (currentBlock().isEmpty()) {
+            // No jump and no new block are needed
+            return currentBlock();
+        }
+
+        JumpNode jump = newJump();
+        Block newBlock = newBlock();
+        link(jump, newBlock);
+
+        return newBlock;
+    }
+
+    public Block linkBranchToNewBlock(ConditionalJumpNode conditionalJump, ProjNode branchProj, int idx) {
+        // If currentBlock is empty, no new block is needed
+        Block newBlock = currentBlock().isEmpty() ? currentBlock() : newBlock();
+        linkBranch(conditionalJump, branchProj, idx, newBlock);
+
+        return newBlock;
+    }
+
+    public void link(ControlFlowNode jump, Block block) {
+        jump.setTarget(JumpNode.TARGET, block);
+        block.addPredecessor(jump);
+    }
+
+    public void linkBranch(ConditionalJumpNode conditionalJump, ProjNode branchProj, int idx, Block block) {
+        conditionalJump.setTarget(idx, block);
+        block.addPredecessor(branchProj);
     }
 
     // Variable handling
