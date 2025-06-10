@@ -2,6 +2,7 @@ package edu.kit.kastel.vads.compiler.ir;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
@@ -281,54 +282,42 @@ public class SsaTranslation {
 
             Node condition = ifTree.condition().accept(this, data).orElseThrow();
 
-            ControlFlowNode checkCondition = data.graphConstructor.newConditionalJump(condition);
-            Node projTrue = data.graphConstructor.newTrueProj(checkCondition);
-            Node projFalse = data.graphConstructor.newFalseProj(checkCondition);
+            ConditionalJumpNode checkCondition = data.graphConstructor.newConditionalJump(condition);
+            ProjNode projTrue = data.graphConstructor.newTrueProj(checkCondition);
+            ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
-            Block thenBlock = data.graphConstructor.newBlock();
-            // Link projTrue and thenBlock and seal
-            checkCondition.setTarget(ConditionalJumpNode.TRUE_TARGET, thenBlock);
-            thenBlock.addPredecessor(projTrue);
+            Block thenBlock = data.graphConstructor
+                .linkToNewBlock(checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
             data.graphConstructor.sealBlock(thenBlock);
-            // Parse thenStatement
+
             ifTree.thenStatement().accept(this, data);
 
-            boolean newBlockAfterThen = !data.graphConstructor.currentBlock().predecessors().isEmpty();
-
-            ControlFlowNode exitThen = newBlockAfterThen ? data.graphConstructor.newJump() : null;
-
+            // As long as currentBlock is not empty or it has predecessors, we need an exit
+            // jump, since an else could follow
+            boolean thenNeedsExit = !data.currentBlock().isEmpty() || !data.currentBlock().predecessors().isEmpty();
+            
             if (ifTree.elseOpt() != null) {
-                Block elseBlock = newBlockAfterThen
-                    ? data.graphConstructor.newBlock()
-                    : data.graphConstructor.currentBlock();
+                // Place a jump node into currentBlock (which is the end of the then statement) if needed,
+                // which will lat beer linked to followBlock
+                JumpNode exitThen = thenNeedsExit ? null : data.graphConstructor.newJump();
 
-                // Link projFalse and elseBlock and seal
-                checkCondition.setTarget(ConditionalJumpNode.FALSE_TARGET, elseBlock);
-                elseBlock.addPredecessor(projFalse);
+                Block elseBlock = data.graphConstructor
+                    .linkToNewBlock(checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET);
                 data.graphConstructor.sealBlock(elseBlock);
 
                 ifTree.elseOpt().accept(this, data);
 
-                if (newBlockAfterThen) {
-                    // Link exitThen and currentBlock() and seal
-                    Block followBlock = data.graphConstructor.currentBlock();
+                // We only need a new block following the else if then needs an exit jump.
+                // Otherwise we can just continue in the else block
+                if (exitThen != null) {
+                    Block followBlock = data.graphConstructor.jumpToNewBlock();
+                    // Link exitThen and followBlock and seal
                     exitThen.setTarget(JumpNode.TARGET, followBlock);
                     followBlock.addPredecessor(exitThen);
                     data.graphConstructor.sealBlock(followBlock);
                 }
             } else {
-                Block followBlock;
-                if (newBlockAfterThen) {
-                    followBlock = data.graphConstructor.newBlock();
-                    // Link exitThen and followBlock
-                    exitThen.setTarget(JumpNode.TARGET, followBlock);
-                    followBlock.addPredecessor(exitThen);
-                } else {
-                    // If the current block doesn't have predecessors it was created by a return, so
-                    // no new block and no jump is needed
-                    followBlock = data.graphConstructor.currentBlock();
-                }
-
+                Block followBlock = data.graphConstructor.jumpToNewBlock();
                 // Link projFalse and followBlock and seal
                 checkCondition.setTarget(ConditionalJumpNode.FALSE_TARGET, followBlock);
                 followBlock.addPredecessor(projFalse);
@@ -398,7 +387,8 @@ public class SsaTranslation {
             data.graphConstructor.sealBlock(conditionBlock);
 
             // TODO add check for newBlockAfterBody -> not sure if needed, but we'll see
-            // boolean newBlockAfterBody = !data.graphConstructor.currentBlock().predecessors().isEmpty();
+            // boolean newBlockAfterBody =
+            // !data.graphConstructor.currentBlock().predecessors().isEmpty();
 
             Block followBlock = data.graphConstructor.newBlock();
             // Link projFalse and followBlock and seal

@@ -35,6 +35,8 @@ public sealed abstract class Node permits
             graph.registerSuccessor(predecessor, this);
         }
         this.debugInfo = DebugInfoHelper.debugInfo();
+
+        block.setNotEmpty();
     }
 
     protected Node(IrGraph graph) {

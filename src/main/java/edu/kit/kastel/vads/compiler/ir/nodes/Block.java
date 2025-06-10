@@ -15,6 +15,8 @@ public final class Block extends Node {
     private static int idCounter = 0;
     private final int id;
 
+    private boolean isEmpty;
+
     private List<Node> nodes = new ArrayList<>();
     // The control flow exit point of this Block. Is null for graph().endBlock().
     private @Nullable ControlFlowNode controlFlowExit = null;
@@ -24,7 +26,10 @@ public final class Block extends Node {
 
     public Block(IrGraph graph) {
         super(graph);
+
         this.id = idCounter++;
+
+        this.isEmpty = true;
     }
 
     public List<Node> nodes() {
@@ -91,5 +96,13 @@ public final class Block extends Node {
 
     public int id() {
         return this.id;
+    }
+
+    public boolean isEmpty() {
+        return this.isEmpty;
+    }
+
+    public void setNotEmpty() {
+        this.isEmpty = false;
     }
 }

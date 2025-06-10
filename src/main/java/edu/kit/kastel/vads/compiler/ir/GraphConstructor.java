@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 class GraphConstructor {
 
     private final Optimizer optimizer;
@@ -232,11 +234,40 @@ class GraphConstructor {
         return block;
     }
 
-    public ControlFlowNode newConditionalJump(Node condition) {
+    // Adds jump from currentBlock to a new block and returns that jump
+    // Returns null if the current block is empty,
+    // i.e. no jump and no new block is needed
+    @Nullable
+    public Block jumpToNewBlock() {
+        if (currentBlock().isEmpty()) {
+            // No jump and no new block is needed
+            return currentBlock();
+        }
+
+        JumpNode jump = newJump();
+        Block newBlock = newBlock();
+        // Link jump and newBlock
+        jump.setTarget(JumpNode.TARGET, newBlock);
+        newBlock.addPredecessor(jump);
+
+        return newBlock;
+    }
+
+    public Block linkToNewBlock(ConditionalJumpNode conditionalJump, ProjNode branch, int idx) {
+        // If currentBlock is empty, no new block is needed
+        Block newBlock = currentBlock().isEmpty() ? currentBlock() : newBlock();
+        // Link conditionalJump's idx branch and newBlock
+        conditionalJump.setTarget(idx, newBlock);
+        newBlock.addPredecessor(branch);
+
+        return newBlock;
+    }
+
+    public ConditionalJumpNode newConditionalJump(Node condition) {
         return new ConditionalJumpNode(currentBlock(), condition);
     }
 
-    public ControlFlowNode newJump() {
+    public JumpNode newJump() {
         return new JumpNode(currentBlock());
     }
 
@@ -245,38 +276,32 @@ class GraphConstructor {
         return new Phi(currentBlock());
     }
 
-    public Node newResultProj(Node node) {
+    public ProjNode newResultProj(Node node) {
         return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.RESULT);
     }
 
-    public Node newTrueProj(Node decision) {
+    public ProjNode newTrueProj(Node decision) {
         return new ProjNode(currentBlock(), decision, ProjNode.SimpleProjectionInfo.TRUE);
     }
 
-    public Node newFalseProj(Node decision) {
+    public ProjNode newFalseProj(Node decision) {
         return new ProjNode(currentBlock(), decision, ProjNode.SimpleProjectionInfo.FALSE);
     }
 
-    public ControlFlowNode newReturn(Node result) {
+    public ProjNode newSideEffectProj(Node node) {
+        return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.SIDE_EFFECT);
+    }
+
+    public ReturnNode newReturn(Node result) {
         return new ReturnNode(currentBlock(), readCurrentSideEffect(), result);
     }
 
-    public ControlFlowNode newStart() {
+    public StartNode newStart() {
         assert currentBlock() == this.graph.startBlock() : "start must be in start block";
         return new StartNode(currentBlock());
     }
 
-    public Node newSideEffectProj(Node node) {
-        return new ProjNode(currentBlock(), node, ProjNode.SimpleProjectionInfo.SIDE_EFFECT);
-    }
-
-    public Block currentBlock() {
-        return this.currentBlock;
-    }
-
-    public IrGraph graph() {
-        return this.graph;
-    }
+    // Variable handling
 
     void writeVariable(Name variable, Block block, Node value) {
         this.currentDef.computeIfAbsent(variable, _ -> new HashMap<>()).put(block, value);
@@ -374,6 +399,16 @@ class GraphConstructor {
             phi.appendOperand(readSideEffect(pred.block()));
         }
         return tryRemoveTrivialPhi(phi);
+    }
+
+    // Getters/Setters
+
+    public Block currentBlock() {
+        return this.currentBlock;
+    }
+
+    public IrGraph graph() {
+        return this.graph;
     }
 
     Set<Block> sealedBlocks() {
