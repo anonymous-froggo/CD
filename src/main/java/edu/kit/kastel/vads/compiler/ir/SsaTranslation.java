@@ -256,6 +256,7 @@ public class SsaTranslation {
         public Optional<Node> visit(ElseOptTree elseOptTree, SsaTranslation data) {
             pushSpan(elseOptTree);
             elseOptTree.elseStatement().accept(this, data);
+            data.graphConstructor.jumpToNewBlock();
             popSpan();
             return NOT_AN_EXPRESSION;
         }
@@ -283,15 +284,8 @@ public class SsaTranslation {
 
             ifTree.thenStatement().accept(this, data);
 
-            // As long as currentBlock is not empty or it has predecessors, we need an exit
-            // jump, since an else could follow
-            // I'm not sure if empty, but has predecessors can even happen, but just to be
-            // safe
-            boolean thenNeedsExit = !data.currentBlock().isEmpty() || !data.currentBlock().predecessors().isEmpty();
-
             if (ifTree.elseOpt() != null) {
-                // Place a jump node into currentBlock (which is the end of the then statement)
-                // if needed, which will later be linked to followBlock
+                boolean thenNeedsExit = data.graphConstructor.newBlockNeeded();
                 JumpNode exitThen = thenNeedsExit ? data.graphConstructor.newJump() : null;
 
                 Block elseBlock = data.graphConstructor.linkBranchToNewBlock(
@@ -302,16 +296,16 @@ public class SsaTranslation {
                 ifTree.elseOpt().accept(this, data);
 
                 // We only need a new block following the else if then needs an exit jump.
-                // Otherwise we can just continue in the else block
+                // Otherwise we can just continue in the else block and seal it
                 if (thenNeedsExit) {
-                    Block followBlock = data.graphConstructor.jumpToNewBlock();
-                    data.graphConstructor.link(exitThen, followBlock);
-                    data.graphConstructor.sealBlock(followBlock);
+                    data.graphConstructor.link(exitThen, data.currentBlock());
                 }
+                data.graphConstructor.sealBlock(data.currentBlock());
             } else {
                 Block followBlock = data.graphConstructor.jumpToNewBlock();
-                data.graphConstructor
-                    .linkBranch(checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET, followBlock);
+                data.graphConstructor.linkBranch(
+                    checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET, followBlock
+                );
                 data.graphConstructor.sealBlock(followBlock);
             }
 
@@ -322,7 +316,7 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(ReturnTree returnTree, SsaTranslation data) {
-            Block currentBlock = data.currentBlock();
+            Block currentBlock = data.graphConstructor.currentBlock();
             if (currentBlock != data.graphConstructor.graph().startBlock() && currentBlock.predecessors().isEmpty()) {
                 // Unreachable return, skip it
                 return NOT_AN_EXPRESSION;

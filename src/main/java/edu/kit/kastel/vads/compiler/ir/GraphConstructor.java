@@ -272,10 +272,13 @@ class GraphConstructor {
         return new StartNode(currentBlock());
     }
 
-    // Adds jump from currentBlock to a new block and returns that jump.
-    // If currentBlock is empty, no jump and no new block are needed
+    public boolean newBlockNeeded() {
+        return !(currentBlock().isEmpty() && currentBlock().predecessors().isEmpty());
+    }
+
+    // Adds a jump from currentBlock to a new block and returns that block.
     public Block jumpToNewBlock() {
-        if (currentBlock().isEmpty()) {
+        if (!newBlockNeeded()) {
             // No jump and no new block are needed
             return currentBlock();
         }
@@ -288,8 +291,8 @@ class GraphConstructor {
     }
 
     public Block linkBranchToNewBlock(ConditionalJumpNode conditionalJump, ProjNode branchProj, int idx) {
-        // If currentBlock is empty, no new block is needed
-        Block newBlock = currentBlock().isEmpty() ? currentBlock() : newBlock();
+        // If currentBlock is empty and has no predecessors, no new block is needed
+        Block newBlock = newBlockNeeded() ? newBlock() : currentBlock();
         linkBranch(conditionalJump, branchProj, idx, newBlock);
 
         return newBlock;

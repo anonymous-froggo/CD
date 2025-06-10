@@ -27,6 +27,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.binary.LogicalAndNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.LogicalOrNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.MulNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.binary.NotEqNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftLeftNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ShiftRightNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.SubNode;
@@ -114,6 +115,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
             case LogicalOrNode logicalOr -> defaultBinary(logicalOr, "orl");
             case ModNode mod -> division(mod);
             case MulNode mul -> defaultBinary(mul, "imull");
+            case NotEqNode notEq -> compare(notEq, "setne");
             case ShiftLeftNode shiftLeft -> shift(shiftLeft, "sall");
             case ShiftRightNode shiftRight -> shift(shiftRight, "sarl");
             case SubNode sub -> defaultBinary(sub, "subl");
