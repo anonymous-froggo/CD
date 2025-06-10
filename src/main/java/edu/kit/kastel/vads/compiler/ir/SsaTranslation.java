@@ -299,7 +299,7 @@ public class SsaTranslation {
             if (ifTree.elseOpt() != null) {
                 // Place a jump node into currentBlock (which is the end of the then statement) if needed,
                 // which will lat beer linked to followBlock
-                JumpNode exitThen = thenNeedsExit ? null : data.graphConstructor.newJump();
+                JumpNode exitThen = thenNeedsExit ? data.graphConstructor.newJump() : null;
 
                 Block elseBlock = data.graphConstructor
                     .linkToNewBlock(checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET);
