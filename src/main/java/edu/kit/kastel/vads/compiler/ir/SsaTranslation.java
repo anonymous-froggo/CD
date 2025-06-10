@@ -272,7 +272,6 @@ public class SsaTranslation {
             pushSpan(ifTree);
 
             Node condition = ifTree.condition().accept(this, data).orElseThrow();
-
             ConditionalJumpNode checkCondition = data.graphConstructor.newConditionalJump(condition);
             ProjNode projTrue = data.graphConstructor.newTrueProj(checkCondition);
             ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
@@ -281,7 +280,6 @@ public class SsaTranslation {
                 checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET
             );
             data.graphConstructor.sealBlock(thenBlock);
-
             ifTree.thenStatement().accept(this, data);
 
             if (ifTree.elseOpt() != null) {
@@ -292,7 +290,6 @@ public class SsaTranslation {
                     checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
                 );
                 data.graphConstructor.sealBlock(elseBlock);
-
                 ifTree.elseOpt().accept(this, data);
 
                 // We only need a new block following the else if then needs an exit jump.
@@ -341,38 +338,23 @@ public class SsaTranslation {
         public Optional<Node> visit(WhileTree whileTree, SsaTranslation data) {
             pushSpan(whileTree);
 
-            ControlFlowNode jumpIntoCondition = data.graphConstructor.newJump();
-            Block conditionBlock = data.graphConstructor.newBlock();
-            // Link jumpIntoCondition and conditionBlock, but don't seal yet,
-            // since exitBody will also link to conditionBlock
-            jumpIntoCondition.setTarget(JumpNode.TARGET, conditionBlock);
-            conditionBlock.addPredecessor(jumpIntoCondition);
+            // Don't seal conditionBlock yet, since exitBody will also link to conditionBlock
+            Block conditionBlock = data.graphConstructor.jumpToNewBlock();
 
             Node condition = whileTree.condition().accept(this, data).orElseThrow();
-            ControlFlowNode checkCondition = data.graphConstructor.newConditionalJump(condition);
-            Node projTrue = data.graphConstructor.newTrueProj(checkCondition);
-            Node projFalse = data.graphConstructor.newFalseProj(checkCondition);
+            ConditionalJumpNode checkCondition = data.graphConstructor.newConditionalJump(condition);
+            ProjNode projTrue = data.graphConstructor.newTrueProj(checkCondition);
+            ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
-            Block bodyBlock = data.graphConstructor.newBlock();
-            // Link projTrue and bodyBlock and seal
-            checkCondition.setTarget(ConditionalJumpNode.TRUE_TARGET, bodyBlock);
-            bodyBlock.addPredecessor(projTrue);
+            Block bodyBlock = data.graphConstructor.linkBranchToNewBlock(checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
             data.graphConstructor.sealBlock(bodyBlock);
-
-            // Parse body
             whileTree.body().accept(this, data);
 
-            ControlFlowNode exitBody = data.graphConstructor.newJump();
-            // Link exitBody and conditionBlock and seal
-            exitBody.setTarget(JumpNode.TARGET, conditionBlock);
-            conditionBlock.addPredecessor(exitBody);
+            JumpNode exitBody = data.graphConstructor.newJump();
+            data.graphConstructor.link(exitBody, conditionBlock);
             data.graphConstructor.sealBlock(conditionBlock);
 
-            Block followBlock = data.graphConstructor.newBlock();
-            // Link projFalse and followBlock and seal
-            checkCondition.setTarget(ConditionalJumpNode.FALSE_TARGET, followBlock);
-            followBlock.addPredecessor(projFalse);
-            data.graphConstructor.sealBlock(followBlock);
+            data.graphConstructor.linkBranchToNewBlock(checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET);
 
             popSpan();
 
