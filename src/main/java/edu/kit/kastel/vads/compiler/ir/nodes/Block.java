@@ -20,7 +20,7 @@ public final class Block extends Node {
     private List<Node> nodes = new ArrayList<>();
     // The control flow exit point of this Block. Is null for graph().endBlock().
     private @Nullable ControlFlowNode controlFlowExit = null;
-    // Contains the phis this block needs to write to in order they were added,
+    // Contains the phis this block needs to write to in topological order,
     // mapped to the control flow index this block leads into
     private Map<Phi, Integer> phiIndices = new LinkedHashMap<>();
 
@@ -63,6 +63,9 @@ public final class Block extends Node {
     // Adds a phi from a successor block that needs to be written into from this
     // block
     public void addPhi(Phi phi, int index) {
+        if (this == this.graph().startBlock()) {
+            System.out.println(phi);
+        }
         this.phiIndices.put(phi, index);
     }
 
@@ -75,7 +78,7 @@ public final class Block extends Node {
             phis.add(phi);
         }
 
-        // Need to append phis in reverse order
+        // Need to append phis in reverse topological order
         for (int i = size - 1; i >= 0; i--) {
             this.nodes.add(phis.get(i));
         }

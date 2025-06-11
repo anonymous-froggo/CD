@@ -375,7 +375,6 @@ public class SsaTranslation {
             // Don't seal conditionBlock yet, since exitBody will also link to
             // conditionBlock
             Block conditionBlock = data.graphConstructor.jumpToNewBlock();
-
             Node condition = whileTree.condition().accept(this, data).orElseThrow();
             ConditionalJumpNode checkCondition = data.graphConstructor.newConditionalJump(condition);
             ProjNode projTrue = data.graphConstructor.newTrueProj(checkCondition);

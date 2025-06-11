@@ -283,12 +283,24 @@ public final class X8664CodeGenerator implements CodeGenerator {
     // different jump instructions instead of calling test condition, condition
     private void conditionalJump(ConditionalJumpNode node) {
         Register condition = this.registers.get(predecessorSkipProj(node, ConditionalJumpNode.CONDITION));
-        // Sets ZF to 0 if condition == false
-        this.builder.repeat(" ", 2)
-            .append("test ")
-            .append(condition.name(8))
-            .append(", ")
-            .append(condition.name(8)).append("\n");
+        if (condition instanceof X8664StackRegister) {
+            move(condition, X8664Register.RAX);
+
+            // Sets ZF to 0 if condition == false
+            this.builder.repeat(" ", 2)
+                .append("test ")
+                .append(X8664Register.RAX.name(8))
+                .append(", ")
+                .append(X8664Register.RAX.name(8))
+                .append("\n");
+        } else {
+            // Sets ZF to 0 if condition == false
+            this.builder.repeat(" ", 2)
+                .append("test ")
+                .append(condition.name(8))
+                .append(", ")
+                .append(condition.name(8)).append("\n");
+        }
 
         // Activated when ZF != 0 (condition == true)
         this.builder.repeat(" ", 2)

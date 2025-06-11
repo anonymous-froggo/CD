@@ -69,10 +69,19 @@ class GraphConstructor {
 
     public void collectNodes() {
         Set<Node> scanned = new HashSet<>();
-        scanned.add(graph().endBlock());
+        Set<Phi> phis = new HashSet<>();
 
-        scanBlock(graph().endBlock(), scanned);
+        // Scan blocks
+        scanned.add(graph().endBlock());
+        scanBlock(graph().endBlock(), scanned, phis);
         graph().addBlock(graph().endBlock());
+
+        // Scan phis
+        while (!phis.isEmpty()) {
+            Phi phi = phis.iterator().next();
+            phis.remove(phi);
+            scanPhi(phi, phis);
+        }
 
         // Append all blocks' control flow exits to their nodes
         for (Block block : graph().blocks()) {
@@ -84,45 +93,60 @@ class GraphConstructor {
         }
     }
 
-    private void scanBlock(Block block, Set<Node> scanned) {
+    private void scanBlock(Block block, Set<Node> scanned, Set<Phi> phis) {
         // Go through all of [block]'s control flow inputs
         for (Node controlFlowInput : predecessorsSkipProj(block)) {
-            if (!(controlFlowInput instanceof ControlFlowNode)) {
-                // This shouldn't happen
-                throw new SemanticException("Node " + controlFlowInput + " should be a control flow node");
-            }
+            assert controlFlowInput instanceof ControlFlowNode
+                : "Node " + controlFlowInput + " should be a control flow node";
 
             // Recursively scan [controlFlowInput]
             if (scanned.add(controlFlowInput)) {
-                scan(controlFlowInput, scanned);
+                scan(controlFlowInput, scanned, phis);
             }
 
             // Scan [controlFlowInput]'s block
             Block predecessorBlock = controlFlowInput.block();
             if (scanned.add(predecessorBlock)) {
-                scanBlock(predecessorBlock, scanned);
+                scanBlock(predecessorBlock, scanned, phis);
                 graph().addBlock(predecessorBlock);
             }
         }
     }
 
-    private void scan(Node node, Set<Node> scanned) {
+    private void scan(Node node, Set<Node> scanned, Set<Phi> phis) {
         for (Node predecessor : node.predecessors()) {
             if (scanned.add(predecessor)) {
-                scan(predecessor, scanned);
+                scan(predecessor, scanned, phis);
             }
         }
 
-        if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block || node instanceof Phi)) {
+        if (node instanceof Phi phi) {
+            phis.add(phi);
+            return;
+        }
+
+        if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block)) {
             node.block().addNode(node);
         }
+    }
 
-        if (node instanceof Phi phi && !phi.isSideEffectPhi()) {
-            // Add each phi to the corresponding predecessor blocks
-            List<Node> operands = predecessorsSkipProj(phi);
-            for (int index = 0; index < operands.size(); index++) {
-                phi.block().predecessor(index).block().addPhi(phi, index);
+    private void scanPhi(Phi phi, Set<Phi> phis) {
+        if (phi.isSideEffectPhi()) {
+            return;
+        }
+
+        List<Node> operands = predecessorsSkipProj(phi);
+        for (Node operand : operands) {
+            // If phi has a phi as an operand, we need to scan that one first in order to
+            // achieve topological order
+            if (operand instanceof Phi operandPhi && phis.remove(phi)) {
+                scanPhi(operandPhi, phis);
             }
+        }
+
+        // Add each phi to the corresponding predecessor blocks
+        for (int index = 0; index < operands.size(); index++) {
+            phi.block().predecessor(index).block().addPhi(phi, index);
         }
     }
 
