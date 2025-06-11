@@ -128,7 +128,9 @@ class GraphConstructor {
     }
 
     private void scanPhi(Phi phi, Set<Phi> phis) {
-        assert !phi.predecessors().isEmpty() : "Empty phi occured: " + phi;
+        if (phi.predecessors().isEmpty()) {
+            throw new IllegalArgumentException("Empty phi occured: " + phi);
+        }
 
         if (phi.isSideEffectPhi()) {
             return;

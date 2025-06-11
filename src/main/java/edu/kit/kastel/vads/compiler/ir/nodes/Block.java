@@ -38,14 +38,11 @@ public final class Block extends Node {
 
     public void addNode(Node node) {
         if (node instanceof ControlFlowNode controlFlowNode) {
-            // Don't add node to this.nodes, instead set this.controlFlowNode
-            if (this.controlFlowExit != null) {
-                // This normally shouldn't happen
-                throw new IllegalArgumentException(
-                    label() + " already has a control flow exit. '" + controlFlowNode + "' shouldn't be here."
-                );
-            }
+            // Each block can only have 1 control flow exit
+            assert this.controlFlowExit == null
+                : label() + " already has a control flow exit. '" + controlFlowNode + "' shouldn't be here.";
 
+            // Don't add node to this.nodes, instead set this.controlFlowNode
             this.controlFlowExit = controlFlowNode;
         } else {
             this.nodes.add(node);
@@ -53,9 +50,7 @@ public final class Block extends Node {
     }
 
     public int phiIndex(Phi phi) {
-        if (!this.phiIndices.containsKey(phi)) {
-            throw new IllegalArgumentException(phi + " not present in block " + this);
-        }
+        assert this.phiIndices.containsKey(phi) : phi + " not present in block " + this.label();
 
         return this.phiIndices.get(phi);
     }
