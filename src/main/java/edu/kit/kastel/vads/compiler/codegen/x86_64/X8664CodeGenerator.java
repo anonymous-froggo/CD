@@ -261,7 +261,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         if (dest == null) {
             // This means that [node]'s result is never actually used. However, [node] is
             // still in the schedule because its side effects are relevant.
-            // Just use RAX as dest.
+            // Just use rax as dest.
             dest = X8664Register.RAX;
         }
 
@@ -344,31 +344,42 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append("\n");
     }
 
-    private void move(Register srcRegister, Register destRegister) {
+    private void move(Register src, Register dest) {
+        if (src == dest) {
+            // Unnecessary move
+            return;
+        }
+
+        if (src instanceof X8664StackRegister && dest instanceof X8664StackRegister) {
+            // Can't move directly between stack slots, need to take detour over rax
+            move(src, X8664Register.RAX);
+            move(X8664Register.RAX, dest);
+        }
+
         this.builder.repeat(" ", 2)
             .append("movl ")
-            .append(srcRegister.name(32))
+            .append(src.name(32))
             .append(", ")
-            .append(destRegister.name(32))
+            .append(dest.name(32))
             .append("\n");
     }
 
-    private void constant(String constant, Register destRegister) {
+    private void constant(String constant, Register dest) {
         this.builder.repeat(" ", 2)
             .append("movl ")
             .append(constant)
             .append(", ")
-            .append(destRegister.name(32))
+            .append(dest.name(32))
             .append("\n");
     }
 
-    private void sourceDest(String opcode, Register srcRegister, Register destRegister) {
+    private void sourceDest(String opcode, Register src, Register dest) {
         this.builder.repeat(" ", 2)
             .append(opcode)
             .append(" ")
-            .append(srcRegister.name(32))
+            .append(src.name(32))
             .append(", ")
-            .append(destRegister.name(32))
+            .append(dest.name(32))
             .append("\n");
     }
 

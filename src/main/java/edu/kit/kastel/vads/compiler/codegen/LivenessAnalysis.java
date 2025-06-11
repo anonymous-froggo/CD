@@ -100,14 +100,6 @@ public class LivenessAnalysis {
         addFact(use, l, y);
         addFact(use, l, z);
         addFact(succ, l, lPlusOne);
-
-        // if (l instanceof DivNode) {
-        //     Node sideEffect = predecessorSkipProj(l, DivNode.SIDE_EFFECT);
-        //     addSideEffectUse(l, sideEffect);
-        // } else if (l instanceof ModNode) {
-        //     Node sideEffect = predecessorSkipProj(l, ModNode.SIDE_EFFECT);
-        //     addSideEffectUse(l, sideEffect);
-        // }
     }
 
     private void J1Unary(UnaryOperationNode l, Node lPlusOne) {
@@ -134,9 +126,6 @@ public class LivenessAnalysis {
         Node x = predecessorSkipProj(l, ReturnNode.RESULT);
 
         addFact(use, l, x);
-
-        // Node sideEffect = predecessorSkipProj(l, ReturnNode.SIDE_EFFECT);
-        // addSideEffectUse(l, sideEffect);
     }
 
     private void J3(Node l, Node lPlusOne) {
@@ -189,11 +178,6 @@ public class LivenessAnalysis {
     }
 
     private boolean addFact(Map<Node, Set<Node>> predicate, Node l, Node subject) {
-        // if (predicate == use && subject instanceof StartNode) {
-        //     // The start node is never "live", i.e. it doesn't need a register
-        //     return false;
-        // }
-
         if (!predicate.containsKey(l)) {
             predicate.put(l, new HashSet<>());
         }
