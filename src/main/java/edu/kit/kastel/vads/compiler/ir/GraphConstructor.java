@@ -60,7 +60,7 @@ class GraphConstructor {
         this.graph = new IrGraph(name);
         this.currentBlock = graph().startBlock();
 
-        // the start block never gets any more predecessors
+        // The start block never gets any more predecessors
         sealBlock(graph().startBlock());
     }
 
@@ -304,7 +304,7 @@ class GraphConstructor {
     // Adds a jump from currentBlock to a new block and returns that block.
     public Block jumpToNewBlock() {
         if (!currentBlockIsUsed()) {
-            // No jump and no new block are needed
+            // No jump and no new block needed
             return currentBlock();
         }
 
@@ -313,6 +313,16 @@ class GraphConstructor {
         link(jump, newBlock);
 
         return newBlock;
+    }
+
+    public void jumpToBlock(Block block) {
+        if (!currentBlockIsUsed()) {
+            // No jump needed
+            return;
+        }
+
+        JumpNode jump = newJump();
+        link(jump, block);
     }
 
     public Block linkBranchToNewBlock(ConditionalJumpNode conditionalJump, ProjNode branchProj, int idx) {

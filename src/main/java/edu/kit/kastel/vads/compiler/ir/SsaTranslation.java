@@ -37,7 +37,6 @@ import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 
-import java.lang.Thread.State;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -368,10 +367,7 @@ public class SsaTranslation {
                 data.linkContinueNodes(conditionBlock);
             }
 
-            if (data.graphConstructor.currentBlockIsUsed()) {
-                JumpNode goToCondition = data.graphConstructor.newJump();
-                data.graphConstructor.link(goToCondition, conditionBlock);
-            }
+            data.graphConstructor.jumpToBlock(conditionBlock);
             data.graphConstructor.sealBlock(conditionBlock);
 
             Block followBlock = data.graphConstructor.linkBranchToNewBlock(
@@ -466,17 +462,15 @@ public class SsaTranslation {
             ProjNode projTrue = data.graphConstructor.newTrueProj(checkCondition);
             ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
-            Block bodyBlock = data.graphConstructor
-                .linkBranchToNewBlock(checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
+            Block bodyBlock = data.graphConstructor.linkBranchToNewBlock(
+                checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
             data.graphConstructor.sealBlock(bodyBlock);
             whileTree.body().accept(this, data);
 
-            if (data.graphConstructor.currentBlockIsUsed()) {
-                JumpNode exitBody = data.graphConstructor.newJump();
-                data.graphConstructor.link(exitBody, conditionBlock);
-                data.linkContinueNodes(conditionBlock);
-                data.graphConstructor.sealBlock(conditionBlock);
-            }
+            data.graphConstructor.jumpToBlock(conditionBlock);
+            data.linkContinueNodes(conditionBlock);
+            data.graphConstructor.sealBlock(conditionBlock);
 
             Block followBlock = data.graphConstructor.linkBranchToNewBlock(
                 checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
