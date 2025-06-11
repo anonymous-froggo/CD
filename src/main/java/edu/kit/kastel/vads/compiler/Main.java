@@ -48,10 +48,17 @@ public class Main {
             return;
         }
 
+        // TODO this is only temporary, because breaks and continues are checked for during SSA translation
         List<IrGraph> graphs = new ArrayList<>();
-        for (FunctionTree functionTree : programTree.topLevelTrees()) {
-            SsaTranslation ssaTranslation = new SsaTranslation(functionTree, new LocalValueNumbering());
-            graphs.add(ssaTranslation.translate());
+        try {
+            for (FunctionTree functionTree : programTree.topLevelTrees()) {
+                SsaTranslation ssaTranslation = new SsaTranslation(functionTree, new LocalValueNumbering());
+                graphs.add(ssaTranslation.translate());
+            }
+        } catch (SemanticException e) {
+            e.printStackTrace();
+            System.exit(7);
+            return;
         }
 
         if (DEBUG) {

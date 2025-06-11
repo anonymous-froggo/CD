@@ -59,7 +59,7 @@ class GraphConstructor {
     private final Set<Block> sealedBlocks = new HashSet<>();
     private Block currentBlock;
 
-    private final Map<Block, Set<Node>> collectedNodes = new HashMap<>();
+    private final Map<Block, Set<Node>> nodes = new HashMap<>();
 
     public GraphConstructor(Optimizer optimizer, String name) {
         this.optimizer = optimizer;
@@ -70,17 +70,17 @@ class GraphConstructor {
         sealBlock(graph().startBlock());
     }
 
-    public void collectNodes() {
-        Set<Node> scanned = new HashSet<>();
-
-        scanned.add(graph().endBlock());
-        collectBlock(graph().endBlock(), scanned);
+    public void calculateSchedule() {
+        // Collect nodes
+        Set<Node> collected = new HashSet<>();
+        collected.add(graph().endBlock());
+        collectBlock(graph().endBlock(), collected);
         graph().addBlock(graph().endBlock());
 
+        // Schedule nodes using toposort
         for (Block block : graph().blocks()) {
-            calculateSchedule(block);
+            calculateBlockSchedule(block);
         }
-
         for (Block block : graph().blocks()) {
             block.appendPhis();
             block.appendControlFlowExit();
@@ -107,27 +107,27 @@ class GraphConstructor {
         }
     }
 
-    private void collect(Node node, Set<Node> scanned) {
+    private void collect(Node node, Set<Node> collected) {
         Block block = node.block();
 
         if (node instanceof ControlFlowNode controlFlowNode && !(node instanceof StartNode)) {
             block.setControlFlowExit(controlFlowNode);
         } else {
-            if (collectedNodes.get(block) == null) {
-                collectedNodes.put(block, new HashSet<>());
+            if (nodes.get(block) == null) {
+                nodes.put(block, new HashSet<>());
             }
-            collectedNodes.get(block).add(node);
+            nodes.get(block).add(node);
         }
 
         for (Node predecessor : node.predecessors()) {
-            if (scanned.add(predecessor)) {
-                collect(predecessor, scanned);
+            if (collected.add(predecessor)) {
+                collect(predecessor, collected);
             }
         }
     }
 
-    private void calculateSchedule(Block block) {
-        Set<Node> remainingNodes = collectedNodes.get(block);
+    private void calculateBlockSchedule(Block block) {
+        Set<Node> remainingNodes = nodes.get(block);
         if (remainingNodes == null) {
             // Nothing to schedule
             return;

@@ -75,7 +75,7 @@ public class SsaTranslation {
         var visitor = new SsaTranslationVisitor();
         this.functionTree.accept(visitor, this);
 
-        this.graphConstructor.collectNodes();
+        this.graphConstructor.calculateSchedule();
 
         return this.graphConstructor.graph();
     }
