@@ -139,7 +139,7 @@ class GraphConstructor {
         for (Node operand : operands) {
             // If phi has a phi as an operand, we need to scan that one first in order to
             // achieve topological order
-            if (operand instanceof Phi operandPhi && phis.remove(phi)) {
+            if (operand instanceof Phi operandPhi && phis.remove(operandPhi)) {
                 scanPhi(operandPhi, phis);
             }
         }
