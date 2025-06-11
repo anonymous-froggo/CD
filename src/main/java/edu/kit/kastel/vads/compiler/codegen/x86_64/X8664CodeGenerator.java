@@ -101,7 +101,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         this.builder.append(block.label())
             .append(":\n");
 
-        for (Node node : block.nodes()) {
+        for (Node node : block.schedule()) {
             // Generate block-local code
             generateForNode(node, block);
         }

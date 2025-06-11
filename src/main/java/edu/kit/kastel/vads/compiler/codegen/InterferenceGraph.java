@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
 public class InterferenceGraph {
@@ -24,8 +23,8 @@ public class InterferenceGraph {
         this.neighborhoods = new HashMap<>();
 
         for (Set<Node> clique : live.values()) {
-            numberOfColors = Math.max(clique.size(), numberOfColors);
             this.addClique(clique);
+            numberOfColors = Math.max(clique.size(), numberOfColors);
         }
 
         // Remove each node from its neighborhood
@@ -37,6 +36,7 @@ public class InterferenceGraph {
     public void color() {
         // Input: G = (V, E) and ordered sequence v1, . . . , vn of nodes.
         List<Node> simplicialEliminationOrdering = this.maximumCardinalitySearch();
+
         // if (Main.DEBUG) System.out.println("simplicialEliminationOrdering: " +
         // simplicialEliminationOrdering);
         // if (Main.DEBUG) System.out.println("numberOfColors: " + this.numberOfColors);

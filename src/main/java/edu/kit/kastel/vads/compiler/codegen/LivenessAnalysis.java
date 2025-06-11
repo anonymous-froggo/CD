@@ -43,9 +43,9 @@ public class LivenessAnalysis {
         }
 
         // if (Main.DEBUG) {
-        //     System.out.println("def: " + def);
-        //     System.out.println("use: " + use);
-        //     System.out.println("succ: " + succ);
+        // System.out.println("def: " + def);
+        // System.out.println("use: " + use);
+        // System.out.println("succ: " + succ);
         // }
 
         for (Node l : use.keySet()) {
@@ -58,16 +58,16 @@ public class LivenessAnalysis {
             }
         } while (liveChanged);
 
-        // if (Main.DEBUG) {
-        //     System.out.println("live: " + live);
-        // }
+        if (Main.DEBUG) {
+            System.out.println("live: " + live);
+        }
 
         InterferenceGraph interferenceGraph = new InterferenceGraph(live);
         return interferenceGraph;
     }
 
     private void applyJRules(Block block) {
-        List<Node> nodes = block.nodes();
+        List<Node> nodes = block.schedule();
 
         // Apply to non-control flow nodes
         for (int index = 0; index < nodes.size(); index++) {
@@ -133,15 +133,15 @@ public class LivenessAnalysis {
     }
 
     private void J4(JumpNode l) {
-        Node lPrime = l.target(JumpNode.TARGET).nodes().get(0);
+        Node lPrime = l.target(JumpNode.TARGET).schedule().get(0);
 
         addFact(succ, l, lPrime);
     }
 
     private void J5(ConditionalJumpNode l) {
         Node x = l.predecessor(ConditionalJumpNode.CONDITION);
-        Node lPrime = l.target(ConditionalJumpNode.TRUE_TARGET).nodes().get(0);
-        Node lPlusOne = l.target(ConditionalJumpNode.FALSE_TARGET).nodes().get(0);
+        Node lPrime = l.target(ConditionalJumpNode.TRUE_TARGET).schedule().get(0);
+        Node lPlusOne = l.target(ConditionalJumpNode.FALSE_TARGET).schedule().get(0);
 
         addFact(use, l, x);
         addFact(succ, l, lPrime);

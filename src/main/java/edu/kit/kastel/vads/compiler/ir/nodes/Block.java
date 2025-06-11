@@ -1,7 +1,10 @@
 package edu.kit.kastel.vads.compiler.ir.nodes;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +20,7 @@ public final class Block extends Node {
 
     private boolean isEmpty;
 
-    private List<Node> nodes = new ArrayList<>();
+    private List<Node> schedule = new ArrayList<>();
     // The control flow exit point of this Block. Is null for graph().endBlock().
     private @Nullable ControlFlowNode controlFlowExit = null;
     // Contains the phis this block needs to write to in topological order,
@@ -32,25 +35,18 @@ public final class Block extends Node {
         this.isEmpty = true;
     }
 
-    public List<Node> nodes() {
-        return new ArrayList<>(this.nodes);
+    public List<Node> schedule() {
+        return new ArrayList<>(this.schedule);
     }
 
-    public void addNode(Node node) {
-        if (node instanceof ControlFlowNode controlFlowNode) {
-            // Each block can only have 1 control flow exit
-            assert this.controlFlowExit == null
-                : label() + " already has a control flow exit. '" + controlFlowNode + "' shouldn't be here.";
-
-            // Don't add node to this.nodes, instead set this.controlFlowNode
-            this.controlFlowExit = controlFlowNode;
-        } else {
-            this.nodes.add(node);
-        }
+    public void addToSchedule(Node node) {
+        this.schedule.add(node);
     }
 
     public int phiIndex(Phi phi) {
-        assert this.phiIndices.containsKey(phi) : phi + " not present in block " + this.label();
+        if (!this.phiIndices.containsKey(phi)) {
+            throw new IllegalArgumentException(phi + " not present in block " + this.label());
+        }
 
         return this.phiIndices.get(phi);
     }
@@ -61,28 +57,39 @@ public final class Block extends Node {
         this.phiIndices.put(phi, index);
     }
 
-    public void appendPhisAndControlFlowExit() {
+    public void appendPhis() {
         int size = this.phiIndices.keySet().size();
 
         List<Phi> phis = new ArrayList<>(size);
-        // Collect phis
         for (Phi phi : this.phiIndices.keySet()) {
             phis.add(phi);
         }
 
         // Need to append phis in reverse topological order
         for (int i = size - 1; i >= 0; i--) {
-            this.nodes.add(phis.get(i));
+            this.schedule.add(phis.get(i));
         }
+    }
 
+    public void appendControlFlowExit() {
         if (controlFlowExit != null) {
-            this.nodes.add(controlFlowExit);
+            this.schedule.add(controlFlowExit);
         }
     }
 
     @Nullable
     public ControlFlowNode controlFlowExit() {
         return this.controlFlowExit;
+    }
+
+    public void setControlFlowExit(ControlFlowNode controlFlowExit) {
+        if (this.controlFlowExit != null) {
+            throw new IllegalArgumentException(
+                label() + " already has a control flow exit. '" + controlFlowExit + "' shouldn't be here."
+            );
+        }
+
+        this.controlFlowExit = controlFlowExit;
     }
 
     public String label() {

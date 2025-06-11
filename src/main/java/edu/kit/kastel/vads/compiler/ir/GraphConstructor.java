@@ -48,12 +48,18 @@ class GraphConstructor {
 
     private final Optimizer optimizer;
     private final IrGraph graph;
+
     private final Map<Name, Map<Block, Node>> currentDef = new HashMap<>();
+
     private final Map<Block, Map<Name, Phi>> incompletePhis = new HashMap<>();
+
     private final Map<Block, Node> currentSideEffect = new HashMap<>();
     private final Map<Block, Phi> incompleteSideEffectPhis = new HashMap<>();
+
     private final Set<Block> sealedBlocks = new HashSet<>();
     private Block currentBlock;
+
+    private final Map<Block, Set<Node>> collectedNodes = new HashMap<>();
 
     public GraphConstructor(Optimizer optimizer, String name) {
         this.optimizer = optimizer;
@@ -66,88 +72,103 @@ class GraphConstructor {
 
     public void collectNodes() {
         Set<Node> scanned = new HashSet<>();
-        Set<Phi> phis = new HashSet<>();
 
-        // Scan blocks
         scanned.add(graph().endBlock());
-        scanBlock(graph().endBlock(), scanned, phis);
+        collectBlock(graph().endBlock(), scanned);
         graph().addBlock(graph().endBlock());
 
-        // Scan phis
-        while (!phis.isEmpty()) {
-            Phi phi = phis.iterator().next();
-            phis.remove(phi);
-            scanPhi(phi, phis);
+        for (Block block : graph().blocks()) {
+            calculateSchedule(block);
         }
 
-        // Append all blocks' control flow exits to their nodes
         for (Block block : graph().blocks()) {
-            block.appendPhisAndControlFlowExit();
-
-            if (Main.DEBUG) {
-                System.out.println(block.label() + ": " + block.nodes());
-            }
+            block.appendPhis();
+            block.appendControlFlowExit();
         }
     }
 
-    private void scanBlock(Block block, Set<Node> scanned, Set<Phi> phis) {
+    private void collectBlock(Block block, Set<Node> collected) {
         // Go through all of [block]'s control flow inputs
         for (Node controlFlowInput : predecessorsSkipProj(block)) {
             assert controlFlowInput instanceof ControlFlowNode
                 : "Node " + controlFlowInput + " should be a control flow node";
 
-            // Recursively scan [controlFlowInput]
-            if (scanned.add(controlFlowInput)) {
-                scan(controlFlowInput, scanned, phis);
+            // Recursively collect [controlFlowInput]
+            if (collected.add(controlFlowInput)) {
+                collect(controlFlowInput, collected);
             }
 
-            // Scan [controlFlowInput]'s block
+            // Collect [controlFlowInput]'s block
             Block predecessorBlock = controlFlowInput.block();
-            if (scanned.add(predecessorBlock)) {
-                scanBlock(predecessorBlock, scanned, phis);
+            if (collected.add(predecessorBlock)) {
+                collectBlock(predecessorBlock, collected);
                 graph().addBlock(predecessorBlock);
             }
         }
     }
 
-    private void scan(Node node, Set<Node> scanned, Set<Phi> phis) {
+    private void collect(Node node, Set<Node> scanned) {
+        Block block = node.block();
+
+        if (node instanceof ControlFlowNode controlFlowNode && !(node instanceof StartNode)) {
+            block.setControlFlowExit(controlFlowNode);
+        } else {
+            if (collectedNodes.get(block) == null) {
+                collectedNodes.put(block, new HashSet<>());
+            }
+            collectedNodes.get(block).add(node);
+        }
+
         for (Node predecessor : node.predecessors()) {
             if (scanned.add(predecessor)) {
-                scan(predecessor, scanned, phis);
+                collect(predecessor, scanned);
             }
-        }
-
-        if (node instanceof Phi phi) {
-            phis.add(phi);
-            return;
-        }
-
-        if (!(node instanceof ProjNode || node instanceof StartNode || node instanceof Block)) {
-            node.block().addNode(node);
         }
     }
 
-    private void scanPhi(Phi phi, Set<Phi> phis) {
-        if (phi.predecessors().isEmpty()) {
-            throw new IllegalArgumentException("Empty phi occured: " + phi);
-        }
-
-        if (phi.isSideEffectPhi()) {
+    private void calculateSchedule(Block block) {
+        Set<Node> remainingNodes = collectedNodes.get(block);
+        if (remainingNodes == null) {
+            // Nothing to schedule
             return;
         }
 
-        List<Node> operands = predecessorsSkipProj(phi);
-        for (Node operand : operands) {
-            // If phi has a phi as an operand, we need to scan that one first in order to
-            // achieve topological order
-            if (operand instanceof Phi operandPhi && phis.remove(operandPhi)) {
-                scanPhi(operandPhi, phis);
+        while (!remainingNodes.isEmpty()) {
+            Node node = remainingNodes.iterator().next();
+            remainingNodes.remove(node);
+            scan(node, remainingNodes);
+        }
+    }
+
+    private void scan(Node node, Set<Node> remainingNodes) {
+        // Get topological order using DFS
+        for (Node predecessor : node.predecessors()) {
+            if (remainingNodes.remove(predecessor)) {
+                scan(predecessor, remainingNodes);
             }
         }
 
-        // Add each phi to the corresponding predecessor blocks
-        for (int index = 0; index < operands.size(); index++) {
-            phi.block().predecessor(index).block().addPhi(phi, index);
+        // Schedule node
+        switch (node) {
+            case StartNode _,ProjNode _,Block _ -> {
+                // Do nothing
+                break;
+            }
+            case Phi phi -> {
+                if (phi.isSideEffectPhi()) {
+                    // Side effect phis don't need to be scheduled
+                    break;
+                }
+
+                List<Node> operands = predecessorsSkipProj(phi);
+                // Add phi to the corresponding predecessor blocks
+                for (int index = 0; index < operands.size(); index++) {
+                    phi.block().predecessor(index).block().addPhi(phi, index);
+                }
+            }
+            default -> {
+                node.block().addToSchedule(node);
+            }
         }
     }
 
