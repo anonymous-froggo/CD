@@ -3,6 +3,7 @@ package edu.kit.kastel.vads.compiler.codegen.x86_64;
 import java.util.List;
 import java.util.Map;
 
+import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.codegen.CodeGenerator;
 import edu.kit.kastel.vads.compiler.codegen.Register;
 import edu.kit.kastel.vads.compiler.ir.IrGraph;
@@ -61,6 +62,14 @@ public final class X8664CodeGenerator implements CodeGenerator {
             X8664RegisterAllocator allocator = new X8664RegisterAllocator(graph);
             this.registers = allocator.allocateRegisters();
             this.nStackRegisters = allocator.numberOfStackRegisters();
+
+            if (Main.DEBUG) {
+                System.out.println("\nRegister allocation:");
+                for (Node node : this.registers.keySet()) {
+                    System.out.println(node + " = " + this.registers.get(node).name(64));
+                }
+                System.out.println();
+            }
 
             if (this.nStackRegisters > 0) {
                 moveStackPointer(-this.nStackRegisters * X8664StackRegister.N_BYTES);

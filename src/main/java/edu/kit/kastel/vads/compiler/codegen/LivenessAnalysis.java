@@ -42,11 +42,11 @@ public class LivenessAnalysis {
             applyJRules(block);
         }
 
-        if (Main.DEBUG) {
-            System.out.println("def: " + def);
-            System.out.println("use: " + use);
-            System.out.println("succ: " + succ);
-        }
+        // if (Main.DEBUG) {
+        //     System.out.println("def: " + def);
+        //     System.out.println("use: " + use);
+        //     System.out.println("succ: " + succ);
+        // }
 
         for (Node l : use.keySet()) {
             K1(l);
@@ -58,9 +58,9 @@ public class LivenessAnalysis {
             }
         } while (liveChanged);
 
-        if (Main.DEBUG) {
-            System.out.println("live: " + live);
-        }
+        // if (Main.DEBUG) {
+        //     System.out.println("live: " + live);
+        // }
 
         InterferenceGraph interferenceGraph = new InterferenceGraph(live);
         return interferenceGraph;

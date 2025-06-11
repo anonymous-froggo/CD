@@ -344,8 +344,8 @@ public class SsaTranslation {
                 forTree.initializer().accept(this, data);
             }
 
-            // Don't seal conditionBlock yet, since exitBody will also link to
-            // conditionBlock
+            // Don't seal conditionBlock yet, since goToCondition and continue nodes will
+            // also link to it
             Block conditionBlock = data.graphConstructor.jumpToNewBlock();
             Node condition = forTree.condition().accept(this, data).orElseThrow();
             ConditionalJumpNode checkCondition = data.graphConstructor.newConditionalJump(condition);
@@ -359,12 +359,19 @@ public class SsaTranslation {
             forTree.body().accept(this, data);
 
             if (forTree.postBody() != null) {
+                Block postBodyBlock = data.graphConstructor.jumpToNewBlock();
+                data.linkContinueNodes(postBodyBlock);
+                data.graphConstructor.sealBlock(postBodyBlock);
+
                 forTree.postBody().accept(this, data);
+            } else {
+                data.linkContinueNodes(conditionBlock);
             }
 
-            JumpNode exitBody = data.graphConstructor.newJump();
-            data.graphConstructor.link(exitBody, conditionBlock);
-            data.linkContinueNodes(conditionBlock);
+            if (data.graphConstructor.currentBlockIsUsed()) {
+                JumpNode goToCondition = data.graphConstructor.newJump();
+                data.graphConstructor.link(goToCondition, conditionBlock);
+            }
             data.graphConstructor.sealBlock(conditionBlock);
 
             Block followBlock = data.graphConstructor.linkBranchToNewBlock(
@@ -451,8 +458,8 @@ public class SsaTranslation {
             pushSpan(whileTree);
             data.loops.push(whileTree);
 
-            // Don't seal conditionBlock yet, since exitBody will also link to
-            // conditionBlock
+            // Don't seal conditionBlock yet, since goToCondition and continue nodes will
+            // also link to it
             Block conditionBlock = data.graphConstructor.jumpToNewBlock();
             Node condition = whileTree.condition().accept(this, data).orElseThrow();
             ConditionalJumpNode checkCondition = data.graphConstructor.newConditionalJump(condition);

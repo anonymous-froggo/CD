@@ -53,5 +53,9 @@ public final class Phi extends Node {
 
     public void appendOperand(Node node) {
         addPredecessor(node);
+
+        if (node instanceof Phi phi && isSideEffectPhi()) {
+            phi.setSideEffectPhi();
+        }
     }
 }
