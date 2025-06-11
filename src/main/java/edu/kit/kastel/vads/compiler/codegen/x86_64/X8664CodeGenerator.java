@@ -258,6 +258,13 @@ public final class X8664CodeGenerator implements CodeGenerator {
         Register right = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
         Register dest = this.registers.get(node);
 
+        if (dest == null) {
+            // This means that [node]'s result is never actually used. However, [node] is
+            // still in the schedule because its side effects are relevant.
+            // Just use RAX as dest.
+            dest = X8664Register.RAX;
+        }
+
         move(left, X8664Register.RAX);
 
         this.builder.repeat(" ", 2)

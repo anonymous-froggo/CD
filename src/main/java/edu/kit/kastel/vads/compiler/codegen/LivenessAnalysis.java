@@ -101,13 +101,13 @@ public class LivenessAnalysis {
         addFact(use, l, z);
         addFact(succ, l, lPlusOne);
 
-        if (l instanceof DivNode) {
-            Node sideEffect = predecessorSkipProj(l, DivNode.SIDE_EFFECT);
-            addSideEffectUse(l, sideEffect);
-        } else if (l instanceof ModNode) {
-            Node sideEffect = predecessorSkipProj(l, ModNode.SIDE_EFFECT);
-            addSideEffectUse(l, sideEffect);
-        }
+        // if (l instanceof DivNode) {
+        //     Node sideEffect = predecessorSkipProj(l, DivNode.SIDE_EFFECT);
+        //     addSideEffectUse(l, sideEffect);
+        // } else if (l instanceof ModNode) {
+        //     Node sideEffect = predecessorSkipProj(l, ModNode.SIDE_EFFECT);
+        //     addSideEffectUse(l, sideEffect);
+        // }
     }
 
     private void J1Unary(UnaryOperationNode l, Node lPlusOne) {
@@ -121,14 +121,6 @@ public class LivenessAnalysis {
 
     // x <- φ(y1, ...)
     private void J1Phi(Phi l, Node lPlusOne) {
-        if (l.isSideEffectPhi()) {
-            // Phis which only collect side effects don't need to be considered, only add
-            // succ
-            addFact(succ, l, lPlusOne);
-            return;
-        }
-
-        // l collects actual results, apply J1
         Node x = l;
 
         addFact(def, l, x);
@@ -143,8 +135,8 @@ public class LivenessAnalysis {
 
         addFact(use, l, x);
 
-        Node sideEffect = predecessorSkipProj(l, ReturnNode.SIDE_EFFECT);
-        addSideEffectUse(l, sideEffect);
+        // Node sideEffect = predecessorSkipProj(l, ReturnNode.SIDE_EFFECT);
+        // addSideEffectUse(l, sideEffect);
     }
 
     private void J3(Node l, Node lPlusOne) {
@@ -197,24 +189,15 @@ public class LivenessAnalysis {
     }
 
     private boolean addFact(Map<Node, Set<Node>> predicate, Node l, Node subject) {
-        if (predicate == use && subject instanceof StartNode) {
-            return false;
-        }
+        // if (predicate == use && subject instanceof StartNode) {
+        //     // The start node is never "live", i.e. it doesn't need a register
+        //     return false;
+        // }
 
         if (!predicate.containsKey(l)) {
             predicate.put(l, new HashSet<>());
         }
 
         return predicate.get(l).add(subject);
-    }
-
-    private void addSideEffectUse(Node l, Node sideEffect) {
-        switch (sideEffect) {
-            case StartNode _ -> {
-                // The start node doesn't need to be considered
-                return;
-            }
-            default -> addFact(use, l, sideEffect);
-        }
     }
 }

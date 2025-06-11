@@ -63,9 +63,6 @@ public final class Block extends Node {
     // Adds a phi from a successor block that needs to be written into from this
     // block
     public void addPhi(Phi phi, int index) {
-        if (this == this.graph().startBlock()) {
-            System.out.println(phi);
-        }
         this.phiIndices.put(phi, index);
     }
 
