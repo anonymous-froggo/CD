@@ -263,8 +263,42 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(ForTree forTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+            pushSpan(forTree);
+
+            if (forTree.initializer() != null) {
+                forTree.initializer().accept(this, data);
+            }
+
+            // Don't seal conditionBlock yet, since exitBody will also link to
+            // conditionBlock
+            Block conditionBlock = data.graphConstructor.jumpToNewBlock();
+            Node condition = forTree.condition().accept(this, data).orElseThrow();
+            ConditionalJumpNode checkCondition = data.graphConstructor.newConditionalJump(condition);
+            ProjNode projTrue = data.graphConstructor.newTrueProj(checkCondition);
+            ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
+
+            Block bodyBlock = data.graphConstructor.linkBranchToNewBlock(
+                checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
+            data.graphConstructor.sealBlock(bodyBlock);
+            forTree.body().accept(this, data);
+
+            if (forTree.postBody() != null) {
+                forTree.postBody().accept(this, data);
+            }
+
+            JumpNode exitBody = data.graphConstructor.newJump();
+            data.graphConstructor.link(exitBody, conditionBlock);
+            data.graphConstructor.sealBlock(conditionBlock);
+
+            Block followBlock = data.graphConstructor.linkBranchToNewBlock(
+                checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
+            );
+            data.graphConstructor.sealBlock(followBlock);
+
+            popSpan();
+
+            return NOT_AN_EXPRESSION;
         }
 
         @Override
@@ -338,7 +372,8 @@ public class SsaTranslation {
         public Optional<Node> visit(WhileTree whileTree, SsaTranslation data) {
             pushSpan(whileTree);
 
-            // Don't seal conditionBlock yet, since exitBody will also link to conditionBlock
+            // Don't seal conditionBlock yet, since exitBody will also link to
+            // conditionBlock
             Block conditionBlock = data.graphConstructor.jumpToNewBlock();
 
             Node condition = whileTree.condition().accept(this, data).orElseThrow();
@@ -346,7 +381,8 @@ public class SsaTranslation {
             ProjNode projTrue = data.graphConstructor.newTrueProj(checkCondition);
             ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
-            Block bodyBlock = data.graphConstructor.linkBranchToNewBlock(checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
+            Block bodyBlock = data.graphConstructor
+                .linkBranchToNewBlock(checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
             data.graphConstructor.sealBlock(bodyBlock);
             whileTree.body().accept(this, data);
 
@@ -354,7 +390,10 @@ public class SsaTranslation {
             data.graphConstructor.link(exitBody, conditionBlock);
             data.graphConstructor.sealBlock(conditionBlock);
 
-            data.graphConstructor.linkBranchToNewBlock(checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET);
+            Block followBlock = data.graphConstructor.linkBranchToNewBlock(
+                checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
+            );
+            data.graphConstructor.sealBlock(followBlock);
 
             popSpan();
 

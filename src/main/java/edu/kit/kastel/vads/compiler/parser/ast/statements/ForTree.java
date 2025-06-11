@@ -1,14 +1,24 @@
 package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
+import org.jspecify.annotations.Nullable;
+
+import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public record ForTree() implements StatementTree {
+public record ForTree(
+    @Nullable StatementTree initializer,
+    ExpressionTree condition,
+    @Nullable StatementTree postBody,
+    StatementTree body,
+    Position start
+) implements StatementTree
+{
 
     @Override
     public Span span() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'span'");
+        return new Span.SimpleSpan(start(), body().span().end());
     }
 
     @Override

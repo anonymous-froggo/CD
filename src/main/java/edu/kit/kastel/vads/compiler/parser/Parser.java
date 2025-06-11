@@ -103,30 +103,34 @@ public class Parser {
 
     private StatementTree parseStatement() {
         Token token = this.tokenSource.peek();
-        StatementTree statement;
 
         if (token.isSeparator(SeparatorType.BRACE_OPEN)) {
             // ⟨block⟩
             return parseBlock();
         }
 
-        if (token instanceof Keyword keyword) {
-            // ⟨simp⟩ -> ⟨decl⟩ | ⟨control⟩
-            if (keyword instanceof TypeKeyword) {
-                // ⟨simp⟩ -> ⟨decl⟩
-                statement = parseDeclaration();
-            } else {
-                // ⟨control⟩
-                return parseControl();
-            }
-        } else {
-            // ⟨simp⟩ -> ⟨lvalue⟩ ⟨asnop⟩ ⟨exp⟩
-            statement = parseAssignment();
+        if (token instanceof ControlKeyword) {
+            // ⟨control⟩
+            return parseControl();
         }
 
         // ⟨simp⟩ ;
+        StatementTree simple = parseSimple();
         this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
-        return statement;
+        return simple;
+    }
+
+    private StatementTree parseSimple() {
+        Token token = this.tokenSource.peek();
+
+        if (token instanceof TypeKeyword) {
+            // ⟨decl⟩
+            return parseDeclaration();
+        }
+
+        // ⟨lvalue⟩ ⟨asnop⟩ ⟨exp⟩
+        return parseAssignment();
+
     }
 
     private StatementTree parseDeclaration() {
@@ -257,8 +261,42 @@ public class Parser {
     }
 
     private StatementTree parseFor() {
-        // TODO: implement parseFor
-        return new ForTree();
+        // for
+        Token forToken = this.tokenSource.consume();
+
+        // (
+        this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
+
+        // ⟨simpopt⟩
+        StatementTree initializer;
+        if (this.tokenSource.peek().isSeparator(SeparatorType.SEMICOLON)) {
+            // No initializer
+            initializer = null;
+            this.tokenSource.consume();
+        } else {
+            initializer = parseSimple();
+            this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
+        }
+
+        // ⟨exp⟩
+        ExpressionTree condition = parseExpression();
+        this.tokenSource.expectSeparator(SeparatorType.SEMICOLON);
+
+        // ⟨simpopt⟩
+        StatementTree postBody;
+        if (this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
+            // No initializer
+            postBody = null;
+            this.tokenSource.consume();
+        } else {
+            postBody = parseSimple();
+            this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
+        }
+
+        // ⟨stmt⟩
+        StatementTree body = parseStatement();
+
+        return new ForTree(initializer, condition, postBody, body, forToken.span().start());
     }
 
     private StatementTree parseReturn() {
@@ -324,7 +362,8 @@ public class Parser {
             case NumberLiteral numberLiteral -> new NumberLiteralTree(
                 numberLiteral.value(), numberLiteral.base(), numberLiteral.span()
             );
-            // TODO implement unaries using binary trees (unary trees cause trouble in codegen)
+            // TODO implement unaries using binary trees (unary trees cause trouble in
+            // codegen)
             // ⟨unop⟩ ⟨exp⟩
             case UnaryOperator operator -> new UnaryOperationTree(operator, parseAtom());
             case BinaryOperator operator when operator.isOperator(BinaryOperatorType.MINUS) -> {

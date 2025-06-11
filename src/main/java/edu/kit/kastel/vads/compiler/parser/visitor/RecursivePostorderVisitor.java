@@ -115,15 +115,24 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
-    public R visit(ElseOptTree ElseOptTree, T data) {
-        R r = this.visitor.visit(ElseOptTree, data);
+    public R visit(ElseOptTree elseOptTree, T data) {
+        R r = this.visitor.visit(elseOptTree, data);
         return r;
     }
 
     @Override
     public R visit(ForTree forTree, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        R r = null;
+        if (forTree.initializer() != null) {
+            r = forTree.initializer().accept(this, data);
+        }
+        r = forTree.condition().accept(this, accumulate(data, r));
+        if (forTree.postBody() != null) {
+            r = forTree.postBody().accept(this, accumulate(data, r));
+        }
+        r = forTree.body().accept(this, accumulate(data, r));
+        r = this.visitor.visit(forTree, accumulate(data, r));
+        return r;
     }
 
     @Override
@@ -197,5 +206,4 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     protected T accumulate(T data, R value) {
         return data;
     }
-
 }

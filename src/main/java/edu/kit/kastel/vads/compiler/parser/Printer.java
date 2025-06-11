@@ -114,9 +114,22 @@ public class Printer {
                 print(" else ");
                 printTree(elseStatement);
             }
-            case ForTree() -> throw new UnsupportedOperationException(
-                "printing '" + tree.getClass() + "' is not implemented"
-            );
+            case ForTree(var initializer, var condition, var postBody, var body, _) -> {
+                print("for (");
+                if (initializer != null) {
+                    printTree(initializer);
+                }
+                print("; ");
+                printTree(condition);
+                print("; ");
+                if (postBody != null) {
+                    printTree(postBody);
+                }
+                print(") ");
+                lineBreak();
+                printTree(body);
+                lineBreak();
+            }
             case IfTree(var condition, var thenStatement, var elseOpt, _) -> {
                 print("if (");
                 printTree(condition);
