@@ -232,18 +232,28 @@ public final class X8664CodeGenerator implements CodeGenerator {
         Register right = this.registers.get(predecessorSkipProj(node, BinaryOperationNode.RIGHT));
         Register dest = this.registers.get(node);
 
+        if (right instanceof X8664StackRegister) {
+            move(right, X8664Register.RAX);
+            printCompare(left.name(32), X8664Register.RAX.name(32), dest.name(8), opcode);
+            return;
+        }
+
+        printCompare(left.name(32), right.name(32), dest.name(8), opcode);
+    }
+
+    private void printCompare(String left, String right, String dest, String opcode) {
         // Compare operands are switched in at&t for some reason
         this.builder.repeat(" ", 2)
             .append("cmp ")
-            .append(right.name(32))
+            .append(right)
             .append(", ")
-            .append(left.name(32))
+            .append(left)
             .append("\n");
 
         this.builder.repeat(" ", 2)
             .append(opcode)
             .append(" ")
-            .append(dest.name(8))
+            .append(dest)
             .append("\n");
     }
 
@@ -286,8 +296,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     // Control flow
 
-    // TODO maybe change how conditions are handled -> actually leverage the
-    // different jump instructions instead of calling test condition, condition
     private void conditionalJump(ConditionalJumpNode node) {
         Register condition = this.registers.get(predecessorSkipProj(node, ConditionalJumpNode.CONDITION));
         if (condition instanceof X8664StackRegister) {
@@ -354,6 +362,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
             // Can't move directly between stack slots, need to take detour over rax
             move(src, X8664Register.RAX);
             move(X8664Register.RAX, dest);
+            return;
         }
 
         this.builder.repeat(" ", 2)

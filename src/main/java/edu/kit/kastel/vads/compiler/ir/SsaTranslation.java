@@ -6,7 +6,6 @@ import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ConditionalJumpNode;
-import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.JumpNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
@@ -36,10 +35,17 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
+import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 
+import java.lang.Thread.State;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.Stack;
 import java.util.function.BinaryOperator;
 
 /// SSA translation as described in
@@ -56,6 +62,10 @@ public class SsaTranslation {
 
     // Output constructor
     private final GraphConstructor graphConstructor;
+
+    private final Stack<StatementTree> loops = new Stack<>();
+    private final Map<StatementTree, Set<JumpNode>> breakNodes = new HashMap<>();
+    private final Map<StatementTree, Set<JumpNode>> continueNodes = new HashMap<>();
 
     public SsaTranslation(FunctionTree functionTree, Optimizer optimizer) {
         this.functionTree = functionTree;
@@ -81,6 +91,30 @@ public class SsaTranslation {
 
     private Block currentBlock() {
         return this.graphConstructor.currentBlock();
+    }
+
+    private void linkBreakNodes(Block followBlock) {
+        StatementTree currentLoop = this.loops.peek();
+        if (this.breakNodes.get(currentLoop) == null) {
+            // No breaks in currentLoop
+            return;
+        }
+
+        for (JumpNode breakNode : this.breakNodes.get(currentLoop)) {
+            this.graphConstructor.link(breakNode, followBlock);
+        }
+    }
+
+    private void linkContinueNodes(Block conditionBlock) {
+        StatementTree currentLoop = this.loops.peek();
+        if (this.continueNodes.get(currentLoop) == null) {
+            // No coninues in currentLoop
+            return;
+        }
+
+        for (JumpNode continueNode : this.continueNodes.get(currentLoop)) {
+            this.graphConstructor.link(continueNode, conditionBlock);
+        }
     }
 
     private static class SsaTranslationVisitor implements Visitor<SsaTranslation, Optional<Node>> {
@@ -231,14 +265,54 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(BreakTree breakTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+            pushSpan(breakTree);
+
+            // TODO this should maybe be checked in semantic analysis already, but it's also
+            // convenient here, so idk
+            if (data.loops.isEmpty()) {
+                throw new SemanticException("break outside of loop at " + breakTree.span());
+            }
+
+            JumpNode breakNode = data.graphConstructor.newJump();
+
+            StatementTree currentLoop = data.loops.peek();
+            if (data.breakNodes.get(currentLoop) == null) {
+                data.breakNodes.put(currentLoop, new HashSet<>());
+            }
+
+            data.breakNodes.get(currentLoop).add(breakNode);
+
+            data.graphConstructor.newBlock();
+
+            popSpan();
+
+            return NOT_AN_EXPRESSION;
         }
 
         @Override
         public Optional<Node> visit(ContinueTree continueTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'visit'");
+            pushSpan(continueTree);
+
+            // TODO this should maybe be checked in semantic analysis already, but it's also
+            // convenient here, so idk
+            if (data.loops.isEmpty()) {
+                throw new SemanticException("continue outside of loop at " + continueTree.span());
+            }
+
+            JumpNode continueNode = data.graphConstructor.newJump();
+
+            StatementTree currentLoop = data.loops.peek();
+            if (data.continueNodes.get(currentLoop) == null) {
+                data.continueNodes.put(currentLoop, new HashSet<>());
+            }
+
+            data.continueNodes.get(currentLoop).add(continueNode);
+
+            data.graphConstructor.newBlock();
+
+            popSpan();
+
+            return NOT_AN_EXPRESSION;
         }
 
         @Override
@@ -264,6 +338,7 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(ForTree forTree, SsaTranslation data) {
             pushSpan(forTree);
+            data.loops.push(forTree);
 
             if (forTree.initializer() != null) {
                 forTree.initializer().accept(this, data);
@@ -289,13 +364,16 @@ public class SsaTranslation {
 
             JumpNode exitBody = data.graphConstructor.newJump();
             data.graphConstructor.link(exitBody, conditionBlock);
+            data.linkContinueNodes(conditionBlock);
             data.graphConstructor.sealBlock(conditionBlock);
 
             Block followBlock = data.graphConstructor.linkBranchToNewBlock(
                 checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
             );
+            data.linkBreakNodes(followBlock);
             data.graphConstructor.sealBlock(followBlock);
 
+            data.loops.pop();
             popSpan();
 
             return NOT_AN_EXPRESSION;
@@ -317,7 +395,7 @@ public class SsaTranslation {
             ifTree.thenStatement().accept(this, data);
 
             if (ifTree.elseOpt() != null) {
-                boolean thenNeedsExit = data.graphConstructor.newBlockNeeded();
+                boolean thenNeedsExit = data.graphConstructor.currentBlockIsUsed();
                 JumpNode exitThen = thenNeedsExit ? data.graphConstructor.newJump() : null;
 
                 Block elseBlock = data.graphConstructor.linkBranchToNewBlock(
@@ -371,6 +449,7 @@ public class SsaTranslation {
         @Override
         public Optional<Node> visit(WhileTree whileTree, SsaTranslation data) {
             pushSpan(whileTree);
+            data.loops.push(whileTree);
 
             // Don't seal conditionBlock yet, since exitBody will also link to
             // conditionBlock
@@ -385,15 +464,20 @@ public class SsaTranslation {
             data.graphConstructor.sealBlock(bodyBlock);
             whileTree.body().accept(this, data);
 
-            JumpNode exitBody = data.graphConstructor.newJump();
-            data.graphConstructor.link(exitBody, conditionBlock);
-            data.graphConstructor.sealBlock(conditionBlock);
+            if (data.graphConstructor.currentBlockIsUsed()) {
+                JumpNode exitBody = data.graphConstructor.newJump();
+                data.graphConstructor.link(exitBody, conditionBlock);
+                data.linkContinueNodes(conditionBlock);
+                data.graphConstructor.sealBlock(conditionBlock);
+            }
 
             Block followBlock = data.graphConstructor.linkBranchToNewBlock(
                 checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
             );
+            data.linkBreakNodes(followBlock);
             data.graphConstructor.sealBlock(followBlock);
 
+            data.loops.pop();
             popSpan();
 
             return NOT_AN_EXPRESSION;

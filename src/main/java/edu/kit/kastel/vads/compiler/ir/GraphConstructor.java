@@ -35,7 +35,6 @@ import edu.kit.kastel.vads.compiler.ir.nodes.unary.LogicalNotNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
-import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorsSkipProj;
 
@@ -44,8 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.jspecify.annotations.Nullable;
 
 class GraphConstructor {
 
@@ -296,13 +293,13 @@ class GraphConstructor {
         return new StartNode(currentBlock());
     }
 
-    public boolean newBlockNeeded() {
+    public boolean currentBlockIsUsed() {
         return !(currentBlock().isEmpty() && currentBlock().predecessors().isEmpty());
     }
 
     // Adds a jump from currentBlock to a new block and returns that block.
     public Block jumpToNewBlock() {
-        if (!newBlockNeeded()) {
+        if (!currentBlockIsUsed()) {
             // No jump and no new block are needed
             return currentBlock();
         }
@@ -316,7 +313,7 @@ class GraphConstructor {
 
     public Block linkBranchToNewBlock(ConditionalJumpNode conditionalJump, ProjNode branchProj, int idx) {
         // If currentBlock is empty and has no predecessors, no new block is needed
-        Block newBlock = newBlockNeeded() ? newBlock() : currentBlock();
+        Block newBlock = currentBlockIsUsed() ? newBlock() : currentBlock();
         linkBranch(conditionalJump, branchProj, idx, newBlock);
 
         return newBlock;

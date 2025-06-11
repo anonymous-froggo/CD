@@ -21,11 +21,10 @@ public final class Phi extends Node {
             Node operand = operands.get(i);
             if (operand instanceof Phi) {
                 info.append("Phi");
-                continue;
+            } else {
+                info.append(operands.get(i).toString());
             }
-
-            info.append(operands.get(i).toString());
-
+            
             if (i < operands.size() - 1) {
                 info.append(", ");
             }

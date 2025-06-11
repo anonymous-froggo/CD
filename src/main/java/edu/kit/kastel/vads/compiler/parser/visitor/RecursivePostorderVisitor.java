@@ -93,14 +93,14 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
 
     @Override
     public R visit(BreakTree breakTree, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        R r = this.visitor.visit(breakTree, data);
+        return r;
     }
 
     @Override
     public R visit(ContinueTree continueTree, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        R r = this.visitor.visit(continueTree, data);
+        return r;
     }
 
     @Override

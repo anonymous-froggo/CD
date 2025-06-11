@@ -9,7 +9,6 @@ public final class X8664StackRegister implements Register {
     private int offset;
     private String id;
 
-    // TODO maybe enable stack register sizes other than 64 bit
     public X8664StackRegister(int offset) {
         this.offset = offset;
         this.id = this.offset + "(" + X8664Register.RSP.name(N_BYTES * 8) + ")";
