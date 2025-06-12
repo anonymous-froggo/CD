@@ -135,10 +135,10 @@ public final class X8664CodeGenerator implements CodeGenerator {
             case ReturnNode ret -> ret(ret);
 
             // Unary operation nodes
-            case BitwiseNotNode bitwiseNot -> unary(bitwiseNot, "not", 8);
+            case BitwiseNotNode bitwiseNot -> unary(bitwiseNot, "notl", 8);
             // Logical not is implemented using xor
-            case LogicalNotNode logicalNot -> unary(logicalNot, "not", 8);
-            case NegateNode negate -> unary(negate, "neg", 32);
+            case LogicalNotNode logicalNot -> unary(logicalNot, "xorl", 8);
+            case NegateNode negate -> unary(negate, "negl", 32);
 
             // Other nodes
             case BoolNode bool -> constant(fromBoolean(bool.value()), this.registers.get(bool));
@@ -192,13 +192,33 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
         if (dest instanceof X8664StackRegister) {
             move(input, X8664Register.RAX);
-            unaryDest(opcode, X8664Register.RAX);
+            printUnary(opcode, X8664Register.RAX.name(32));
             move(X8664Register.RAX, dest);
             return;
         }
 
         move(input, dest);
-        unaryDest(opcode, dest);
+        printUnary(opcode, dest.name(32));
+    }
+
+    private void printUnary(String opcode, String dest) {
+        // Logical not is implemented using xor
+        if (opcode.equals("xorl")) {
+            this.builder.repeat(" ", 2)
+                .append(opcode)
+                .append(" ")
+                .append(fromBoolean(true))
+                .append(", ")
+                .append(dest)
+                .append("\n");
+            return;
+        }
+
+        this.builder.repeat(" ", 2)
+            .append(opcode)
+            .append(" ")
+            .append(dest)
+            .append("\n");
     }
 
     private void shift(BinaryOperationNode node, String opcode) {
@@ -397,14 +417,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(" ")
             .append(src.name(32))
             .append(", ")
-            .append(dest.name(32))
-            .append("\n");
-    }
-
-    private void unaryDest(String opcode, Register dest) {
-        this.builder.repeat(" ", 2)
-            .append(opcode)
-            .append(" ")
             .append(dest.name(32))
             .append("\n");
     }
