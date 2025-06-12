@@ -197,7 +197,6 @@ public class Parser {
         if (token instanceof ControlKeyword keyword) {
             return switch (keyword.type()) {
                 case IF -> parseIf();
-                case ELSE -> parseElseOpt();
                 case WHILE -> parseWhile();
                 case FOR -> parseFor();
                 case CONTINUE -> {
@@ -211,6 +210,7 @@ public class Parser {
                     yield new BreakTree(keyword.span());
                 }
                 case RETURN -> parseReturn();
+                default -> throw new ParseException("Unexpected token '" + token + "'");
             };
         }
 
