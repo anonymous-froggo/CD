@@ -12,6 +12,8 @@ import edu.kit.kastel.vads.compiler.lexer.keywords.ControlKeyword.ControlKeyword
 import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator;
+import edu.kit.kastel.vads.compiler.lexer.operators.Operator;
+import edu.kit.kastel.vads.compiler.lexer.operators.TernaryMiddle;
 import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
@@ -30,6 +32,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -307,22 +310,22 @@ public class Parser {
     }
 
     private ExpressionTree parseExpression() {
-        return precedenceClimbing(0);
+        return precedenceClimbing(BinaryOperator.MIN_PRECEDENCE);
     }
 
     private ExpressionTree precedenceClimbing(int minPrecedence) {
         ExpressionTree result = parseAtom();
 
+        BinaryOperator operator;
         int precedence;
         Associativity associativity;
 
         int nextMinPrecedence;
 
         while (
-            this.tokenSource.peek() instanceof BinaryOperator operator
+            (operator = parseBinaryOperator()) != null
                 && operator.type().precedence() >= minPrecedence
         ) {
-            this.tokenSource.consume();
             precedence = operator.type().precedence();
             associativity = operator.type().associativity();
 
@@ -336,10 +339,38 @@ public class Parser {
             };
 
             ExpressionTree rhs = precedenceClimbing(nextMinPrecedence);
-            result = new BinaryOperationTree(result, rhs, operator.type());
+            
+            result = operator instanceof TernaryMiddle ternaryMiddle
+                ? new TernaryTree(result, ternaryMiddle.expression(), rhs)
+                : new BinaryOperationTree(result, rhs, operator);
         }
 
         return result;
+    }
+
+    // Returns null if the the next token is not a binary operator.
+    private BinaryOperator parseBinaryOperator() {
+        if (!(this.tokenSource.peek() instanceof BinaryOperator operator)) {
+            return null;
+        }
+
+        if (operator.type() == BinaryOperatorType.TERNARY_CLOSE) {
+            // This marks the end of the ternary middle block.
+            // Treat it like it's not a binary operator.
+            return null;
+        }
+
+        this.tokenSource.consume();
+
+        if (operator.type() == BinaryOperatorType.TERNARY_OPEN) {
+            // Parse the ternary's middle expression and use it like a binary operator
+            // for the ternary's start and end expression
+            ExpressionTree middleExpression = precedenceClimbing(BinaryOperatorType.TERNARY_OPEN.precedence());
+            Operator ternaryClose = this.tokenSource.expectOperator(BinaryOperatorType.TERNARY_CLOSE);
+            return new TernaryMiddle(middleExpression, operator.span().merge(ternaryClose.span()));
+        }
+
+        return operator;
     }
 
     private ExpressionTree parseAtom() {

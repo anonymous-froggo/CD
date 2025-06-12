@@ -1,16 +1,15 @@
 package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
-import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
-public record BinaryOperationTree(ExpressionTree lhs, ExpressionTree rhs, BinaryOperator operator)
+public record TernaryTree(ExpressionTree condition, ExpressionTree thenExpression, ExpressionTree elseExpression)
     implements ExpressionTree
 {
 
     @Override
     public Span span() {
-        return lhs().span().merge(rhs().span());
+        return condition().span().merge(elseExpression().span());
     }
 
     @Override

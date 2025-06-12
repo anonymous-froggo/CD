@@ -6,6 +6,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -19,6 +20,8 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
+import edu.kit.kastel.vads.compiler.lexer.operators.Operator;
+import edu.kit.kastel.vads.compiler.lexer.operators.TernaryMiddle;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
@@ -57,7 +60,7 @@ public class Printer {
                 printTree(lhs);
                 print(")");
                 space();
-                this.builder.append(op);
+                this.builder.append(op.asString());
                 space();
                 print("(");
                 printTree(rhs);
@@ -66,6 +69,15 @@ public class Printer {
             case BoolTree(var boolKeyword) -> builder.append(boolKeyword.asString());
             case IdentifierTree(var name) -> printTree(name);
             case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
+            case TernaryTree(var condition, var thenExpression, var elseExpression) -> {
+                print("(");
+                printTree(condition);
+                print(") ? (");
+                printTree(thenExpression);
+                print(") : (");
+                printTree(elseExpression);
+                print(")");
+            }
             case UnaryOperationTree(var operator, var expression) -> {
                 this.builder.append(operator.type());
                 print("(");
@@ -155,7 +167,7 @@ public class Printer {
                 lineBreak();
             }
 
-            // Others
+            // Other trees
             case FunctionTree(var returnType, var name, var body) -> {
                 printTree(returnType);
                 space();

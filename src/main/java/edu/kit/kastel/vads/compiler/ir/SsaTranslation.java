@@ -2,6 +2,7 @@ package edu.kit.kastel.vads.compiler.ir;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.DivNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.ModNode;
@@ -21,6 +22,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -140,7 +142,7 @@ public class SsaTranslation {
 
             Node lhs = binaryOperationTree.lhs().accept(this, data).orElseThrow();
             Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
-            Node res = switch (binaryOperationTree.operatorType()) {
+            Node res = switch (binaryOperationTree.operator().type()) {
                 case MUL -> data.graphConstructor.newMul(lhs, rhs);
                 case DIV -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
                 case MOD -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
@@ -168,6 +170,9 @@ public class SsaTranslation {
                 case LOGICAL_AND -> data.graphConstructor.newLogicalAnd(lhs, rhs);
 
                 case LOGICAL_OR -> data.graphConstructor.newLogicalOr(lhs, rhs);
+
+                // TODO this is temporary
+                default -> null;
             };
 
             popSpan();
@@ -197,6 +202,45 @@ public class SsaTranslation {
             Node node = data.graphConstructor.newConstInt((int) numberLiteralTree.parseValue().orElseThrow());
             popSpan();
             return Optional.of(node);
+        }
+
+        @Override
+        public Optional<Node> visit(TernaryTree ternaryTree, SsaTranslation data) {
+            pushSpan(ternaryTree);
+
+            Node condition = ternaryTree.condition().accept(this, data).orElseThrow();
+            ConditionalJumpNode checkCondition = data.graphConstructor.newConditionalJump(condition);
+            ProjNode projTrue = data.graphConstructor.newTrueProj(checkCondition);
+            ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
+
+            Block thenBlock = data.graphConstructor.linkBranchToNewBlock(
+                checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
+            data.graphConstructor.sealBlock(thenBlock);
+            Node thenResult = ternaryTree.thenExpression().accept(this, data).orElseThrow();
+            JumpNode exitThen = data.graphConstructor.newJump();
+
+            Block elseBlock = data.graphConstructor.linkBranchToNewBlock(
+                checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
+            );
+            data.graphConstructor.sealBlock(elseBlock);
+            Node elseResult = ternaryTree.elseExpression().accept(this, data).orElseThrow();
+            JumpNode exitElse = data.graphConstructor.newJump();
+
+            Block followBlock = data.graphConstructor.newBlock();
+            data.graphConstructor.link(exitThen, followBlock);
+            data.graphConstructor.link(exitElse, followBlock);
+            data.graphConstructor.sealBlock(followBlock);
+
+            Phi result = data.graphConstructor.newPhi();
+            // Add operands in the order their blocks were added as predecessors,
+            // i.e. 1. then, 2. else
+            result.addPredecessor(thenResult);
+            result.addPredecessor(elseResult);
+
+            popSpan();
+
+            return Optional.of(result);
         }
 
         @Override
@@ -518,6 +562,8 @@ public class SsaTranslation {
         public Optional<Node> visit(TypeTree typeTree, SsaTranslation data) {
             throw new UnsupportedOperationException();
         }
+
+        // Helper methods
 
         private Node projResultDivMod(SsaTranslation data, Node divMod) {
             // make sure we actually have a div or a mod, as optimizations could

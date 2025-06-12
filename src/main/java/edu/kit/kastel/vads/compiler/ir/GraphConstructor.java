@@ -1,6 +1,5 @@
 package edu.kit.kastel.vads.compiler.ir;
 
-import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;

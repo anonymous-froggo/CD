@@ -2,7 +2,27 @@ package edu.kit.kastel.vads.compiler.lexer.operators;
 
 import edu.kit.kastel.vads.compiler.Span;
 
-public record BinaryOperator(BinaryOperatorType type, Span span) implements Operator {
+public sealed class BinaryOperator implements Operator permits TernaryMiddle {
+
+    public static final int MIN_PRECEDENCE = 0;
+
+    private final BinaryOperatorType type;
+    private final Span span;
+
+    public BinaryOperator(BinaryOperatorType type, Span span) {
+        this.type = type;
+        this.span = span;
+    }
+
+    @Override
+    public BinaryOperatorType type() {
+        return this.type;
+    }
+
+    @Override
+    public Span span() {
+        return this.span;
+    }
 
     @Override
     public String asString() {
@@ -18,7 +38,7 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
         PLUS("+", 10),
         // May actually be a unary minus if it is at the beginning of an atom. It will
         // then be converted to UnaryOperator.UNARY_MINUS in [Parser::parseAtom]
-        MINUS("-", 10), 
+        MINUS("-", 10),
 
         SHIFT_LEFT("<<", 9),
         SHIFT_RIGHT(">>", 9),
@@ -39,7 +59,12 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
 
         LOGICAL_AND("&&", 3),
 
-        LOGICAL_OR("||", 2);
+        LOGICAL_OR("||", 2),
+
+        TERNARY_OPEN("?", 1, Associativity.RIGHT),
+        TERNARY_CLOSE(":", 1, Associativity.RIGHT),
+        // Represents a TernaryTree as binary infix operator
+        TERNARY(null, 1, Associativity.RIGHT);
 
         private final String value;
         private final int precedence;
@@ -49,6 +74,12 @@ public record BinaryOperator(BinaryOperatorType type, Span span) implements Oper
             this.value = value;
             this.precedence = precedence;
             this.associativity = Associativity.LEFT;
+        }
+
+        BinaryOperatorType(String value, int precedence, Associativity associativity) {
+            this.value = value;
+            this.precedence = precedence;
+            this.associativity = associativity;
         }
 
         @Override

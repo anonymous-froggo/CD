@@ -7,6 +7,7 @@ public sealed interface ExpressionTree extends Tree permits
     BoolTree,
     IdentifierTree,
     NumberLiteralTree,
+    TernaryTree,
     UnaryOperationTree
 {
 }

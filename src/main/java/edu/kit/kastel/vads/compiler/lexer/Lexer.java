@@ -57,6 +57,8 @@ public class Lexer {
             case '!' -> notOrNotEq();
             case '~' -> new UnaryOperator(UnaryOperatorType.BITWISE_NOT, buildSpan(1));
             case '=' -> assignOrEqual();
+            case '?' -> new BinaryOperator(BinaryOperatorType.TERNARY_OPEN, buildSpan(1));
+            case ':' -> new BinaryOperator(BinaryOperatorType.TERNARY_CLOSE, buildSpan(1));
             default -> {
                 if (isIdentifierChar(peek())) {
                     if (isNumeric(peek())) {

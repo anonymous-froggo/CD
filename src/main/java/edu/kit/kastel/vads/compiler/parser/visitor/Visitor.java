@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler.parser.visitor;
 
+import edu.kit.kastel.vads.compiler.lexer.operators.TernaryMiddle;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
@@ -9,6 +10,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -32,6 +34,8 @@ public interface Visitor<T, R> {
     R visit(IdentifierTree identExpressionTree, T data);
 
     R visit(NumberLiteralTree literalTree, T data);
+
+    R visit(TernaryTree ternaryTree, T data);
 
     R visit(UnaryOperationTree negateTree, T data);
 

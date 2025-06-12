@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler.parser.visitor;
 
+import edu.kit.kastel.vads.compiler.lexer.operators.TernaryMiddle;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
@@ -9,6 +10,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -59,6 +61,15 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     @Override
     public R visit(NumberLiteralTree literalTree, T data) {
         R r = this.visitor.visit(literalTree, data);
+        return r;
+    }
+
+    @Override
+    public R visit(TernaryTree ternaryTree, T data) {
+        R r = ternaryTree.condition().accept(this, data);
+        r = ternaryTree.thenExpression().accept(this, accumulate(data, r));
+        r = ternaryTree.elseExpression().accept(this, accumulate(data, r));
+        r = this.visitor.visit(ternaryTree, accumulate(data, r));
         return r;
     }
 
@@ -161,7 +172,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         return r;
     }
 
-    // Others
+    // Other trees
 
     @Override
     public R visit(FunctionTree functionTree, T data) {
@@ -202,6 +213,8 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         R r = this.visitor.visit(typeTree, data);
         return r;
     }
+
+    // Helper methods
 
     protected T accumulate(T data, R value) {
         return data;

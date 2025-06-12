@@ -85,10 +85,9 @@ public final class X8664CodeGenerator implements CodeGenerator {
         return "$" + value;
     }
 
-    // TODO check whether to use 0xFF or 1 for true (I think it's 1)
     @Override
     public String fromBoolean(boolean value) {
-        return "$0x" + Integer.toHexString(value ? 1 : 0);
+        return "$0x" + (value ? 1 : 0);
     }
 
     private void generateForGraph(IrGraph graph) {
