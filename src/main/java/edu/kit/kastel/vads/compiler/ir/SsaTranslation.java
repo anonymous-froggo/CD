@@ -297,8 +297,8 @@ public class SsaTranslation {
             pushSpan(blockTree);
             for (StatementTree statement : blockTree.statements()) {
                 statement.accept(this, data);
-                // skip everything after a return in a block
-                if (statement instanceof ReturnTree) {
+                // Skip everything after a return, break or continue in a block
+                if (statement instanceof ReturnTree || statement instanceof BreakTree || statement instanceof ContinueTree) {
                     break;
                 }
             }
