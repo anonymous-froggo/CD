@@ -316,16 +316,20 @@ public class Parser {
     private ExpressionTree precedenceClimbing(int minPrecedence) {
         ExpressionTree result = parseAtom();
 
-        BinaryOperator operator;
         int precedence;
         Associativity associativity;
 
         int nextMinPrecedence;
 
         while (
-            (operator = parseBinaryOperator()) != null
+            this.tokenSource.peek() instanceof BinaryOperator operator
+                // This marks the end of the ternary middle block.
+                // Treat it like it's not a binary operator.
+                && operator.type() != BinaryOperatorType.TERNARY_CLOSE
                 && operator.type().precedence() >= minPrecedence
         ) {
+            operator = parseBinaryOperator(operator);
+
             precedence = operator.type().precedence();
             associativity = operator.type().associativity();
 
@@ -339,7 +343,7 @@ public class Parser {
             };
 
             ExpressionTree rhs = precedenceClimbing(nextMinPrecedence);
-            
+
             result = operator instanceof TernaryMiddle ternaryMiddle
                 ? new TernaryTree(result, ternaryMiddle.expression(), rhs)
                 : new BinaryOperationTree(result, rhs, operator);
@@ -349,17 +353,7 @@ public class Parser {
     }
 
     // Returns null if the the next token is not a binary operator.
-    private BinaryOperator parseBinaryOperator() {
-        if (!(this.tokenSource.peek() instanceof BinaryOperator operator)) {
-            return null;
-        }
-
-        if (operator.type() == BinaryOperatorType.TERNARY_CLOSE) {
-            // This marks the end of the ternary middle block.
-            // Treat it like it's not a binary operator.
-            return null;
-        }
-
+    private BinaryOperator parseBinaryOperator(BinaryOperator operator) {
         this.tokenSource.consume();
 
         if (operator.type() == BinaryOperatorType.TERNARY_OPEN) {
@@ -386,14 +380,11 @@ public class Parser {
 
         atom = switch (token) {
             // true | false
-            case BoolKeyword keyword -> new BoolTree(keyword);
-            // ident
-            case Identifier identifier -> new IdentifierTree(name(identifier));
-            // ⟨intconst⟩
+            case BoolKeyword keyword -> new BoolTree(keyword);// ident
+            case Identifier identifier -> new IdentifierTree(name(identifier));// ⟨intconst⟩
             case NumberLiteral numberLiteral -> new NumberLiteralTree(
                 numberLiteral.value(), numberLiteral.base(), numberLiteral.span()
-            );
-            // TODO implement unaries using binary trees (unary trees cause trouble in
+            );// TODO implement unaries using binary trees (unary trees cause trouble in
             // codegen)
             // ⟨unop⟩ ⟨exp⟩
             case UnaryOperator operator -> new UnaryOperationTree(operator, parseAtom());
