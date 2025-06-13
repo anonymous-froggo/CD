@@ -288,7 +288,7 @@ public class Parser {
         // ⟨simpopt⟩
         StatementTree postBody;
         if (this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
-            // No initializer
+            // No postBody
             postBody = null;
             this.tokenSource.consume();
         } else {

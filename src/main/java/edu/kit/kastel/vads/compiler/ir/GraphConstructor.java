@@ -317,6 +317,16 @@ class GraphConstructor {
         return new StartNode(currentBlock());
     }
 
+    // Control flow
+
+    public Phi mergeNodes(Node... nodes) {
+        Phi phi = newPhi();
+        for (Node node : nodes) {
+            phi.addPredecessor(node);
+        }
+        return phi;
+    }
+
     public boolean currentBlockIsUsed() {
         return !(currentBlock().isEmpty() && currentBlock().predecessors().isEmpty());
     }

@@ -12,6 +12,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.control.ReturnNode;
 import edu.kit.kastel.vads.compiler.ir.optimize.Optimizer;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
+import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
@@ -140,9 +141,21 @@ public class SsaTranslation {
         public Optional<Node> visit(BinaryOperationTree binaryOperationTree, SsaTranslation data) {
             pushSpan(binaryOperationTree);
 
+            Node result;
+
+            if (binaryOperationTree.operator().type() == BinaryOperatorType.LOGICAL_AND) {
+                result = logicalAnd(binaryOperationTree, data);
+                popSpan();
+                return Optional.of(result);
+            } else if (binaryOperationTree.operator().type() == BinaryOperatorType.LOGICAL_OR) {
+                result = logicalOr(binaryOperationTree, data);
+                popSpan();
+                return Optional.of(result);
+            }
+
             Node lhs = binaryOperationTree.lhs().accept(this, data).orElseThrow();
             Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
-            Node res = switch (binaryOperationTree.operator().type()) {
+            result = switch (binaryOperationTree.operator().type()) {
                 case MUL -> data.graphConstructor.newMul(lhs, rhs);
                 case DIV -> projResultDivMod(data, data.graphConstructor.newDiv(lhs, rhs));
                 case MOD -> projResultDivMod(data, data.graphConstructor.newMod(lhs, rhs));
@@ -167,17 +180,72 @@ public class SsaTranslation {
 
                 case BITWISE_OR -> data.graphConstructor.newBitwiseOr(lhs, rhs);
 
-                case LOGICAL_AND -> data.graphConstructor.newLogicalAnd(lhs, rhs);
-
-                case LOGICAL_OR -> data.graphConstructor.newLogicalOr(lhs, rhs);
-
-                // TODO this is temporary
-                default -> null;
+                default -> {
+                    throw new IllegalArgumentException(
+                        "Unexpected binary operator '" + binaryOperationTree.operator() + "'"
+                    );
+                }
             };
 
             popSpan();
 
-            return Optional.of(res);
+            return Optional.of(result);
+        }
+
+        // Enables short-circuiting
+        private Node logicalAnd(BinaryOperationTree binaryOperationTree, SsaTranslation data) {
+            Node lhs = binaryOperationTree.lhs().accept(this, data).orElseThrow();
+
+            ConditionalJumpNode checkForShortCircuit = data.graphConstructor.newConditionalJump(lhs);
+            ProjNode projTrue = data.graphConstructor.newTrueProj(checkForShortCircuit);
+            ProjNode projFalse = data.graphConstructor.newFalseProj(checkForShortCircuit);
+
+            // If lhs is true, also check rhs
+            Block rhsBlock = data.graphConstructor.linkBranchToNewBlock(
+                checkForShortCircuit, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
+            data.graphConstructor.sealBlock(rhsBlock);
+            Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
+            Node fullResult = data.graphConstructor.newLogicalAnd(lhs, rhs);
+
+            Block followBlock = data.graphConstructor.jumpToNewBlock();
+            // If lhs is false, skip rhs
+            data.graphConstructor.linkBranch(
+                checkForShortCircuit, projFalse, ConditionalJumpNode.FALSE_TARGET, followBlock
+            );
+            data.graphConstructor.sealBlock(followBlock);
+
+            // Merge results in the same order their exit jumps were linked
+            Node result = data.graphConstructor.mergeNodes(fullResult, lhs);
+            return result;
+        }
+
+        // Enables short-circuiting
+        private Node logicalOr(BinaryOperationTree binaryOperationTree, SsaTranslation data) {
+            Node lhs = binaryOperationTree.lhs().accept(this, data).orElseThrow();
+
+            ConditionalJumpNode checkForShortCircuit = data.graphConstructor.newConditionalJump(lhs);
+            ProjNode projTrue = data.graphConstructor.newTrueProj(checkForShortCircuit);
+            ProjNode projFalse = data.graphConstructor.newFalseProj(checkForShortCircuit);
+
+            // If lhs is true, also check rhs
+            Block rhsBlock = data.graphConstructor.linkBranchToNewBlock(
+                checkForShortCircuit, projFalse, ConditionalJumpNode.FALSE_TARGET
+            );
+            data.graphConstructor.sealBlock(rhsBlock);
+            Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
+            Node fullResult = data.graphConstructor.newLogicalOr(lhs, rhs);
+
+            Block followBlock = data.graphConstructor.jumpToNewBlock();
+            // If lhs is false, skip rhs
+            data.graphConstructor.linkBranch(
+                checkForShortCircuit, projTrue, ConditionalJumpNode.TRUE_TARGET, followBlock
+            );
+            data.graphConstructor.sealBlock(followBlock);
+
+            // Merge results in the same order their exit jumps were linked
+            Node result = data.graphConstructor.mergeNodes(fullResult, lhs);
+            return result;
         }
 
         @Override
@@ -225,18 +293,13 @@ public class SsaTranslation {
             );
             data.graphConstructor.sealBlock(elseBlock);
             Node elseResult = ternaryTree.elseExpression().accept(this, data).orElseThrow();
-            JumpNode exitElse = data.graphConstructor.newJump();
 
-            Block followBlock = data.graphConstructor.newBlock();
+            Block followBlock = data.graphConstructor.jumpToNewBlock();
             data.graphConstructor.link(exitThen, followBlock);
-            data.graphConstructor.link(exitElse, followBlock);
             data.graphConstructor.sealBlock(followBlock);
 
-            Phi result = data.graphConstructor.newPhi();
-            // Add operands in the order their blocks were added as predecessors,
-            // i.e. 1. then, 2. else
-            result.addPredecessor(thenResult);
-            result.addPredecessor(elseResult);
+            // Merge results in the same order their exit jumps were linked
+            Phi result = data.graphConstructor.mergeNodes(elseResult, thenResult);
 
             popSpan();
 
@@ -298,7 +361,10 @@ public class SsaTranslation {
             for (StatementTree statement : blockTree.statements()) {
                 statement.accept(this, data);
                 // Skip everything after a return, break or continue in a block
-                if (statement instanceof ReturnTree || statement instanceof BreakTree || statement instanceof ContinueTree) {
+                if (
+                    statement instanceof ReturnTree || statement instanceof BreakTree
+                        || statement instanceof ContinueTree
+                ) {
                     break;
                 }
             }
