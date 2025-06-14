@@ -10,6 +10,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -53,7 +54,7 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
         this.inferredTypes.put(expression, type);
     }
 
-    private void checkTypesEqual(Scope scope, NameTree name, ExpressionTree expression) {
+    private Type checkTypesEqual(Scope scope, NameTree name, ExpressionTree expression) {
         Type variableType = scope.getType(name);
         Type expressionType = getInferredType(expression);
         if (variableType != expressionType) {
@@ -61,9 +62,11 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
                 "Type mismatch: cannot convert from " + expressionType + " to " + variableType
             );
         }
+
+        return variableType;
     }
 
-    private void checkTypesEqual(ExpressionTree... expressions) {
+    private Type checkTypesEqual(ExpressionTree... expressions) {
         Type prevType = null;
         for (ExpressionTree expression : expressions) {
             Type type = getInferredType(expression);
@@ -74,6 +77,8 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
             }
             prevType = type;
         }
+
+        return prevType;
     }
 
     private void checkTypesMatch(Type type, ExpressionTree... expressions) {
@@ -125,9 +130,8 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
     @Override
     public Unit visit(IdentifierTree identifierTree, Scope data) {
         data.checkInitialized(identifierTree.name());
-
+        
         addInferredType(identifierTree, data.getType(identifierTree.name()));
-
         return NoOpVisitor.super.visit(identifierTree, data);
     }
 
@@ -135,6 +139,14 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
     public Unit visit(NumberLiteralTree literalTree, Scope data) {
         addInferredType(literalTree, BasicType.INT);
         return NoOpVisitor.super.visit(literalTree, data);
+    }
+
+    @Override
+    public Unit visit(TernaryTree ternaryTree, Scope data) {
+        checkTypesMatch(BasicType.BOOL, ternaryTree.condition());
+        Type type = checkTypesEqual(ternaryTree.thenExpression(), ternaryTree.elseExpression());
+        addInferredType(ternaryTree, type);
+        return NoOpVisitor.super.visit(ternaryTree, data);
     }
 
     @Override
