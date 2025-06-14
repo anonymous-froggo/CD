@@ -3,8 +3,6 @@ package edu.kit.kastel.vads.compiler.semantic.variables;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
-import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
-import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
@@ -13,30 +11,24 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.type.BasicType;
 import edu.kit.kastel.vads.compiler.parser.type.Type;
-import edu.kit.kastel.vads.compiler.semantic.Namespace;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 import edu.kit.kastel.vads.compiler.semantic.variables.VariableProperty.Status;
 import edu.kit.kastel.vads.compiler.semantic.visitor.NoOpVisitor;
 import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Stack;
 
 // TODO note additional properties that are checked
 // TODO change name -> should also include type checking
+// TODO maybe move expression type inference to separate visitor
 /// Checks that variables are
 /// - declared before assignment
 /// - not declared twice
@@ -130,7 +122,7 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
     @Override
     public Unit visit(IdentifierTree identifierTree, Scope data) {
         data.checkInitialized(identifierTree.name());
-        
+
         addInferredType(identifierTree, data.getType(identifierTree.name()));
         return NoOpVisitor.super.visit(identifierTree, data);
     }
@@ -206,5 +198,32 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
         }
 
         return NoOpVisitor.super.visit(declarationTree, data);
+    }
+
+    @Override
+    public Unit visit(ForTree forTree, Scope data) {
+        if (forTree.postBody() instanceof DeclarationTree) {
+            throw new SemanticException("The step statement in a for loop may not be a declaration");
+        }
+        checkTypesMatch(BasicType.BOOL, forTree.condition());
+        return NoOpVisitor.super.visit(forTree, data);
+    }
+
+    @Override
+    public Unit visit(IfTree ifTree, Scope data) {
+        checkTypesMatch(BasicType.BOOL, ifTree.condition());
+        return NoOpVisitor.super.visit(ifTree, data);
+    }
+
+    @Override
+    public Unit visit(ReturnTree returnTree, Scope data) {
+        checkTypesMatch(BasicType.INT, returnTree.expression());
+        return NoOpVisitor.super.visit(returnTree, data);
+    }
+
+    @Override
+    public Unit visit(WhileTree whileTree, Scope data) {
+        checkTypesMatch(BasicType.BOOL, whileTree.condition());
+        return NoOpVisitor.super.visit(whileTree, data);
     }
 }
