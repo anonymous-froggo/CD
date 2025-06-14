@@ -4,6 +4,7 @@ import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
+// TODO check if I wanna implement this as a regular StatementTree or smth
 public record ElseOptTree(StatementTree elseStatement, Position start) implements StatementTree {
 
     @Override

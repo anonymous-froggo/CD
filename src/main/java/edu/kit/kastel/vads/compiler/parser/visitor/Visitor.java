@@ -51,7 +51,7 @@ public interface Visitor<T, R> {
 
     R visit(DeclarationTree declarationTree, T data);
 
-    R visit(ElseOptTree forTree, T data);
+    R visit(ElseOptTree elseOptTree, T data);
 
     R visit(ForTree forTree, T data);
 

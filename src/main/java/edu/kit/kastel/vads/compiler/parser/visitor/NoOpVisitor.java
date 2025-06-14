@@ -63,7 +63,7 @@ public interface NoOpVisitor<T> extends Visitor<T, Unit> {
     }
 
     @Override
-    default Unit visit(ElseOptTree forTree, T data) {
+    default Unit visit(ElseOptTree elseOptTree, T data) {
         return Unit.INSTANCE;
     }
 

@@ -1,9 +1,11 @@
 package edu.kit.kastel.vads.compiler.semantic.returns;
 
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
@@ -15,6 +17,8 @@ import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 
 /// Checks that functions return.
 public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
+
+    // Statement trees
 
     @Override
     public Unit visit(AssignmentTree assignmentTree, ReturnState data) {
@@ -47,22 +51,19 @@ public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
     }
 
     @Override
+    public Unit visit(ElseOptTree elseOptTree, ReturnState data) {
+        boolean returns = data.returns(elseOptTree.elseStatement());
+        data.setReturns(elseOptTree, returns);
+        
+        return NoOpVisitor.super.visit(elseOptTree, data);
+    }
+
+
+    @Override
     public Unit visit(ForTree forTree, ReturnState data) {
         // 𝐟𝐨𝐫(𝑠1, 𝑒, 𝑠2, 𝑠3) does not return
         data.setReturns(forTree, false);
         return NoOpVisitor.super.visit(forTree, data);
-    }
-
-    @Override
-    public Unit visit(FunctionTree functionTree, ReturnState data) {
-        boolean returns = data.returns(functionTree.body());
-        data.setReturns(functionTree, returns);
-
-        if (!returns) {
-            throw new SemanticException("function " + functionTree.name() + " does not return");
-        }
-
-        return NoOpVisitor.super.visit(functionTree, data);
     }
 
     @Override
@@ -90,5 +91,19 @@ public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
         // 𝐰𝐡𝐢𝐥𝐞(𝑒, 𝑠) does not return
         data.setReturns(whileTree, false);
         return NoOpVisitor.super.visit(whileTree, data);
+    }
+
+    // Other trees
+
+    @Override
+    public Unit visit(FunctionTree functionTree, ReturnState data) {
+        boolean returns = data.returns(functionTree.body());
+        data.setReturns(functionTree, returns);
+
+        if (!returns) {
+            throw new SemanticException("function " + functionTree.name() + " does not return");
+        }
+
+        return NoOpVisitor.super.visit(functionTree, data);
     }
 }
