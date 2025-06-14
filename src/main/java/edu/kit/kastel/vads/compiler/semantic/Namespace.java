@@ -6,7 +6,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BinaryOperator;
 
 public class Namespace<T> {
 
@@ -17,14 +16,14 @@ public class Namespace<T> {
     }
 
     public Namespace(Map<Name, T> content) {
-        this.content =content;
+        this.content = content;
     }
 
-    public void put(NameTree name, T value, BinaryOperator<T> merger) {
-        this.content.merge(name.name(), value, merger);
+    protected void put(NameTree name, T value) {
+        this.content.put(name.name(), value);
     }
 
-    public @Nullable T get(NameTree name) {
+    protected @Nullable T get(NameTree name) {
         return this.content.get(name.name());
     }
 }

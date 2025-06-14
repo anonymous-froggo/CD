@@ -4,7 +4,7 @@ import java.util.Stack;
 
 import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
-import edu.kit.kastel.vads.compiler.semantic.status.Scope;
+import edu.kit.kastel.vads.compiler.semantic.variables.Scope;
 
 public class ScopedRecursivePostorderVisitor<R> extends RecursivePostorderVisitor<Scope, R> {
 
