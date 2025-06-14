@@ -26,14 +26,9 @@ import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO note additional properties that are checked
 // TODO change name -> should also include type checking
 // TODO maybe move expression type inference to separate visitor
-/// Checks that variables are
-/// - declared before assignment
-/// - not declared twice
-/// - not initialized twice
-/// - assigned before referenced
+// TODO better error messages
 public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
 
     Map<ExpressionTree, Type> inferredTypes = new HashMap<>();
@@ -72,7 +67,7 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
 
         return prevType;
     }
-    
+
     private void checkTypesMatch(Type type, Scope scope, NameTree name, ExpressionTree expression) {
         Type variableType = scope.getType(name);
         Type expressionType = getInferredType(expression);
@@ -177,11 +172,11 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
             case LValueIdentifierTree(var name) -> {
                 if (assignmentTree.operatorType() == AssignmentOperatorType.ASSIGN) {
                     data.checkDeclared(name);
+                    checkTypesEqual(data, name, assignmentTree.expression());
                 } else {
                     data.checkInitialized(name);
+                    checkTypesMatch(BasicType.INT, data, name, assignmentTree.expression());
                 }
-
-                checkTypesMatch(BasicType.INT, data, name, assignmentTree.expression());
 
                 if (data.getStatus(name) != Status.INITIALIZED) {
                     // only update when needed, reassignment is totally fine
