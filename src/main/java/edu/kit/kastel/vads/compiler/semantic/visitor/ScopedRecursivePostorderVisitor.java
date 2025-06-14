@@ -4,6 +4,7 @@ import java.util.Stack;
 
 import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.semantic.variables.Scope;
 
 public class ScopedRecursivePostorderVisitor<R> extends RecursivePostorderVisitor<Scope, R> {
@@ -37,6 +38,14 @@ public class ScopedRecursivePostorderVisitor<R> extends RecursivePostorderVisito
     public R visit(BlockTree blockTree, Scope data) {
         enterNewScope();
         R r = super.visit(blockTree, currentScope());
+        exitScope();
+        return r;
+    }
+
+    @Override
+    public R visit(ForTree forTree, Scope data) {
+        enterNewScope();
+        R r = super.visit(forTree, currentScope());
         exitScope();
         return r;
     }

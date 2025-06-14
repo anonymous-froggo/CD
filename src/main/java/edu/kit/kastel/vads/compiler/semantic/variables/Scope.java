@@ -22,9 +22,16 @@ public class Scope extends Namespace<VariableProperty> {
         super(content);
     }
 
+    // TODO clone needs to deep-copy [VariableProperty]s, such that
     @Override
     public Scope clone() {
-        return new Scope(new HashMap<>(super.content));
+        HashMap<Name, VariableProperty> content = new HashMap<>(super.content.size());
+
+        for (Name name : super.content.keySet()) {
+            content.put(name, super.content.get(name).clone());
+        }
+
+        return new Scope(content);
     }
 
     public void declare(NameTree name, Type type) {

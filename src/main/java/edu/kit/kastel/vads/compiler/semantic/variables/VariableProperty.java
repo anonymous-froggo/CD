@@ -14,6 +14,11 @@ public class VariableProperty {
         this.type = type;
     }
 
+    @Override
+    protected VariableProperty clone() {
+        return new VariableProperty(status, type);
+    }
+
     public Status status() {
         return this.status;
     }
