@@ -72,6 +72,16 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
 
         return prevType;
     }
+    
+    private void checkTypesMatch(Type type, Scope scope, NameTree name, ExpressionTree expression) {
+        Type variableType = scope.getType(name);
+        Type expressionType = getInferredType(expression);
+        if (type != variableType || variableType != expressionType) {
+            throw new SemanticException(
+                "Type mismatch: cannot convert from " + variableType + " to " + type
+            );
+        }
+    }
 
     private void checkTypesMatch(Type type, ExpressionTree... expressions) {
         for (ExpressionTree expression : expressions) {
@@ -171,7 +181,7 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
                     data.checkInitialized(name);
                 }
 
-                checkTypesEqual(data, name, assignmentTree.expression());
+                checkTypesMatch(BasicType.INT, data, name, assignmentTree.expression());
 
                 if (data.getStatus(name) != Status.INITIALIZED) {
                     // only update when needed, reassignment is totally fine
