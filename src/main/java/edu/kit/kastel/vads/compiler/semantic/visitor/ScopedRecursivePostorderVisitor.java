@@ -41,12 +41,4 @@ public class ScopedRecursivePostorderVisitor<R> extends RecursivePostorderVisito
         exitScope();
         return r;
     }
-
-    @Override
-    public R visit(ForTree forTree, Scope data) {
-        enterNewScope();
-        R r = super.visit(forTree, currentScope());
-        exitScope();
-        return r;
-    }
 }

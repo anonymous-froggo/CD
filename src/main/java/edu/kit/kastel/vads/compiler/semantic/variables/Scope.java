@@ -42,6 +42,10 @@ public class Scope extends Namespace<VariableProperty> {
         get(name).setStatus(Status.INITIALIZED);
     }
 
+    public void undeclare(NameTree name) {
+        get(name).setStatus(null);
+    }
+
     public void use(NameTree name) {
         checkInitialized(name);
     }

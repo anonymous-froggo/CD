@@ -211,6 +211,11 @@ public class VariablePropertyAnalysis implements NoOpVisitor<Scope> {
             throw new SemanticException("The step statement in a for loop may not be a declaration");
         }
         checkTypesMatch(BasicType.BOOL, forTree.condition());
+
+        if (forTree.initializer() instanceof DeclarationTree initializer) {
+            data.undeclare(initializer.name());
+        }
+
         return NoOpVisitor.super.visit(forTree, data);
     }
 
