@@ -1,5 +1,6 @@
-package edu.kit.kastel.vads.compiler.parser.visitor;
+package edu.kit.kastel.vads.compiler.semantic.visitor;
 
+import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.lexer.operators.TernaryMiddle;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;

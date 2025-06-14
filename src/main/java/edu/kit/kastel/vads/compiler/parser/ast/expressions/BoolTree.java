@@ -1,9 +1,9 @@
 package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.lexer.keywords.BoolKeyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.BoolKeyword.BoolKeywordType;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record BoolTree(BoolKeyword keyword) implements ExpressionTree {
 

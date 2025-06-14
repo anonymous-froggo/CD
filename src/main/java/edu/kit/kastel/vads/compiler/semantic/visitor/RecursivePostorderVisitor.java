@@ -1,5 +1,6 @@
-package edu.kit.kastel.vads.compiler.parser.visitor;
+package edu.kit.kastel.vads.compiler.semantic.visitor;
 
+import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.lexer.operators.TernaryMiddle;
 import edu.kit.kastel.vads.compiler.parser.Printer;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
@@ -36,7 +37,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         this.visitor = visitor;
     }
 
-    // Expressions
+    // Expression trees
 
     @Override
     public R visit(BinaryOperationTree binaryOperationTree, T data) {
@@ -81,7 +82,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         return r;
     }
 
-    // Statements
+    // Statement trees
 
     @Override
     public R visit(AssignmentTree assignmentTree, T data) {
@@ -93,8 +94,6 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
 
     @Override
     public R visit(BlockTree blockTree, T data) {
-        System.out.println("Visiting block:");
-        System.out.println(Printer.print(blockTree));
         R r;
         T d = data;
         for (StatementTree statement : blockTree.statements()) {
@@ -131,7 +130,6 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     @Override
     public R visit(ElseOptTree elseOptTree, T data) {
         R r = elseOptTree.elseStatement().accept(this, data);
-        System.out.println(accumulate(data, r));
         r = this.visitor.visit(elseOptTree, accumulate(data, r));
         return r;
     }
@@ -156,7 +154,6 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         R r = ifTree.condition().accept(this, data);
         r = ifTree.thenStatement().accept(this, accumulate(data, r));
         if (ifTree.elseOpt() != null) {
-            System.out.println("Visiting else");
             r = ifTree.elseOpt().accept(this, accumulate(data, r));
         }
         r = this.visitor.visit(ifTree, accumulate(data, r));

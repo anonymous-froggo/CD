@@ -1,4 +1,4 @@
-package edu.kit.kastel.vads.compiler.parser.visitor;
+package edu.kit.kastel.vads.compiler;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.TernaryMiddle;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;

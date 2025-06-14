@@ -1,7 +1,7 @@
 package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
+import edu.kit.kastel.vads.compiler.Visitor;
 
 public record TernaryTree(ExpressionTree condition, ExpressionTree thenExpression, ExpressionTree elseExpression)
     implements ExpressionTree

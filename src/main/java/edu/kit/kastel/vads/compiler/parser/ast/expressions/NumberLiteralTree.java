@@ -1,7 +1,8 @@
 package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
+import edu.kit.kastel.vads.compiler.Visitor;
+
 import java.util.OptionalLong;
 
 public record NumberLiteralTree(String value, int base, Span span) implements ExpressionTree {

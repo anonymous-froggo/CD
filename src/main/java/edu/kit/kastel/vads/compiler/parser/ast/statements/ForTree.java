@@ -4,8 +4,8 @@ import org.jspecify.annotations.Nullable;
 
 import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record ForTree(
     @Nullable StatementTree initializer,

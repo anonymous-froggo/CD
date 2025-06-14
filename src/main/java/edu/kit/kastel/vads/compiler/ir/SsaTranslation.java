@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler.ir;
 
+import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
@@ -37,7 +38,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 
 import java.util.ArrayDeque;

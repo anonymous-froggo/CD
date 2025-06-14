@@ -10,10 +10,14 @@ import java.util.function.BinaryOperator;
 
 public class Namespace<T> {
 
-    private final Map<Name, T> content;
+    protected final Map<Name, T> content;
 
     public Namespace() {
         this.content = new HashMap<>();
+    }
+
+    public Namespace(Map<Name, T> content) {
+        this.content =content;
     }
 
     public void put(NameTree name, T value, BinaryOperator<T> merger) {

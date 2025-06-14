@@ -2,7 +2,7 @@ package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator;
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
+import edu.kit.kastel.vads.compiler.Visitor;
 
 public record BinaryOperationTree(ExpressionTree lhs, ExpressionTree rhs, BinaryOperator operator)
     implements ExpressionTree

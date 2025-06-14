@@ -2,8 +2,8 @@ package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
 import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record ReturnTree(ExpressionTree expression, Position start) implements StatementTree {
 

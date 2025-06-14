@@ -1,8 +1,8 @@
 package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record UnaryOperationTree(UnaryOperator operator, ExpressionTree operand) implements ExpressionTree {
 

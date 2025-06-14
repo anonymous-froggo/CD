@@ -1,10 +1,10 @@
 package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
 import edu.kit.kastel.vads.compiler.Span;
+import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.parser.ast.LValueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.visitor.Visitor;
 
 public record AssignmentTree(LValueTree lValue, AssignmentOperatorType operatorType, ExpressionTree expression)
     implements StatementTree

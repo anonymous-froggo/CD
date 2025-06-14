@@ -13,9 +13,9 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
-import edu.kit.kastel.vads.compiler.parser.visitor.NoOpVisitor;
-import edu.kit.kastel.vads.compiler.parser.visitor.Unit;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
+import edu.kit.kastel.vads.compiler.semantic.visitor.NoOpVisitor;
+import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 
 /// Checks that functions return.
 public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
