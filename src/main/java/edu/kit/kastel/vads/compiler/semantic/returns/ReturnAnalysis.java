@@ -4,6 +4,8 @@ import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
@@ -36,10 +38,27 @@ public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
                 returns = true;
                 break;
             }
+
+            // Skip everything after a break or continue
+            if (statement instanceof BreakTree || statement instanceof ContinueTree) {
+                break;
+            }
         }
         data.setReturns(blockTree, returns);
 
         return NoOpVisitor.super.visit(blockTree, data);
+    }
+
+    @Override
+    public Unit visit(BreakTree breakTree, ReturnState data) {
+        data.setReturns(breakTree, false);
+        return NoOpVisitor.super.visit(breakTree, data);
+    }
+
+    @Override
+    public Unit visit(ContinueTree continueTree, ReturnState data) {
+        data.setReturns(continueTree, false);
+        return NoOpVisitor.super.visit(continueTree, data);
     }
 
     @Override
@@ -54,10 +73,9 @@ public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
     public Unit visit(ElseOptTree elseOptTree, ReturnState data) {
         boolean returns = data.returns(elseOptTree.elseStatement());
         data.setReturns(elseOptTree, returns);
-        
+
         return NoOpVisitor.super.visit(elseOptTree, data);
     }
-
 
     @Override
     public Unit visit(ForTree forTree, ReturnState data) {
