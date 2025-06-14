@@ -104,7 +104,7 @@ public interface NoOpVisitor<T> extends Visitor<T, Unit> {
     }
 
     @Override
-    default Unit visit(UnaryOperationTree negateTree, T data) {
+    default Unit visit(UnaryOperationTree unaryOperationTree, T data) {
         return Unit.INSTANCE;
     }
 

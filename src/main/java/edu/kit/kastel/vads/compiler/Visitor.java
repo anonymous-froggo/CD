@@ -37,7 +37,7 @@ public interface Visitor<T, R> {
 
     R visit(TernaryTree ternaryTree, T data);
 
-    R visit(UnaryOperationTree negateTree, T data);
+    R visit(UnaryOperationTree unaryOperationTree, T data);
 
     // Statments
 
