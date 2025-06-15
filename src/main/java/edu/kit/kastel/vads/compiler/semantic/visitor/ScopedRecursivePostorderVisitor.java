@@ -40,10 +40,6 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         for (StatementTree statement : blockTree.statements()) {
             r = statement.accept(this, d);
             d = accumulate(d, r);
-            
-            if (BlockTree.skipsRemainingStatements(statement)) {
-                data.registerSkip();
-            }
         }
         
         if (exitScopeNeeded) {
@@ -64,17 +60,18 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         if (forTree.initializer() != null) {
             r = forTree.initializer().accept(this, data);
         }
+        r = forTree.condition().accept(this, accumulate(data, r));
+
+        if (forTree.postBody() != null) {
+            data.enterNewScope();
+            r = forTree.postBody().accept(this, accumulate(data, r));
+            data.exitScope();
+        }
 
         // Don't look inside loop body, encapsule it in a new scope. postBody needs to
         // be in this scope too, since it may not be executed at all.
         enterNewScopeIgnoreBlock(data);
-        r = forTree.condition().accept(this, accumulate(data, r));
         r = forTree.body().accept(this, accumulate(data, r));
-        // Check postBody after body to ensure initializations in postBody don't affect
-        // body
-        if (forTree.postBody() != null) {
-            r = forTree.postBody().accept(this, accumulate(data, r));
-        }
         data.exitScope();
 
         // Exit the scope in which a variable might be initialized

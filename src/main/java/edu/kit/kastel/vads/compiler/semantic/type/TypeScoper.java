@@ -30,12 +30,6 @@ public class TypeScoper extends Scoper<Type> {
     public Namespace<Type> intersectScopes(Namespace<Type> scope1, Namespace<Type> scope2) {
         return null;
     }
-
-    @Override
-    public void registerSkip() {
-        return;
-    }
-
     public Type getType(Tree tree) {
         return switch (tree) {
             case ExpressionTree expression -> this.inferredTypes.get(expression);
@@ -59,7 +53,8 @@ public class TypeScoper extends Scoper<Type> {
             Type type = getType(tree);
             if (prevType != null && prevType != type) {
                 throw new SemanticException(
-                    "Type mismatch: cannot convert from " + prevType + " to " + type + " at " + prevTree.span().merge(tree.span())
+                    "Type mismatch: cannot convert from " + prevType + " to " + type + " at "
+                        + prevTree.span().merge(tree.span())
                 );
             }
             prevType = type;

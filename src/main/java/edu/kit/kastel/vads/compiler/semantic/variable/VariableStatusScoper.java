@@ -42,8 +42,7 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
         return scopeIntersection;
     }
 
-    @Override
-    public void registerSkip() {
+    public void initializeAll() {
         for (Name name : currentScope().keySet()) {
             if (getStatus(name) == VariableStatus.DECLARED) {
                 initialize(name);

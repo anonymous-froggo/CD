@@ -44,6 +44,4 @@ public abstract class Scoper<S> {
     public abstract void mergeScopeToCurrent(Namespace<S> scope);
 
     public abstract Namespace<S> intersectScopes(Namespace<S> scope1, Namespace<S> scope2);
-
-    public abstract void registerSkip();
 }
