@@ -72,17 +72,17 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         }
         r = forTree.condition().accept(this, accumulate(data, r));
 
-        // postBody needs a separate subscope
+        // Don't look inside loop body, encapsule it in a conditional scope.
+        enterNewConditionalScope(data);
+        r = forTree.body().accept(this, accumulate(data, r));
+        data.exitScope();
+
+        // Check postBody after body (duh)
         if (forTree.postBody() != null) {
             data.enterNewScope();
             r = forTree.postBody().accept(this, accumulate(data, r));
             data.exitScope();
         }
-
-        // Don't look inside loop body, encapsule it in a conditional scope.
-        enterNewConditionalScope(data);
-        r = forTree.body().accept(this, accumulate(data, r));
-        data.exitScope();
 
         // Exit the scope in which a variable might be initialized
         // and merge it to the scope above
