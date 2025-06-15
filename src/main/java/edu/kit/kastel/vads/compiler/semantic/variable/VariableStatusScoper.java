@@ -38,7 +38,7 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
                 scopeIntersection.put(name, VariableStatus.INITIALIZED);
             }
         }
-        
+
         return scopeIntersection;
     }
 
@@ -48,10 +48,6 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
 
     public void initialize(NameTree name) {
         currentScope().put(name, VariableStatus.INITIALIZED);
-    }
-
-    public void undeclare(NameTree name) {
-        currentScope().put(name, null);
     }
 
     public void checkDeclared(NameTree name) {

@@ -6,6 +6,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
+import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 import edu.kit.kastel.vads.compiler.semantic.visitor.NoOpVisitor;
 import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 
@@ -53,8 +54,10 @@ public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper>
 
     @Override
     public Unit visit(ForTree forTree, VariableStatusScoper data) {
-        if (forTree.initializer() instanceof DeclarationTree declaration) {
-            data.undeclare(declaration.name());
+        // Check that forTree.postBody() is not a declaration.
+        // Don't really have a better place for that than here.
+        if (forTree.postBody() instanceof DeclarationTree) {
+            throw new SemanticException("The step statement in a for loop may not be a declaration");
         }
         return NoOpVisitor.super.visit(forTree, data);
     }
