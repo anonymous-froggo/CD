@@ -4,6 +4,7 @@ import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 
 public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends RecursivePostorderVisitor<T, R> {
@@ -34,12 +35,22 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
             data.enterNewScope();
         }
 
-        R r = super.visit(blockTree, data);
-
+        R r;
+        T d = data;
+        for (StatementTree statement : blockTree.statements()) {
+            r = statement.accept(this, d);
+            d = accumulate(d, r);
+            
+            if (BlockTree.skipsRemainingStatements(statement)) {
+                data.registerSkip();
+            }
+        }
+        
         if (exitScopeNeeded) {
             data.exitScope();
         }
-
+        
+        r = this.visitor.visit(blockTree, d);
         return r;
     }
 
