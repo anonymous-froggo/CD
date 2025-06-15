@@ -14,8 +14,12 @@ public abstract class Scoper<S> {
         return this.scopes.peek();
     }
 
+    protected boolean inProgramScope() {
+        return this.scopes.isEmpty();
+    }
+
     public void enterNewScope() {
-        if (this.scopes.isEmpty()) {
+        if (inProgramScope()) {
             this.scopes.push(new Namespace<>());
             return;
         }

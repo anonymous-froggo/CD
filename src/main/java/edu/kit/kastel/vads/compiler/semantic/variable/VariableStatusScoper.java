@@ -15,6 +15,11 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
 
     @Override
     public void mergeScopeToCurrent(Namespace<VariableStatus> scope) {
+        if (inProgramScope()) {
+            // There is no scope to merge to
+            return;
+        }
+
         Namespace<VariableStatus> currentScope = currentScope();
 
         for (Name name : scope.keySet()) {

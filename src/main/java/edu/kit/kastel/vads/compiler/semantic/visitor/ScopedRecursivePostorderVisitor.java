@@ -2,14 +2,16 @@ package edu.kit.kastel.vads.compiler.semantic.visitor;
 
 import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 
 public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends RecursivePostorderVisitor<T, R> {
 
-    private boolean ignoreNextBlockScope = false;
+    private boolean nextBlockConditional = false;
 
     public ScopedRecursivePostorderVisitor(Visitor<T, R> visitor) {
         super(visitor);
@@ -18,8 +20,8 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
     // Enables control flow operations to enter scopes regardless of whether the
     // respective branch has a block statement and avoids a redundant scope being
     // opened.
-    private void enterNewScopeIgnoreBlock(T data) {
-        ignoreNextBlockScope = true;
+    private void enterNewConditionalScope(T data) {
+        nextBlockConditional = true;
         data.enterNewScope();
     }
 
@@ -27,9 +29,9 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
     public R visit(BlockTree blockTree, T data) {
         boolean exitScopeNeeded;
 
-        if (this.ignoreNextBlockScope) {
+        if (this.nextBlockConditional) {
             exitScopeNeeded = false;
-            ignoreNextBlockScope = false;
+            nextBlockConditional = false;
         } else {
             exitScopeNeeded = true;
             data.enterNewScope();
@@ -41,13 +43,21 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
             r = statement.accept(this, d);
             d = accumulate(d, r);
         }
-        
+
         if (exitScopeNeeded) {
-            data.exitScope();
+            // Exit scope and merge it to currentScope
+            Namespace<S> blockScope = data.exitScope();
+            data.mergeScopeToCurrent(blockScope);
         }
-        
+
         r = this.visitor.visit(blockTree, d);
         return r;
+    }
+
+    @Override
+    public R visit(ElseOptTree elseOptTree, T data) {
+        // Scoping is already managed by visit(IfTree, T). Nothing to be done here.
+        return super.visit(elseOptTree, data);
     }
 
     @Override
@@ -62,15 +72,15 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         }
         r = forTree.condition().accept(this, accumulate(data, r));
 
+        // postBody needs a separate subscope
         if (forTree.postBody() != null) {
             data.enterNewScope();
             r = forTree.postBody().accept(this, accumulate(data, r));
             data.exitScope();
         }
 
-        // Don't look inside loop body, encapsule it in a new scope. postBody needs to
-        // be in this scope too, since it may not be executed at all.
-        enterNewScopeIgnoreBlock(data);
+        // Don't look inside loop body, encapsule it in a conditional scope.
+        enterNewConditionalScope(data);
         r = forTree.body().accept(this, accumulate(data, r));
         data.exitScope();
 
@@ -87,12 +97,12 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
     public R visit(IfTree ifTree, T data) {
         R r = ifTree.condition().accept(this, data);
 
-        enterNewScopeIgnoreBlock(data);
+        enterNewConditionalScope(data);
         r = ifTree.thenStatement().accept(this, accumulate(data, r));
         Namespace<S> thenScope = data.exitScope();
 
         if (ifTree.elseOpt() != null) {
-            enterNewScopeIgnoreBlock(data);
+            enterNewConditionalScope(data);
             r = ifTree.elseOpt().accept(this, accumulate(data, r));
             Namespace<S> elseScope = data.exitScope();
 
@@ -103,6 +113,18 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         }
 
         r = this.visitor.visit(ifTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(WhileTree whileTree, T data) {
+        R r = whileTree.condition().accept(this, data);
+
+        enterNewConditionalScope(data);
+        r = whileTree.body().accept(this, accumulate(data, r));
+        data.exitScope();
+
+        r = this.visitor.visit(whileTree, accumulate(data, r));
         return r;
     }
 }
