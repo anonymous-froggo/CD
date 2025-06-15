@@ -15,4 +15,8 @@ public record BlockTree(List<StatementTree> statements, Span span) implements St
     public <T, R> R accept(Visitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
+
+    public static boolean skipsRemainingStatements(StatementTree statement) {
+        return statement instanceof ReturnTree || statement instanceof BreakTree || statement instanceof ContinueTree;
+    }
 }

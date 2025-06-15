@@ -1,6 +1,7 @@
 package edu.kit.kastel.vads.compiler.semantic.visitor;
 
 import edu.kit.kastel.vads.compiler.Visitor;
+import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.lexer.operators.TernaryMiddle;
 import edu.kit.kastel.vads.compiler.parser.Printer;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
@@ -99,6 +100,10 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
         for (StatementTree statement : blockTree.statements()) {
             r = statement.accept(this, d);
             d = accumulate(d, r);
+
+            if (BlockTree.skipsRemainingStatements(statement)) {
+                break;
+            }
         }
         r = this.visitor.visit(blockTree, d);
         return r;

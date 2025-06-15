@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler.semantic.ret;
 
+import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
@@ -40,7 +41,7 @@ public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
             }
 
             // Skip everything after a break or continue
-            if (statement instanceof BreakTree || statement instanceof ContinueTree) {
+            if (BlockTree.skipsRemainingStatements(statement)) {
                 break;
             }
         }
