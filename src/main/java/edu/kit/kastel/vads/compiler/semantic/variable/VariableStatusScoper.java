@@ -18,8 +18,8 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
         Namespace<VariableStatus> currentScope = currentScope();
 
         for (Name name : scope.keySet()) {
-            if (scope.get(name) == VariableStatus.INITIALIZED && currentScope.get(name) == VariableStatus.INITIALIZED) {
-                // A variable has been initialized in [scope] and not yet in [currentScope].
+            if (scope.get(name) == VariableStatus.INITIALIZED && currentScope.get(name) == VariableStatus.DECLARED) {
+                // A variable has been initialized in [scope] and only declared [currentScope].
                 currentScope.put(name, VariableStatus.INITIALIZED);
             }
         }
