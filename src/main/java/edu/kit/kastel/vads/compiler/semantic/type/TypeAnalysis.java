@@ -1,222 +1,147 @@
-// package edu.kit.kastel.vads.compiler.semantic.type;
+package edu.kit.kastel.vads.compiler.semantic.type;
 
-// import java.util.HashMap;
-// import java.util.Map;
+import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
+import edu.kit.kastel.vads.compiler.parser.type.BasicType;
+import edu.kit.kastel.vads.compiler.parser.type.Type;
+import edu.kit.kastel.vads.compiler.semantic.visitor.NoOpVisitor;
+import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 
-// import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
-// import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
-// import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
-// import edu.kit.kastel.vads.compiler.parser.type.BasicType;
-// import edu.kit.kastel.vads.compiler.parser.type.Type;
-// import edu.kit.kastel.vads.compiler.semantic.SemanticException;
-// import edu.kit.kastel.vads.compiler.semantic.namespace.Scoper;
-// import edu.kit.kastel.vads.compiler.semantic.visitor.NoOpVisitor;
-// import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
+public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
 
-// public class TypeAnalysis implements NoOpVisitor<Scoper> {
-//     Map<ExpressionTree, Type> inferredTypes = new HashMap<>();
-// private Type getInferredType(ExpressionTree expression) {
-//         return this.inferredTypes.get(expression);
-//     }
+    // Expression trees
 
-//     private void addInferredType(ExpressionTree expression, Type type) {
-//         this.inferredTypes.put(expression, type);
-//     }
+    @Override
+    public Unit visit(BinaryOperationTree binaryOperationTree, TypeScoper data) {
+        ExpressionTree lhs = binaryOperationTree.lhs();
+        ExpressionTree rhs = binaryOperationTree.rhs();
 
-//     private Type checkTypesEqual(Scoper scope, NameTree name, ExpressionTree expression) {
-//         Type variableType = scope.getType(name);
-//         Type expressionType = getInferredType(expression);
-//         if (variableType != expressionType) {
-//             throw new SemanticException(
-//                 "Type mismatch: cannot convert from " + expressionType + " to " + variableType
-//             );
-//         }
+        switch (binaryOperationTree.operator().type()) {
+            case LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ -> {
+                data.checkTypesMatch(BasicType.INT, lhs, rhs);
+                data.addExpressionType(binaryOperationTree, BasicType.BOOL);
+            }
+            case EQ, NOT_EQ -> {
+                data.checkTypesEqual(lhs, rhs);
+                data.addExpressionType(binaryOperationTree, BasicType.BOOL);
+            }
+            case LOGICAL_AND, LOGICAL_OR -> {
+                data.checkTypesMatch(BasicType.BOOL, lhs, rhs);
+                data.addExpressionType(binaryOperationTree, BasicType.BOOL);
+            }
+            default -> {
+                data.checkTypesMatch(BasicType.INT, lhs, rhs);
+                data.addExpressionType(binaryOperationTree, BasicType.INT);
+            }
+        }
 
-//         return variableType;
-//     }
+        return NoOpVisitor.super.visit(binaryOperationTree, data);
+    }
 
-//     private Type checkTypesEqual(ExpressionTree... expressions) {
-//         Type prevType = null;
-//         for (ExpressionTree expression : expressions) {
-//             Type type = getInferredType(expression);
-//             if (prevType != null && prevType != type) {
-//                 throw new SemanticException(
-//                     "Type mismatch: cannot convert from " + prevType + " to " + type
-//                 );
-//             }
-//             prevType = type;
-//         }
+    @Override
+    public Unit visit(BoolTree trueTree, TypeScoper data) {
+        data.addExpressionType(trueTree, BasicType.BOOL);
+        return NoOpVisitor.super.visit(trueTree, data);
+    }
 
-//         return prevType;
-//     }
+    @Override
+    public Unit visit(IdentifierTree identifierTree, TypeScoper data) {
+        data.addExpressionType(identifierTree, data.getType(identifierTree.name()));
+        return NoOpVisitor.super.visit(identifierTree, data);
+    }
 
-//     private void checkTypesMatch(Type type, Scoper scope, NameTree name, ExpressionTree expression) {
-//         Type variableType = scope.getType(name);
-//         Type expressionType = getInferredType(expression);
-//         if (type != variableType || variableType != expressionType) {
-//             throw new SemanticException(
-//                 "Type mismatch: cannot convert from " + variableType + " to " + type
-//             );
-//         }
-//     }
+    @Override
+    public Unit visit(NumberLiteralTree literalTree, TypeScoper data) {
+        data.addExpressionType(literalTree, BasicType.INT);
+        return NoOpVisitor.super.visit(literalTree, data);
+    }
 
-//     private void checkTypesMatch(Type type, ExpressionTree... expressions) {
-//         for (ExpressionTree expression : expressions) {
-//             Type expressionType = getInferredType(expression);
-//             if (expressionType != type) {
-//                 throw new SemanticException(
-//                     "Type mismatch: cannot convert from " + expressionType + " to " + type
-//                 );
-//             }
-//         }
-//     }
+    @Override
+    public Unit visit(TernaryTree ternaryTree, TypeScoper data) {
+        data.checkTypesMatch(BasicType.BOOL, ternaryTree.condition());
+        Type type = data.checkTypesEqual(ternaryTree.thenExpression(), ternaryTree.elseExpression());
+        data.addExpressionType(ternaryTree, type);
+        return NoOpVisitor.super.visit(ternaryTree, data);
+    }
 
-//     // Expression trees
+    @Override
+    public Unit visit(UnaryOperationTree unaryOperationTree, TypeScoper data) {
+        ExpressionTree operand = unaryOperationTree.operand();
 
-//     @Override
-//     public Unit visit(BinaryOperationTree binaryOperationTree, Scoper data) {
-//         ExpressionTree lhs = binaryOperationTree.lhs();
-//         ExpressionTree rhs = binaryOperationTree.rhs();
+        switch (unaryOperationTree.operator().type()) {
+            case LOGICAL_NOT -> {
+                data.checkTypesMatch(BasicType.BOOL, operand);
+                data.addExpressionType(unaryOperationTree, BasicType.BOOL);
+            }
+            default -> {
+                data.checkTypesMatch(BasicType.INT, operand);
+                data.addExpressionType(unaryOperationTree, BasicType.INT);
+            }
+        }
 
-//         switch (binaryOperationTree.operator().type()) {
-//             case LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ -> {
-//                 checkTypesMatch(BasicType.INT, lhs, rhs);
-//                 addInferredType(binaryOperationTree, BasicType.BOOL);
-//             }
-//             case EQ, NOT_EQ -> {
-//                 checkTypesEqual(lhs, rhs);
-//                 addInferredType(binaryOperationTree, BasicType.BOOL);
-//             }
-//             case LOGICAL_AND, LOGICAL_OR -> {
-//                 checkTypesMatch(BasicType.BOOL, lhs, rhs);
-//                 addInferredType(binaryOperationTree, BasicType.BOOL);
-//             }
-//             default -> {
-//                 checkTypesMatch(BasicType.INT, lhs, rhs);
-//                 addInferredType(binaryOperationTree, BasicType.INT);
-//             }
-//         }
+        return NoOpVisitor.super.visit(unaryOperationTree, data);
+    }
 
-//         return NoOpVisitor.super.visit(binaryOperationTree, data);
-//     }
+    // Statement trees
+    @Override
+    public Unit visit(AssignmentTree assignmentTree, TypeScoper data) {
+        switch (assignmentTree.lValue()) {
+            case LValueIdentifierTree(var name) -> {
+                if (assignmentTree.operatorType() == AssignmentOperatorType.ASSIGN) {
+                    data.checkTypesEqual(name, assignmentTree.expression());
+                } else {
+                    data.checkTypesMatch(BasicType.INT, name, assignmentTree.expression());
+                }
+            }
+        }
 
-//     @Override
-//     public Unit visit(BoolTree trueTree, Scoper data) {
-//         addInferredType(trueTree, BasicType.BOOL);
-//         return NoOpVisitor.super.visit(trueTree, data);
-//     }
+        return NoOpVisitor.super.visit(assignmentTree, data);
+    }
 
-//     @Override
-//     public Unit visit(IdentifierTree identifierTree, Scoper data) {
-//         data.checkInitialized(identifierTree.name());
+    @Override
+    public Unit visit(DeclarationTree declarationTree, TypeScoper data) {
+        if (declarationTree.initializer() != null) {
+            data.checkTypesEqual(declarationTree.name(), declarationTree.initializer());
+        }
 
-//         addInferredType(identifierTree, data.getType(identifierTree.name()));
-//         return NoOpVisitor.super.visit(identifierTree, data);
-//     }
+        return NoOpVisitor.super.visit(declarationTree, data);
+    }
 
-//     @Override
-//     public Unit visit(NumberLiteralTree literalTree, Scoper data) {
-//         addInferredType(literalTree, BasicType.INT);
-//         return NoOpVisitor.super.visit(literalTree, data);
-//     }
+    @Override
+    public Unit visit(ForTree forTree, TypeScoper data) {
+        data.checkTypesMatch(BasicType.BOOL, forTree.condition());
 
-//     @Override
-//     public Unit visit(TernaryTree ternaryTree, Scoper data) {
-//         checkTypesMatch(BasicType.BOOL, ternaryTree.condition());
-//         Type type = checkTypesEqual(ternaryTree.thenExpression(), ternaryTree.elseExpression());
-//         addInferredType(ternaryTree, type);
-//         return NoOpVisitor.super.visit(ternaryTree, data);
-//     }
+        return NoOpVisitor.super.visit(forTree, data);
+    }
 
-//     @Override
-//     public Unit visit(UnaryOperationTree unaryOperationTree, Scoper data) {
-//         ExpressionTree operand = unaryOperationTree.operand();
+    @Override
+    public Unit visit(IfTree ifTree, TypeScoper data) {
+        data.checkTypesMatch(BasicType.BOOL, ifTree.condition());
+        return NoOpVisitor.super.visit(ifTree, data);
+    }
 
-//         switch (unaryOperationTree.operator().type()) {
-//             case LOGICAL_NOT -> {
-//                 checkTypesMatch(BasicType.BOOL, operand);
-//                 addInferredType(unaryOperationTree, BasicType.BOOL);
-//             }
-//             default -> {
-//                 checkTypesMatch(BasicType.INT, operand);
-//                 addInferredType(unaryOperationTree, BasicType.INT);
-//             }
-//         }
+    @Override
+    public Unit visit(ReturnTree returnTree, TypeScoper data) {
+        data.checkTypesMatch(BasicType.INT, returnTree.expression());
+        return NoOpVisitor.super.visit(returnTree, data);
+    }
 
-//         return NoOpVisitor.super.visit(unaryOperationTree, data);
-//     }
-
-//     // Statement trees
-//     @Override
-//     public Unit visit(AssignmentTree assignmentTree, Scoper data) {
-//         switch (assignmentTree.lValue()) {
-//             case LValueIdentifierTree(var name) -> {
-//                 if (assignmentTree.operatorType() == AssignmentOperatorType.ASSIGN) {
-//                     checkTypesEqual(data, name, assignmentTree.expression());
-//                 } else {
-//                     checkTypesMatch(BasicType.INT, data, name, assignmentTree.expression());
-//                 }
-//             }
-//         }
-
-//         return NoOpVisitor.super.visit(assignmentTree, data);
-//     }
-
-//     @Override
-//     public Unit visit(DeclarationTree declarationTree, Scoper data) {
-//         NameTree name = declarationTree.name();
-//         Type type = declarationTree.type().type();
-//         ExpressionTree initializer = declarationTree.initializer();
-
-//         if (initializer != null) {
-//             checkTypesEqual(data, name, initializer);
-//         }
-
-//         return NoOpVisitor.super.visit(declarationTree, data);
-//     }
-
-//     @Override
-//     public Unit visit(ForTree forTree, Scoper data) {
-//         if (forTree.postBody() instanceof DeclarationTree) {
-//             throw new SemanticException("The step statement in a for loop may not be a declaration");
-//         }
-//         checkTypesMatch(BasicType.BOOL, forTree.condition());
-
-//         if (forTree.initializer() instanceof DeclarationTree initializer) {
-//             data.undeclare(initializer.name());
-//         }
-
-//         return NoOpVisitor.super.visit(forTree, data);
-//     }
-
-//     @Override
-//     public Unit visit(IfTree ifTree, Scoper data) {
-//         checkTypesMatch(BasicType.BOOL, ifTree.condition());
-//         return NoOpVisitor.super.visit(ifTree, data);
-//     }
-
-//     @Override
-//     public Unit visit(ReturnTree returnTree, Scoper data) {
-//         checkTypesMatch(BasicType.INT, returnTree.expression());
-//         return NoOpVisitor.super.visit(returnTree, data);
-//     }
-
-//     @Override
-//     public Unit visit(WhileTree whileTree, Scoper data) {
-//         checkTypesMatch(BasicType.BOOL, whileTree.condition());
-//         return NoOpVisitor.super.visit(whileTree, data);
-//     }
-// }
+    @Override
+    public Unit visit(WhileTree whileTree, TypeScoper data) {
+        data.checkTypesMatch(BasicType.BOOL, whileTree.condition());
+        return NoOpVisitor.super.visit(whileTree, data);
+    }
+}
