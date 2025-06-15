@@ -3,6 +3,8 @@ package edu.kit.kastel.vads.compiler.semantic.visitor;
 import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
+import edu.kit.kastel.vads.compiler.semantic.Namespace;
 
 public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends RecursivePostorderVisitor<T, R> {
 
@@ -63,10 +65,33 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
 
         // Exit the scope in which a variable might be initialized
         // and merge it to the scope above
-        data.exitScope();
-        data.mergeScopeToCurrent(data.previouslyExitedScope());
+        Namespace<S> initializerScope = data.exitScope();
+        data.mergeScopeToCurrent(initializerScope);
 
         r = this.visitor.visit(forTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(IfTree ifTree, T data) {
+        R r = ifTree.condition().accept(this, data);
+
+        enterNewScopeIgnoreBlock(data);
+        r = ifTree.thenStatement().accept(this, accumulate(data, r));
+        Namespace<S> thenScope = data.exitScope();
+
+        if (ifTree.elseOpt() != null) {
+            enterNewScopeIgnoreBlock(data);
+            r = ifTree.elseOpt().accept(this, accumulate(data, r));
+            Namespace<S> elseScope = data.exitScope();
+
+            // Scopes only need to be merged if there is an else. Otherwise variables cannot
+            // be initialized in both control flow branches.
+            Namespace<S> ifScope = data.intersectScopes(thenScope, elseScope);
+            data.mergeScopeToCurrent(ifScope);
+        }
+
+        r = this.visitor.visit(ifTree, accumulate(data, r));
         return r;
     }
 }
