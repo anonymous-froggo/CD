@@ -32,19 +32,19 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
         switch (binaryOperationTree.operator().type()) {
             case LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ -> {
                 data.checkTypesMatch(BasicType.INT, lhs, rhs);
-                data.addExpressionType(binaryOperationTree, BasicType.BOOL);
+                data.setType(binaryOperationTree, BasicType.BOOL);
             }
             case EQ, NOT_EQ -> {
                 data.checkTypesEqual(lhs, rhs);
-                data.addExpressionType(binaryOperationTree, BasicType.BOOL);
+                data.setType(binaryOperationTree, BasicType.BOOL);
             }
             case LOGICAL_AND, LOGICAL_OR -> {
                 data.checkTypesMatch(BasicType.BOOL, lhs, rhs);
-                data.addExpressionType(binaryOperationTree, BasicType.BOOL);
+                data.setType(binaryOperationTree, BasicType.BOOL);
             }
             default -> {
                 data.checkTypesMatch(BasicType.INT, lhs, rhs);
-                data.addExpressionType(binaryOperationTree, BasicType.INT);
+                data.setType(binaryOperationTree, BasicType.INT);
             }
         }
 
@@ -53,19 +53,19 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
 
     @Override
     public Unit visit(BoolTree trueTree, TypeScoper data) {
-        data.addExpressionType(trueTree, BasicType.BOOL);
+        data.setType(trueTree, BasicType.BOOL);
         return NoOpVisitor.super.visit(trueTree, data);
     }
 
     @Override
     public Unit visit(IdentifierTree identifierTree, TypeScoper data) {
-        data.addExpressionType(identifierTree, data.getType(identifierTree.name()));
+        data.setType(identifierTree, data.getType(identifierTree.name()));
         return NoOpVisitor.super.visit(identifierTree, data);
     }
 
     @Override
     public Unit visit(NumberLiteralTree literalTree, TypeScoper data) {
-        data.addExpressionType(literalTree, BasicType.INT);
+        data.setType(literalTree, BasicType.INT);
         return NoOpVisitor.super.visit(literalTree, data);
     }
 
@@ -73,7 +73,7 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
     public Unit visit(TernaryTree ternaryTree, TypeScoper data) {
         data.checkTypesMatch(BasicType.BOOL, ternaryTree.condition());
         Type type = data.checkTypesEqual(ternaryTree.thenExpression(), ternaryTree.elseExpression());
-        data.addExpressionType(ternaryTree, type);
+        data.setType(ternaryTree, type);
         return NoOpVisitor.super.visit(ternaryTree, data);
     }
 
@@ -84,11 +84,11 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
         switch (unaryOperationTree.operator().type()) {
             case LOGICAL_NOT -> {
                 data.checkTypesMatch(BasicType.BOOL, operand);
-                data.addExpressionType(unaryOperationTree, BasicType.BOOL);
+                data.setType(unaryOperationTree, BasicType.BOOL);
             }
             default -> {
                 data.checkTypesMatch(BasicType.INT, operand);
-                data.addExpressionType(unaryOperationTree, BasicType.INT);
+                data.setType(unaryOperationTree, BasicType.INT);
             }
         }
 
@@ -96,6 +96,7 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
     }
 
     // Statement trees
+
     @Override
     public Unit visit(AssignmentTree assignmentTree, TypeScoper data) {
         switch (assignmentTree.lValue()) {
@@ -113,6 +114,8 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
 
     @Override
     public Unit visit(DeclarationTree declarationTree, TypeScoper data) {
+        data.setType(declarationTree.name(), declarationTree.type().type());
+
         if (declarationTree.initializer() != null) {
             data.checkTypesEqual(declarationTree.name(), declarationTree.initializer());
         }

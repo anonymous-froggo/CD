@@ -13,7 +13,7 @@ import edu.kit.kastel.vads.compiler.semantic.visitor.Scoper;
 
 public class TypeScoper extends Scoper<Type> {
 
-    Map<ExpressionTree, Type> expressionTypes = new HashMap<>();
+    Map<ExpressionTree, Type> inferredTypes = new HashMap<>();
 
     @Override
     protected Type cloneEntry(Type t) {
@@ -33,26 +33,32 @@ public class TypeScoper extends Scoper<Type> {
 
     public Type getType(Tree tree) {
         return switch (tree) {
-            case ExpressionTree expression -> this.expressionTypes.get(expression);
+            case ExpressionTree expression -> this.inferredTypes.get(expression);
             case NameTree name -> currentScope().get(name);
-            default -> throw new IllegalArgumentException(tree + "does not have a type associated to it.");
+            default -> throw new IllegalArgumentException(tree + "cannot have a type associated to it.");
         };
     }
 
-    public void addExpressionType(ExpressionTree expression, Type type) {
-        this.expressionTypes.put(expression, type);
+    public void setType(Tree tree, Type type) {
+        switch (tree) {
+            case ExpressionTree expression -> this.inferredTypes.put(expression, type);
+            case NameTree name -> currentScope().put(name, type);
+            default -> throw new IllegalArgumentException(tree + "cannot have a type associated to it.");
+        }
     }
 
     public Type checkTypesEqual(Tree... trees) {
         Type prevType = null;
+        Tree prevTree = null;
         for (Tree tree : trees) {
             Type type = getType(tree);
             if (prevType != null && prevType != type) {
                 throw new SemanticException(
-                    "Type mismatch: cannot convert from " + prevType + " to " + type
+                    "Type mismatch: cannot convert from " + prevType + " to " + type + " at " + prevTree.span().merge(tree.span())
                 );
             }
             prevType = type;
+            prevTree = tree;
         }
 
         return prevType;
@@ -63,7 +69,7 @@ public class TypeScoper extends Scoper<Type> {
             Type type = getType(tree);
             if (type != typeToMatch) {
                 throw new SemanticException(
-                    "Type mismatch: cannot convert from " + type + " to " + typeToMatch
+                    "Type mismatch: cannot convert from " + type + " to " + typeToMatch + " at " + tree.span()
                 );
             }
         }

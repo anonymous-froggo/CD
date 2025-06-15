@@ -3,6 +3,8 @@ package edu.kit.kastel.vads.compiler.semantic;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.semantic.ret.ReturnAnalysis;
 import edu.kit.kastel.vads.compiler.semantic.ret.ReturnState;
+import edu.kit.kastel.vads.compiler.semantic.type.TypeAnalysis;
+import edu.kit.kastel.vads.compiler.semantic.type.TypeScoper;
 import edu.kit.kastel.vads.compiler.semantic.variable.VariableStatusAnalysis;
 import edu.kit.kastel.vads.compiler.semantic.variable.VariableStatusScoper;
 import edu.kit.kastel.vads.compiler.semantic.visitor.RecursivePostorderVisitor;
@@ -19,11 +21,13 @@ public class SemanticAnalysis {
     public void analyze() {
         this.program.accept(new RecursivePostorderVisitor<>(new IntegerLiteralRangeAnalysis()), new Namespace<>());
 
+        this.program.accept(new RecursivePostorderVisitor<>(new ReturnAnalysis()), new ReturnState());
+
         /// {data}, which is the current scope, will be initialized by [ScopedRecursivePostorderVisitor] 
         /// once it enters a block. Before that, no scope is present.
         // this.program.accept(, new VariableStatusScoper());
         this.program.accept(new ScopedRecursivePostorderVisitor<>(new VariableStatusAnalysis()), new VariableStatusScoper());
 
-        this.program.accept(new RecursivePostorderVisitor<>(new ReturnAnalysis()), new ReturnState());
+        this.program.accept(new ScopedRecursivePostorderVisitor<>(new TypeAnalysis()), new TypeScoper());
     }
 }
