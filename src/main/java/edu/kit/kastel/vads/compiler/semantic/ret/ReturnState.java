@@ -1,4 +1,4 @@
-package edu.kit.kastel.vads.compiler.semantic.returns;
+package edu.kit.kastel.vads.compiler.semantic.ret;
 
 import java.util.HashMap;
 import java.util.Map;

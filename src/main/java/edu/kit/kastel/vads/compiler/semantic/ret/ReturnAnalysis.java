@@ -1,4 +1,4 @@
-package edu.kit.kastel.vads.compiler.semantic.returns;
+package edu.kit.kastel.vads.compiler.semantic.ret;
 
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
