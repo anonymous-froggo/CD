@@ -6,21 +6,44 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 
 public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends RecursivePostorderVisitor<T, R> {
 
+    private boolean ignoreBlock = false;
+
     public ScopedRecursivePostorderVisitor(Visitor<T, R> visitor) {
         super(visitor);
     }
 
+    // Enables control flow operations to enter scopes regardless of whether the
+    // respective branch has a block statement and avoids a redundant scope being
+    // opened.
+    private void enterNewScopeIgnoreBlock(T data) {
+        ignoreBlock = true;
+        data.enterNewScope();
+    }
+
     @Override
     public R visit(BlockTree blockTree, T data) {
-        data.enterNewScope();
+        boolean exitScopeNeeded;
+
+        if (this.ignoreBlock) {
+            exitScopeNeeded = false;
+            ignoreBlock = false;
+        } else {
+            exitScopeNeeded = true;
+            data.enterNewScope();
+        }
+
         R r = super.visit(blockTree, data);
-        data.exitScope();
+
+        if (exitScopeNeeded) {
+            data.exitScope();
+        }
+
         return r;
     }
 
     @Override
     public R visit(ForTree forTree, T data) {
-        // Enter the scope in which a variable might be initialized 
+        // Enter the scope in which a variable might be initialized
         // in forTree.initializer()
         data.enterNewScope();
 
@@ -34,7 +57,7 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         }
 
         // Don't look inside loop body, encapsule it in a new scope
-        data.enterNewScope();
+        enterNewScopeIgnoreBlock(data);
         r = forTree.body().accept(this, accumulate(data, r));
         data.exitScope();
 
