@@ -44,4 +44,8 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
             throw new SemanticException("Variable " + name + " is already declared.");
         }
     }
+
+    public VariableStatus getStatus(NameTree name) {
+        return currentScope().get(name);
+    }
 }

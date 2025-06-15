@@ -8,7 +8,7 @@ import edu.kit.kastel.vads.compiler.semantic.Namespace;
 public abstract class Scoper<T> {
     private final Stack<Namespace<T>> scopes = new Stack<>();
 
-    public Namespace<T> currentScope() {
+    protected Namespace<T> currentScope() {
         // No need to check if this.scopes is empty, it only is in case of a bug
         return this.scopes.peek();
     }
