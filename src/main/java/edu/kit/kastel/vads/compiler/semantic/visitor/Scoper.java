@@ -46,4 +46,8 @@ public abstract class Scoper<T> {
     }
 
     protected abstract T cloneEntry(T t);
+
+    public abstract void mergeScopeToCurrent(Namespace<T> scope);
+
+    public abstract Namespace<T> intersectScopes(Namespace<T> scope1, Namespace<T> scope2);
 }

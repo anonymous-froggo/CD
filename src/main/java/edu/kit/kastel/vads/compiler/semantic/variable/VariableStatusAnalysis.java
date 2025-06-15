@@ -5,6 +5,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.semantic.visitor.NoOpVisitor;
 import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 
@@ -48,5 +49,13 @@ public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper>
         }
 
         return NoOpVisitor.super.visit(declarationTree, data);
+    }
+
+    @Override
+    public Unit visit(ForTree forTree, VariableStatusScoper data) {
+        if (forTree.initializer() instanceof DeclarationTree declaration) {
+            data.undeclare(declaration.name());
+        }
+        return NoOpVisitor.super.visit(forTree, data);
     }
 }
