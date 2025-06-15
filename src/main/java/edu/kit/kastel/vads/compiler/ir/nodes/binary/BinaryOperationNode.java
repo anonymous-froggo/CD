@@ -49,6 +49,9 @@ public sealed abstract class BinaryOperationNode extends Node permits
         if (a.getClass() != b.getClass()) {
             return false;
         }
+        if (a.block().hashCode() != b.block().hashCode()) {
+            return false;
+        }
         if (a.predecessor(LEFT) == b.predecessor(LEFT) && a.predecessor(RIGHT) == b.predecessor(RIGHT)) {
             return true;
         }
