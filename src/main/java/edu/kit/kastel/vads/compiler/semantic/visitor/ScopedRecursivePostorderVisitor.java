@@ -8,7 +8,7 @@ import edu.kit.kastel.vads.compiler.semantic.Namespace;
 
 public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends RecursivePostorderVisitor<T, R> {
 
-    private boolean ignoreBlock = false;
+    private boolean ignoreNextBlockScope = false;
 
     public ScopedRecursivePostorderVisitor(Visitor<T, R> visitor) {
         super(visitor);
@@ -18,7 +18,7 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
     // respective branch has a block statement and avoids a redundant scope being
     // opened.
     private void enterNewScopeIgnoreBlock(T data) {
-        ignoreBlock = true;
+        ignoreNextBlockScope = true;
         data.enterNewScope();
     }
 
@@ -26,9 +26,9 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
     public R visit(BlockTree blockTree, T data) {
         boolean exitScopeNeeded;
 
-        if (this.ignoreBlock) {
+        if (this.ignoreNextBlockScope) {
             exitScopeNeeded = false;
-            ignoreBlock = false;
+            ignoreNextBlockScope = false;
         } else {
             exitScopeNeeded = true;
             data.enterNewScope();
@@ -53,13 +53,14 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         if (forTree.initializer() != null) {
             r = forTree.initializer().accept(this, data);
         }
+
+        // Don't look inside loop body, encapsule it in a new scope. postBody needs to
+        // be in this scope too, since it may not be executed at all.
+        enterNewScopeIgnoreBlock(data);
         r = forTree.condition().accept(this, accumulate(data, r));
         if (forTree.postBody() != null) {
             r = forTree.postBody().accept(this, accumulate(data, r));
         }
-
-        // Don't look inside loop body, encapsule it in a new scope
-        enterNewScopeIgnoreBlock(data);
         r = forTree.body().accept(this, accumulate(data, r));
         data.exitScope();
 
