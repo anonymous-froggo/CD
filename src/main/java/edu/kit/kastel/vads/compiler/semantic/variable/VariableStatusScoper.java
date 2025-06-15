@@ -42,8 +42,21 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
         return scopeIntersection;
     }
 
+    @Override
+    public void registerSkip() {
+        for (Name name : currentScope().keySet()) {
+            if (getStatus(name) == VariableStatus.DECLARED) {
+                initialize(name);
+            }
+        }
+    }
+
     public void declare(NameTree name) {
         currentScope().put(name, VariableStatus.DECLARED);
+    }
+
+    public void initialize(Name name) {
+        currentScope().put(name, VariableStatus.INITIALIZED);
     }
 
     public void initialize(NameTree name) {
@@ -69,6 +82,10 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
         if (variableStatus != null) {
             throw new SemanticException("Variable " + name + " is already declared.");
         }
+    }
+
+    public VariableStatus getStatus(Name name) {
+        return currentScope().get(name);
     }
 
     public VariableStatus getStatus(NameTree name) {

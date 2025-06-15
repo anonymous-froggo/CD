@@ -95,19 +95,11 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
 
     @Override
     public R visit(BlockTree blockTree, T data) {
-        boolean skipRemainingStatements = false;
-
         R r;
         T d = data;
         for (StatementTree statement : blockTree.statements()) {
-            if (skipRemainingStatements && !(statement instanceof BlockTree)) {
-                continue;
-            }
-
             r = statement.accept(this, d);
             d = accumulate(d, r);
-
-            skipRemainingStatements = BlockTree.skipsRemainingStatements(statement);
         }
         r = this.visitor.visit(blockTree, d);
         return r;

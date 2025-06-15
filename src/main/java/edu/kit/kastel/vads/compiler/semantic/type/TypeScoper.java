@@ -31,6 +31,11 @@ public class TypeScoper extends Scoper<Type> {
         return null;
     }
 
+    @Override
+    public void registerSkip() {
+        return;
+    }
+
     public Type getType(Tree tree) {
         return switch (tree) {
             case ExpressionTree expression -> this.inferredTypes.get(expression);
