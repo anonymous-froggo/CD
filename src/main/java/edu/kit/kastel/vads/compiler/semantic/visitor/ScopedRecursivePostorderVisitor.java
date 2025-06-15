@@ -58,10 +58,12 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         // be in this scope too, since it may not be executed at all.
         enterNewScopeIgnoreBlock(data);
         r = forTree.condition().accept(this, accumulate(data, r));
+        r = forTree.body().accept(this, accumulate(data, r));
+        // Check postBody after body to ensure initializations in postBody don't affect
+        // body
         if (forTree.postBody() != null) {
             r = forTree.postBody().accept(this, accumulate(data, r));
         }
-        r = forTree.body().accept(this, accumulate(data, r));
         data.exitScope();
 
         // Exit the scope in which a variable might be initialized
