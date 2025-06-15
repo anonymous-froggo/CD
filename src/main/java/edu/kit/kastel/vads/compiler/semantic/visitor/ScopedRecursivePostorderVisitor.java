@@ -4,6 +4,7 @@ import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 
 public class ScopedRecursivePostorderVisitor<T extends Scoper<?>, R> extends RecursivePostorderVisitor<T, R> {
+
     public ScopedRecursivePostorderVisitor(Visitor<T, R> visitor) {
         super(visitor);
     }

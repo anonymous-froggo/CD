@@ -12,7 +12,7 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
         return t;
     }
 
-    public void declare(NameTree name, Type type) {
+    public void declare(NameTree name) {
         currentScope().put(name, VariableStatus.DECLARED);
     }
 
@@ -20,9 +20,9 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
         currentScope().put(name, VariableStatus.INITIALIZED);
     }
 
-    public void undeclare(NameTree name) {
-        currentScope().put(name, null);
-    }
+    // public void undeclare(NameTree name) {
+    //     currentScope().put(name, null);
+    // }
 
     public void checkDeclared(NameTree name) {
         VariableStatus variableStatus = currentScope().get(name);

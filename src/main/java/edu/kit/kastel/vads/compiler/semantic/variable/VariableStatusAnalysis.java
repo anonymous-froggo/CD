@@ -41,6 +41,12 @@ public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper>
     @Override
     public Unit visit(DeclarationTree declarationTree, VariableStatusScoper data) {
         data.checkUndeclared(declarationTree.name());
+        data.declare(declarationTree.name());
+
+        if (declarationTree.initializer() != null) {
+            data.initialize(declarationTree.name());
+        }
+
         return NoOpVisitor.super.visit(declarationTree, data);
     }
 }

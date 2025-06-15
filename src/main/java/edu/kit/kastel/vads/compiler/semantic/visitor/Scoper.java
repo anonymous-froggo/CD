@@ -6,11 +6,18 @@ import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 
 public abstract class Scoper<T> {
+
     private final Stack<Namespace<T>> scopes = new Stack<>();
+    private Namespace<T> previouslyExitedScope;
 
     protected Namespace<T> currentScope() {
         // No need to check if this.scopes is empty, it only is in case of a bug
         return this.scopes.peek();
+    }
+
+    /// Returns the scope this scoper most recently exited
+    protected Namespace<T> previouslyExitedScope() {
+        return previouslyExitedScope;
     }
 
     public void enterNewScope() {
@@ -24,7 +31,7 @@ public abstract class Scoper<T> {
 
     public void exitScope() {
         // No need to check if this.scopes is empty, it only is in case of a bug
-        this.scopes.pop();
+        this.previouslyExitedScope = this.scopes.pop();
     }
 
     private void duplicateCurrentScope() {
