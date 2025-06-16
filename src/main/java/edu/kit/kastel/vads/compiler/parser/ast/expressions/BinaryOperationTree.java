@@ -17,4 +17,9 @@ public record BinaryOperationTree(ExpressionTree lhs, ExpressionTree rhs, Binary
     public <T, R> R accept(Visitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
+
+    @Override
+    public final int hashCode() {
+        return System.identityHashCode(this);
+    }
 }
