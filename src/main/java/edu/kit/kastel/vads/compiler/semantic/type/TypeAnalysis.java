@@ -1,16 +1,16 @@
 package edu.kit.kastel.vads.compiler.semantic.type;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
@@ -58,9 +58,9 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
     }
 
     @Override
-    public Unit visit(IdentifierTree identifierTree, TypeScoper data) {
-        data.setType(identifierTree, data.getType(identifierTree.name()));
-        return NoOpVisitor.super.visit(identifierTree, data);
+    public Unit visit(IdentTree identTree, TypeScoper data) {
+        data.setType(identTree, data.getType(identTree.name()));
+        return NoOpVisitor.super.visit(identTree, data);
     }
 
     @Override
@@ -100,7 +100,7 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
     @Override
     public Unit visit(AssignmentTree assignmentTree, TypeScoper data) {
         switch (assignmentTree.lValue()) {
-            case LValueIdentifierTree(var name) -> {
+            case LValueIdentTree(var name) -> {
                 if (assignmentTree.operatorType() == AssignmentOperatorType.ASSIGN) {
                     data.checkTypesEqual(name, assignmentTree.expression());
                 } else {
@@ -113,14 +113,14 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
     }
 
     @Override
-    public Unit visit(DeclarationTree declarationTree, TypeScoper data) {
-        data.setType(declarationTree.name(), declarationTree.type().type());
+    public Unit visit(DeclTree declTree, TypeScoper data) {
+        data.setType(declTree.name(), declTree.type().type());
 
-        if (declarationTree.initializer() != null) {
-            data.checkTypesEqual(declarationTree.name(), declarationTree.initializer());
+        if (declTree.initializer() != null) {
+            data.checkTypesEqual(declTree.name(), declTree.initializer());
         }
 
-        return NoOpVisitor.super.visit(declarationTree, data);
+        return NoOpVisitor.super.visit(declTree, data);
     }
 
     @Override

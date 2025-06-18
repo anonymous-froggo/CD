@@ -15,14 +15,14 @@ import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfoHelper;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
@@ -30,7 +30,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
@@ -257,9 +257,9 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(IdentifierTree identifierTree, SsaTranslation data) {
-            pushSpan(identifierTree);
-            Node value = data.readVariable(identifierTree.name().name(), data.currentBlock());
+        public Optional<Node> visit(IdentTree identTree, SsaTranslation data) {
+            pushSpan(identTree);
+            Node value = data.readVariable(identTree.name().name(), data.currentBlock());
             popSpan();
             return Optional.of(value);
         }
@@ -342,7 +342,7 @@ public class SsaTranslation {
             };
 
             switch (assignmentTree.lValue()) {
-                case LValueIdentifierTree(var name) -> {
+                case LValueIdentTree(var name) -> {
                     Node rhs = assignmentTree.expression().accept(this, data).orElseThrow();
                     if (desugar != null) {
                         rhs = desugar.apply(data.readVariable(name.name(), data.currentBlock()), rhs);
@@ -422,11 +422,11 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(DeclarationTree declarationTree, SsaTranslation data) {
-            pushSpan(declarationTree);
-            if (declarationTree.initializer() != null) {
-                Node rhs = declarationTree.initializer().accept(this, data).orElseThrow();
-                data.writeVariable(declarationTree.name().name(), data.currentBlock(), rhs);
+        public Optional<Node> visit(DeclTree declTree, SsaTranslation data) {
+            pushSpan(declTree);
+            if (declTree.initializer() != null) {
+                Node rhs = declTree.initializer().accept(this, data).orElseThrow();
+                data.writeVariable(declTree.name().name(), data.currentBlock(), rhs);
             }
             popSpan();
             return NOT_AN_EXPRESSION;
@@ -464,12 +464,12 @@ public class SsaTranslation {
             data.graphConstructor.sealBlock(bodyBlock);
             forTree.body().accept(this, data);
 
-            if (forTree.postBody() != null) {
-                Block postBodyBlock = data.graphConstructor.jumpToNewBlock();
-                data.linkContinueNodes(postBodyBlock);
-                data.graphConstructor.sealBlock(postBodyBlock);
+            if (forTree.step() != null) {
+                Block stepBlock = data.graphConstructor.jumpToNewBlock();
+                data.linkContinueNodes(stepBlock);
+                data.graphConstructor.sealBlock(stepBlock);
 
-                forTree.postBody().accept(this, data);
+                forTree.step().accept(this, data);
             } else {
                 data.linkContinueNodes(conditionBlock);
             }
@@ -607,7 +607,7 @@ public class SsaTranslation {
         }
 
         @Override
-        public Optional<Node> visit(LValueIdentifierTree lValueIdentTree, SsaTranslation data) {
+        public Optional<Node> visit(LValueIdentTree lValueIdentTree, SsaTranslation data) {
             return NOT_AN_EXPRESSION;
         }
 

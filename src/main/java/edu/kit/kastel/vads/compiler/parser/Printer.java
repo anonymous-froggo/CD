@@ -1,10 +1,14 @@
 package edu.kit.kastel.vads.compiler.parser;
 
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
+import edu.kit.kastel.vads.compiler.parser.ast.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.CallTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
@@ -12,7 +16,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
@@ -20,7 +24,6 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.StatementTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
-import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 
@@ -65,7 +68,13 @@ public class Printer {
                 print(")");
             }
             case BoolTree(var boolKeyword) -> builder.append(boolKeyword.asString());
-            case IdentifierTree(var name) -> printTree(name);
+            case CallTree(var ident, var args) -> {
+                printTree(ident);
+                print("(");
+                printList(args, ", ");
+                print(")");
+            }
+            case IdentTree(var name) -> printTree(name);
             case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
             case TernaryTree(var condition, var thenExpression, var elseExpression) -> {
                 print("(");
@@ -110,7 +119,7 @@ public class Printer {
                 print("continue");
                 semicolon();
             }
-            case DeclarationTree(var type, var name, var initializer) -> {
+            case DeclTree(var type, var name, var initializer) -> {
                 printTree(type);
                 space();
                 printTree(name);
@@ -124,7 +133,7 @@ public class Printer {
                 print(" else ");
                 printTree(elseStatement);
             }
-            case ForTree(var initializer, var condition, var postBody, var body, _) -> {
+            case ForTree(var initializer, var condition, var step, var body, _) -> {
                 print("for (");
                 if (initializer != null) {
                     printTree(initializer);
@@ -132,8 +141,8 @@ public class Printer {
                 print("; ");
                 printTree(condition);
                 print("; ");
-                if (postBody != null) {
-                    printTree(postBody);
+                if (step != null) {
+                    printTree(step);
                 }
                 print(") ");
                 lineBreak();
@@ -166,23 +175,31 @@ public class Printer {
             }
 
             // Other trees
-            case FunctionTree(var returnType, var name, var body) -> {
+            case FunctionTree(var returnType, var name, var params, var body) -> {
                 printTree(returnType);
                 space();
                 printTree(name);
-                print("()");
-                space();
+                print("(");
+                printList(params, ", ");
+                print(") ");
                 printTree(body);
+                lineBreak();
             }
-            case LValueIdentifierTree(var name) -> printTree(name);
+            case LValueIdentTree(var name) -> printTree(name);
             case NameTree(var name, _) -> print(name.asString());
-            case ProgramTree(var topLevelTrees) -> {
+            case ParamTree(var type, var name) -> {
+                printTree(type);
+                space();
+                printTree(name);
+            }
+            case ProgramTree(var topLevelTrees, _) -> {
                 for (FunctionTree function : topLevelTrees) {
                     printTree(function);
                     lineBreak();
                 }
             }
             case TypeTree(var type, _) -> print(type.asString());
+            default -> throw new UnsupportedOperationException("Printing " + tree + " not yet implemented");
         }
     }
 
@@ -208,4 +225,12 @@ public class Printer {
         this.builder.append(" ");
     }
 
+    private void printList(List<? extends Tree> trees, String separator) {
+        for (int i = 0; i < trees.size(); i++) {
+            printTree(trees.get(i));
+            if (i < trees.size() - 1) {
+                print(separator);
+            }
+        }
+    }
 }

@@ -9,6 +9,7 @@ import edu.kit.kastel.vads.compiler.ir.util.YCompPrinter;
 import edu.kit.kastel.vads.compiler.lexer.Lexer;
 import edu.kit.kastel.vads.compiler.parser.ParseException;
 import edu.kit.kastel.vads.compiler.parser.Parser;
+import edu.kit.kastel.vads.compiler.parser.Printer;
 import edu.kit.kastel.vads.compiler.parser.TokenSource;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
@@ -39,6 +40,9 @@ public class Main {
         Path input = Path.of(args[0]);
         Path output = Path.of(args[1]);
         ProgramTree programTree = lexAndParse(input);
+        if (DEBUG) {
+            System.out.println(Printer.print(programTree));
+        }
 
         try {
             new SemanticAnalysis(programTree).analyze();
@@ -51,8 +55,8 @@ public class Main {
         // TODO this is only temporary, because breaks and continues are checked for during SSA translation
         List<IrGraph> graphs = new ArrayList<>();
         try {
-            for (FunctionTree functionTree : programTree.topLevelTrees()) {
-                SsaTranslation ssaTranslation = new SsaTranslation(functionTree, new LocalValueNumbering());
+            for (FunctionTree function : programTree.topLevelTrees()) {
+                SsaTranslation ssaTranslation = new SsaTranslation(function, new LocalValueNumbering());
                 graphs.add(ssaTranslation.translate());
             }
         } catch (SemanticException e) {

@@ -1,6 +1,6 @@
 package edu.kit.kastel.vads.compiler.parser;
 
-import edu.kit.kastel.vads.compiler.lexer.Identifier;
+import edu.kit.kastel.vads.compiler.lexer.Ident;
 import edu.kit.kastel.vads.compiler.lexer.Lexer;
 import edu.kit.kastel.vads.compiler.lexer.Separator;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
@@ -89,9 +89,9 @@ public class TokenSource {
         return op;
     }
 
-    public Identifier expectIdentifier() {
+    public Ident expectIdentifier() {
         Token token = peek();
-        if (!(token instanceof Identifier ident)) {
+        if (!(token instanceof Ident ident)) {
             throw new ParseException("expected identifier but got " + token);
         }
         this.idx++;

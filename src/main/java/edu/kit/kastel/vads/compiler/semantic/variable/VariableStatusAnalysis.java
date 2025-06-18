@@ -1,12 +1,12 @@
 package edu.kit.kastel.vads.compiler.semantic.variable;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
@@ -18,7 +18,7 @@ public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper>
     // Expression trees
 
     @Override
-    public Unit visit(IdentifierTree identExpressionTree, VariableStatusScoper data) {
+    public Unit visit(IdentTree identExpressionTree, VariableStatusScoper data) {
         data.checkInitialized(identExpressionTree.name());
         return NoOpVisitor.super.visit(identExpressionTree, data);
     }
@@ -28,7 +28,7 @@ public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper>
     @Override
     public Unit visit(AssignmentTree assignmentTree, VariableStatusScoper data) {
         switch (assignmentTree.lValue()) {
-            case LValueIdentifierTree(var name) -> {
+            case LValueIdentTree(var name) -> {
                 if (assignmentTree.operatorType() == AssignmentOperatorType.ASSIGN) {
                     data.checkDeclared(name);
                 } else {
@@ -56,22 +56,22 @@ public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper>
     }
 
     @Override
-    public Unit visit(DeclarationTree declarationTree, VariableStatusScoper data) {
-        data.checkUndeclared(declarationTree.name());
-        data.declare(declarationTree.name());
+    public Unit visit(DeclTree declTree, VariableStatusScoper data) {
+        data.checkUndeclared(declTree.name());
+        data.declare(declTree.name());
 
-        if (declarationTree.initializer() != null) {
-            data.initialize(declarationTree.name());
+        if (declTree.initializer() != null) {
+            data.initialize(declTree.name());
         }
 
-        return NoOpVisitor.super.visit(declarationTree, data);
+        return NoOpVisitor.super.visit(declTree, data);
     }
 
     @Override
     public Unit visit(ForTree forTree, VariableStatusScoper data) {
-        // Check that forTree.postBody() is not a declaration.
+        // Check that forTree.step() is not a declaration.
         // Don't really have a better place for that than here.
-        if (forTree.postBody() instanceof DeclarationTree) {
+        if (forTree.step() instanceof DeclTree) {
             throw new SemanticException("The step statement in a for loop may not be a declaration");
         }
         return NoOpVisitor.super.visit(forTree, data);

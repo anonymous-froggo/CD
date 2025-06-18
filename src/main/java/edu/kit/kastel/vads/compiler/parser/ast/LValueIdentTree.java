@@ -1,10 +1,9 @@
-package edu.kit.kastel.vads.compiler.parser.ast.expressions;
+package edu.kit.kastel.vads.compiler.parser.ast;
 
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.Visitor;
-import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 
-public record IdentifierTree(NameTree name) implements ExpressionTree {
+public record LValueIdentTree(NameTree name) implements LValueTree {
 
     @Override
     public Span span() {

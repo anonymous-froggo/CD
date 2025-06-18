@@ -2,13 +2,13 @@ package edu.kit.kastel.vads.compiler.semantic.visitor;
 
 import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
@@ -16,7 +16,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
@@ -52,7 +52,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
-    public R visit(IdentifierTree indentifierTree, T data) {
+    public R visit(IdentTree indentifierTree, T data) {
         R r = indentifierTree.name().accept(this, data);
         r = this.visitor.visit(indentifierTree, accumulate(data, r));
         return r;
@@ -115,13 +115,13 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
-    public R visit(DeclarationTree declarationTree, T data) {
-        R r = declarationTree.type().accept(this, data);
-        r = declarationTree.name().accept(this, accumulate(data, r));
-        if (declarationTree.initializer() != null) {
-            r = declarationTree.initializer().accept(this, accumulate(data, r));
+    public R visit(DeclTree declTree, T data) {
+        R r = declTree.type().accept(this, data);
+        r = declTree.name().accept(this, accumulate(data, r));
+        if (declTree.initializer() != null) {
+            r = declTree.initializer().accept(this, accumulate(data, r));
         }
-        r = this.visitor.visit(declarationTree, accumulate(data, r));
+        r = this.visitor.visit(declTree, accumulate(data, r));
         return r;
     }
 
@@ -139,8 +139,8 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
             r = forTree.initializer().accept(this, data);
         }
         r = forTree.condition().accept(this, accumulate(data, r));
-        if (forTree.postBody() != null) {
-            r = forTree.postBody().accept(this, accumulate(data, r));
+        if (forTree.step() != null) {
+            r = forTree.step().accept(this, accumulate(data, r));
         }
         r = forTree.body().accept(this, accumulate(data, r));
         r = this.visitor.visit(forTree, accumulate(data, r));
@@ -185,7 +185,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
-    public R visit(LValueIdentifierTree lValueIdentTree, T data) {
+    public R visit(LValueIdentTree lValueIdentTree, T data) {
         R r = lValueIdentTree.name().accept(this, data);
         r = this.visitor.visit(lValueIdentTree, accumulate(data, r));
         return r;

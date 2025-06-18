@@ -1,14 +1,20 @@
 package edu.kit.kastel.vads.compiler.parser.ast;
 
+import java.util.List;
+
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 
-public record FunctionTree(TypeTree returnType, NameTree name, BlockTree body) implements Tree {
+public record FunctionTree(TypeTree returnType, NameTree name, List<ParamTree> params, BlockTree body) implements Tree {
+
+    public FunctionTree {
+        params = List.copyOf(params);
+    }
 
     @Override
     public Span span() {
-        return new Span.SimpleSpan(returnType().span().start(), body().span().end());
+        return returnType().span().merge(body().span());
     }
 
     @Override

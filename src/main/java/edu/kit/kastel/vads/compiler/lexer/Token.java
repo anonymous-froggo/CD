@@ -7,7 +7,7 @@ import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword.KeywordType;
 import edu.kit.kastel.vads.compiler.lexer.operators.Operator;
 import edu.kit.kastel.vads.compiler.lexer.operators.Operator.OperatorType;
 
-public sealed interface Token permits ErrorToken, Identifier, Keyword, NumberLiteral, Operator, Separator {
+public sealed interface Token permits ErrorToken, Ident, Keyword, NumberLiteral, Operator, Separator {
 
     Span span();
 

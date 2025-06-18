@@ -39,10 +39,11 @@ public class Lexer {
             return Optional.empty();
         }
         Token t = switch (peek()) {
-            case '(' -> separator(SeparatorType.PAREN_OPEN);
-            case ')' -> separator(SeparatorType.PAREN_CLOSE);
             case '{' -> separator(SeparatorType.BRACE_OPEN);
             case '}' -> separator(SeparatorType.BRACE_CLOSE);
+            case ',' -> separator(SeparatorType.COMMA);
+            case '(' -> separator(SeparatorType.PAREN_OPEN);
+            case ')' -> separator(SeparatorType.PAREN_CLOSE);
             case ';' -> separator(SeparatorType.SEMICOLON);
             case '-' -> singleOrAssign(BinaryOperatorType.MINUS, AssignmentOperatorType.ASSIGN_MINUS);
             case '+' -> singleOrAssign(BinaryOperatorType.PLUS, AssignmentOperatorType.ASSIGN_PLUS);
@@ -166,7 +167,7 @@ public class Lexer {
         }
 
         // id is an identifier
-        return new Identifier(id, span);
+        return new Ident(id, span);
     }
 
     private Token lexNumber() {

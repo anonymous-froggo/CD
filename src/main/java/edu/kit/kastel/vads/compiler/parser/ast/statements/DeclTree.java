@@ -8,7 +8,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 
 import org.jspecify.annotations.Nullable;
 
-public record DeclarationTree(TypeTree type, NameTree name, @Nullable ExpressionTree initializer)
+public record DeclTree(TypeTree type, NameTree name, @Nullable ExpressionTree initializer)
     implements StatementTree
 {
 

@@ -7,7 +7,7 @@ public sealed interface StatementTree extends Tree permits
     BlockTree,
     BreakTree,
     ContinueTree,
-    DeclarationTree,
+    DeclTree,
     ElseOptTree,
     ForTree,
     IfTree,

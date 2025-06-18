@@ -10,6 +10,7 @@ public sealed interface Tree permits
     FunctionTree,
     LValueTree,
     NameTree,
+    ParamTree,
     ProgramTree,
     StatementTree,
     TypeTree

@@ -10,7 +10,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 public record ForTree(
     @Nullable StatementTree initializer,
     ExpressionTree condition,
-    @Nullable StatementTree postBody,
+    @Nullable StatementTree step,
     StatementTree body,
     Position start
 ) implements StatementTree

@@ -1,13 +1,13 @@
 package edu.kit.kastel.vads.compiler;
 
 import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentifierTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
@@ -15,7 +15,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
@@ -30,7 +30,7 @@ public interface Visitor<T, R> {
 
     R visit(BoolTree trueTree, T data);
 
-    R visit(IdentifierTree identExpressionTree, T data);
+    R visit(IdentTree identExpressionTree, T data);
 
     R visit(NumberLiteralTree literalTree, T data);
 
@@ -48,7 +48,7 @@ public interface Visitor<T, R> {
 
     R visit(ContinueTree continueTree, T data);
 
-    R visit(DeclarationTree declarationTree, T data);
+    R visit(DeclTree declTree, T data);
 
     R visit(ElseOptTree elseOptTree, T data);
 
@@ -64,7 +64,7 @@ public interface Visitor<T, R> {
 
     R visit(FunctionTree functionTree, T data);
 
-    R visit(LValueIdentifierTree lValueIdentTree, T data);
+    R visit(LValueIdentTree lValueIdentTree, T data);
 
     R visit(NameTree nameTree, T data);
 

@@ -5,7 +5,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
-import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclarationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.IfTree;
@@ -61,11 +61,11 @@ public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
     }
 
     @Override
-    public Unit visit(DeclarationTree declarationTree, ReturnState data) {
+    public Unit visit(DeclTree declTree, ReturnState data) {
         // 𝐝𝐞𝐜𝐥𝐚𝐫𝐞(𝑥, 𝜏 , 𝑠) returns if 𝑠 returns
         // For now, s can't return because it's an expression.
-        data.setReturns(declarationTree, false);
-        return NoOpVisitor.super.visit(declarationTree, data);
+        data.setReturns(declTree, false);
+        return NoOpVisitor.super.visit(declTree, data);
     }
 
     @Override
