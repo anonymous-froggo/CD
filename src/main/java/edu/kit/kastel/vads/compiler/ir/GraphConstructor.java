@@ -411,7 +411,7 @@ class GraphConstructor {
     }
 
     Node tryRemoveTrivialPhi(Phi phi) {
-        // TODO: the paper shows how to remove trivial phis.
+        // TODO the paper shows how to remove trivial phis.
         // as this is not a problem in Lab 1 and it is just
         // a simplification, we recommend to implement this
         // part yourself.

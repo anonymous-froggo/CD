@@ -1,13 +1,13 @@
 package edu.kit.kastel.vads.compiler.semantic.ret;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 
 public class ReturnState {
 
-    private final Map<Tree, Boolean> returns = new HashMap<>();
+    private final Map<Tree, Boolean> returns = new IdentityHashMap<>();
 
     public boolean returns(Tree tree) {
         Boolean result = returns.get(tree);

@@ -1,6 +1,6 @@
 package edu.kit.kastel.vads.compiler.semantic.type;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
@@ -13,7 +13,7 @@ import edu.kit.kastel.vads.compiler.semantic.visitor.Scoper;
 
 public class TypeScoper extends Scoper<Type> {
 
-    Map<ExpressionTree, Type> inferredTypes = new HashMap<>();
+    Map<ExpressionTree, Type> inferredTypes = new IdentityHashMap<>();
 
     @Override
     protected Type cloneEntry(Type t) {

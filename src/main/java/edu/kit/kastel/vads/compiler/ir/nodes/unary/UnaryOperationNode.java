@@ -8,7 +8,6 @@ public sealed abstract class UnaryOperationNode extends Node permits
     BitwiseNotNode,
     NegateNode
 {
-
     // TODO override hashCode() and equals() similarly to [BinaryOperationNode] to
     // avoid stack overflows
 

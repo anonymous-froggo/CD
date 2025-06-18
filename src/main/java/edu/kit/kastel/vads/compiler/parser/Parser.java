@@ -69,7 +69,7 @@ public class Parser {
             System.out.println(Printer.print(programTree));
         }
 
-        // TODO: refactor this once multiple functions are supported
+        // TODO refactor this once multiple functions are supported
         for (FunctionTree functionTree : programTree.topLevelTrees()) {
             if (functionTree.name().name().asString().equals("main")) {
                 // found main function
@@ -384,8 +384,7 @@ public class Parser {
             case Identifier identifier -> new IdentifierTree(name(identifier));// ⟨intconst⟩
             case NumberLiteral numberLiteral -> new NumberLiteralTree(
                 numberLiteral.value(), numberLiteral.base(), numberLiteral.span()
-            );// TODO implement unaries using binary trees (unary trees cause trouble in
-            // codegen)
+            );
             // ⟨unop⟩ ⟨exp⟩
             case UnaryOperator operator -> new UnaryOperationTree(operator, parseAtom());
             case BinaryOperator operator when operator.isOperator(BinaryOperatorType.MINUS) -> {
