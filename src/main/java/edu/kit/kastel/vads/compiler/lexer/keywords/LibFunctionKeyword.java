@@ -5,11 +5,13 @@ import edu.kit.kastel.vads.compiler.Span;
 public final record LibFunctionKeyword(LibFunctionKeywordType type, Span span) implements Keyword {
 
     public enum LibFunctionKeywordType implements KeywordType {
+        PRINT("print"),
+        READ("read"),
+        FLUSH("flush"),
+        
         ALLOC("alloc"),
         ALLOC_ARRAY("alloc_array"),
-        ASSERT("assert"),
-        PRINT("print"),
-        READ("read");
+        ASSERT("assert");
 
         private final String keyword;
 

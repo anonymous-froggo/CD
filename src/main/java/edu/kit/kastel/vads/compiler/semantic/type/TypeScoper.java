@@ -7,6 +7,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.type.Type;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
@@ -36,7 +37,8 @@ public class TypeScoper extends Scoper<Type> {
         return switch (tree) {
             case ExpressionTree expression -> this.inferredTypes.get(expression);
             case NameTree name -> currentScope().get(name);
-            default -> throw new IllegalArgumentException(tree + "cannot have a type associated to it.");
+            case ParamTree param -> param.type().type();
+            default -> throw new IllegalArgumentException(tree + " cannot have a type associated to it.");
         };
     }
 
@@ -44,7 +46,7 @@ public class TypeScoper extends Scoper<Type> {
         switch (tree) {
             case ExpressionTree expression -> this.inferredTypes.put(expression, type);
             case NameTree name -> currentScope().put(name, type);
-            default -> throw new IllegalArgumentException(tree + "cannot have a type associated to it.");
+            default -> throw new IllegalArgumentException(tree + " cannot have a type associated to it.");
         }
     }
 

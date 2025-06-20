@@ -1,6 +1,10 @@
 package edu.kit.kastel.vads.compiler;
 
 public sealed interface Span {
+    
+    public static final Span NULL_SPAN = new SimpleSpan(
+            new Position.SimplePosition(0, 0),
+            new Position.SimplePosition(0, 0));
 
     Position start();
 
@@ -8,7 +12,8 @@ public sealed interface Span {
 
     Span merge(Span later);
 
-    record SimpleSpan(Position start, Position end) implements Span {
+    public record SimpleSpan(Position start, Position end) implements Span {
+
 
         @Override
         public Span merge(Span later) {

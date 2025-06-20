@@ -170,7 +170,10 @@ public class Parser {
             case TypeKeyword _ -> parseDeclaration();
 
             // ⟨call⟩
-            case LibFunctionKeyword keyword -> parseCall(name(keyword));
+            case LibFunctionKeyword keyword -> {
+                this.tokenSource.consume();
+                yield parseCall(name(keyword));
+            }
 
             // ⟨call⟩ | ⟨lvalue⟩ ⟨asnop⟩ ⟨exp⟩
             case Ident ident -> {

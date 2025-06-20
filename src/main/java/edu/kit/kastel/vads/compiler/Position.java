@@ -6,7 +6,7 @@ public sealed interface Position {
 
   int column();
 
-  record SimplePosition(int line, int column) implements Position {
+  public record SimplePosition(int line, int column) implements Position {
 
     @Override
     public String toString() {
