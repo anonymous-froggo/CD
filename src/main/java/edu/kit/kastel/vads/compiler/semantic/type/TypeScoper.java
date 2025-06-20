@@ -6,6 +6,7 @@ import java.util.Map;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.type.Type;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
@@ -30,6 +31,7 @@ public class TypeScoper extends Scoper<Type> {
     public Namespace<Type> intersectScopes(Namespace<Type> scope1, Namespace<Type> scope2) {
         return null;
     }
+
     public Type getType(Tree tree) {
         return switch (tree) {
             case ExpressionTree expression -> this.inferredTypes.get(expression);

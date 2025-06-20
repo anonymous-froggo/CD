@@ -1,5 +1,7 @@
 package edu.kit.kastel.vads.compiler.semantic.type;
 
+import java.util.List;
+
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
@@ -8,6 +10,9 @@ import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.CallTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.ast.lvalues.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
@@ -17,10 +22,20 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 import edu.kit.kastel.vads.compiler.parser.type.BasicType;
 import edu.kit.kastel.vads.compiler.parser.type.Type;
+import edu.kit.kastel.vads.compiler.semantic.Namespace;
+import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 import edu.kit.kastel.vads.compiler.semantic.visitor.NoOpVisitor;
 import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 
 public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
+
+    private final Namespace<FunctionTree> functions;
+
+    public TypeAnalysis(Namespace<FunctionTree> functions) {
+        super();
+
+        this.functions = functions;
+    }
 
     // Expression trees
 
@@ -93,6 +108,26 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
         }
 
         return NoOpVisitor.super.visit(unaryOperationTree, data);
+    }
+
+    // Functions
+
+    @Override
+    public Unit visit(CallTree callTree, TypeScoper data) {
+        FunctionTree calledFunction = this.functions.get(callTree.functionName());
+        data.setType(callTree, calledFunction.returnType().type());
+
+        List<ExpressionTree> args = callTree.args();
+        List<ParamTree> params = calledFunction.params();
+        if (args.size() != params.size()) {
+            throw new SemanticException("Argument count mismatch at " + callTree.span() + ": expected " + params.size()
+                    + " but got " + args.size());
+        }
+        for (int i = 0; i < params.size(); i++) {
+            data.checkTypesEqual(args.get(i), params.get(i));
+        }
+
+        return NoOpVisitor.super.visit(callTree, data);
     }
 
     // Statement trees

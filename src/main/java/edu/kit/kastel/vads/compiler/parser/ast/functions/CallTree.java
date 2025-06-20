@@ -17,6 +17,10 @@ public record CallTree(NameTree functionName, List<ExpressionTree> args) impleme
 
     @Override
     public Span span() {
+        if (args.isEmpty()) {
+            return functionName().span();
+        }
+        
         return functionName().span().merge(args.getLast().span());
     }
 

@@ -325,6 +325,7 @@ public class SsaTranslation {
             return Optional.empty();
         }
 
+        // Entry point
         @Override
         public Optional<Node> visit(FunctionTree functionTree, SsaTranslation data) {
             pushSpan(functionTree);
