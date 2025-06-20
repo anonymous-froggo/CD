@@ -1,6 +1,6 @@
 package edu.kit.kastel.vads.compiler.semantic.ret;
 
-import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;

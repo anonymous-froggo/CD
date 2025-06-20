@@ -1,7 +1,8 @@
-package edu.kit.kastel.vads.compiler.parser.ast;
+package edu.kit.kastel.vads.compiler.parser.ast.lvalues;
 
 import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.Visitor;
+import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 
 public record LValueIdentTree(NameTree name) implements LValueTree {
 

@@ -22,21 +22,21 @@ import edu.kit.kastel.vads.compiler.lexer.operators.Operator.Associativity;
 import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator.UnaryOperatorType;
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.lexer.Token;
-import edu.kit.kastel.vads.compiler.parser.ast.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueIdentTree;
-import edu.kit.kastel.vads.compiler.parser.ast.LValueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
-import edu.kit.kastel.vads.compiler.parser.ast.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.CallTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.CallTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
+import edu.kit.kastel.vads.compiler.parser.ast.lvalues.LValueIdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.lvalues.LValueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
@@ -78,10 +78,31 @@ public class Parser {
             }
         }
 
-        throw new ParseException("No main function found :(");
+        throw new ParseException("No main method provided");
     }
 
-    // Function declarations
+    // Functions
+
+    // Don't mind me passing the name as an argument. It's easiest that way.
+    private CallTree parseCall(NameTree name) {
+        // (
+        this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
+
+        // ⟨arg-list⟩
+        List<ExpressionTree> args = new ArrayList<>();
+        while (!this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
+            args.add(parseExpression());
+
+            if (this.tokenSource.peek().isSeparator(SeparatorType.COMMA)) {
+                this.tokenSource.consume();
+            }
+        }
+
+        // )
+        this.tokenSource.consume();
+
+        return new CallTree(name, args);
+    }
 
     private FunctionTree parseFunction() {
         // ⟨type⟩
@@ -151,15 +172,17 @@ public class Parser {
     }
 
     private StatementTree parseSimple() {
-        Token token = this.tokenSource.peek();
-
-        if (token instanceof TypeKeyword) {
+        return switch (this.tokenSource.peek()) {
             // ⟨decl⟩
-            return parseDeclaration();
-        }
+            case TypeKeyword _ -> parseDeclaration();
 
-        // ⟨lvalue⟩ ⟨asnop⟩ ⟨exp⟩
-        return parseAssignment();
+            // ⟨call⟩
+            case Ident ident -> parseCall(name(ident));
+            case LibFunctionKeyword keyword -> parseCall(name(keyword));
+
+            // ⟨lvalue⟩ ⟨asnop⟩ ⟨exp⟩
+            default -> parseAssignment();
+        };
     }
 
     private StatementTree parseDeclaration() {
@@ -187,20 +210,6 @@ public class Parser {
         ExpressionTree expression = parseExpression();
 
         return new AssignmentTree(lValue, assignmentOperator.type(), expression);
-    }
-
-    private LValueTree parseLValue() {
-        if (this.tokenSource.peek().isSeparator(SeparatorType.PAREN_OPEN)) {
-            // LValue is surrounded by parantheses, remove them recursively
-            this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
-            LValueTree inner = parseLValue();
-            this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
-            return inner;
-        }
-
-        // LValue is not surrounded by parantheses
-        Ident ident = this.tokenSource.expectIdent();
-        return new LValueIdentTree(name(ident));
     }
 
     private AssignmentOperator parseAssignmentOperator() {
@@ -331,6 +340,22 @@ public class Parser {
         return new WhileTree(condition, body, whileToken.span().start());
     }
 
+    // LValues
+    
+    private LValueTree parseLValue() {
+        if (this.tokenSource.peek().isSeparator(SeparatorType.PAREN_OPEN)) {
+            // LValue is surrounded by parantheses, remove them recursively
+            this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
+            LValueTree inner = parseLValue();
+            this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
+            return inner;
+        }
+
+        // LValue is not surrounded by parantheses
+        Ident ident = this.tokenSource.expectIdent();
+        return new LValueIdentTree(name(ident));
+    }
+
     // Expressions
 
     private ExpressionTree parseExpression() {
@@ -432,28 +457,7 @@ public class Parser {
         return atom;
     }
 
-    // Don't mind me passing the name as an argument. It's easiest that way.
-    private CallTree parseCall(NameTree name) {
-        // (
-        this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
-
-        // ⟨arg-list⟩
-        List<ExpressionTree> args = new ArrayList<>();
-        while (!this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
-            args.add(parseExpression());
-
-            if (this.tokenSource.peek().isSeparator(SeparatorType.COMMA)) {
-                this.tokenSource.consume();
-            }
-        }
-
-        // )
-        this.tokenSource.consume();
-
-        return new CallTree(name, args);
-    }
-
-    // Other stuff
+    // Other trees
 
     private TypeTree parseType() {
         Keyword type = this.tokenSource.expectKeyword();
