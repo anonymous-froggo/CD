@@ -2,7 +2,7 @@ package edu.kit.kastel.vads.compiler.ir.util;
 
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.ir.IrGraph;
+import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/// Outputs a DOT format string to visualize an [IrGraph].
+/// Outputs a DOT format string to visualize an [SsaGraph].
 public class GraphVizPrinter {
 
     public static final Path IR_GRAPH_DOT_FILE = Main.OUTPUT_FOLDER.resolve("ir-graph.dot");
@@ -28,20 +28,20 @@ public class GraphVizPrinter {
     private final List<Edge> edges = new ArrayList<>();
     private final Map<Node, Integer> ids = new HashMap<>();
     private final StringBuilder builder = new StringBuilder();
-    private final IrGraph graph;
+    private final SsaGraph graph;
     private int counter = 0;
 
-    public GraphVizPrinter(IrGraph graph) {
+    public GraphVizPrinter(SsaGraph graph) {
         this.graph = graph;
     }
 
-    public static void generateSvg(IrGraph graph) {
+    public static void generateSvg(SsaGraph graph) {
         System.out.println("Generating IR-Graph...");
         String graphAsDotString = print(graph);
         try {
             Files.writeString(IR_GRAPH_DOT_FILE, graphAsDotString);
             Process dotProcess = Runtime.getRuntime().exec(new String[] {
-                "dot", "-Tsvg", IR_GRAPH_DOT_FILE.toString(), "-o", IR_GRAPH_SVG_FILE.toString()
+                    "dot", "-Tsvg", IR_GRAPH_DOT_FILE.toString(), "-o", IR_GRAPH_SVG_FILE.toString()
             });
             dotProcess.waitFor();
             System.out.println(String.format("dot exited with code %s", dotProcess.exitValue()));
@@ -52,7 +52,7 @@ public class GraphVizPrinter {
         }
     }
 
-    public static String print(IrGraph graph) {
+    public static String print(SsaGraph graph) {
         GraphVizPrinter printer = new GraphVizPrinter(graph);
         printer.prepare(graph.endBlock(), new HashSet<>());
         printer.print();
@@ -66,7 +66,7 @@ public class GraphVizPrinter {
 
         if (!(node instanceof Block)) {
             this.clusters.computeIfAbsent(node.block(), _ -> Collections.newSetFromMap(new IdentityHashMap<>()))
-                .add(node);
+                    .add(node);
             prepare(node.block(), seen);
         }
         int idx = 0;
@@ -81,40 +81,40 @@ public class GraphVizPrinter {
 
     private void print() {
         this.builder.append("digraph \"")
-            .append(this.graph.name())
-            .append("\"")
-            .append("""
-                 {
-                    compound=true;
-                    layout=dot;
-                    node [shape=box];
-                    splines=ortho;
-                    overlap=false;
+                .append(this.graph.name())
+                .append("\"")
+                .append("""
+                         {
+                            compound=true;
+                            layout=dot;
+                            node [shape=box];
+                            splines=ortho;
+                            overlap=false;
 
-                """);
+                        """);
 
         this.clusters.forEach((block, nodes) -> {
             this.builder.append("    subgraph cluster_")
-                .append(idFor(block))
-                .append(" {\n")
-                .repeat(" ", 8)
-                .append("c_").append(idFor(block))
-                .append(" [width=0, height=0, fixedsize=true, style=invis];\n");
+                    .append(idFor(block))
+                    .append(" {\n")
+                    .repeat(" ", 8)
+                    .append("c_").append(idFor(block))
+                    .append(" [width=0, height=0, fixedsize=true, style=invis];\n");
             if (block == this.graph.endBlock()) {
                 this.builder.repeat(" ", 8)
-                    .append("label=End;\n");
+                        .append("label=End;\n");
             }
             for (Node node : nodes) {
                 this.builder.repeat(" ", 8)
-                    .append(idFor(node))
-                    .append(" [label=\"")
-                    .append(labelFor(node))
-                    .append("\"");
+                        .append(idFor(node))
+                        .append(" [label=\"")
+                        .append(labelFor(node))
+                        .append("\"");
                 if (node.debugInfo() instanceof DebugInfo.SourceInfo(Span span)) {
                     this.builder.append(", tooltip=\"")
-                        .append("source span: ")
-                        .append(span)
-                        .append("\"");
+                            .append("source span: ")
+                            .append(span)
+                            .append("\"");
                 }
                 this.builder.append("];\n");
             }
@@ -123,24 +123,24 @@ public class GraphVizPrinter {
 
         for (Edge edge : this.edges) {
             this.builder.repeat(" ", 4)
-                .append(nameFor(edge.from()))
-                .append(" -> ")
-                .append(nameFor(edge.to()))
-                .append(" [")
-                .append("label=")
-                .append(edge.idx());
+                    .append(nameFor(edge.from()))
+                    .append(" -> ")
+                    .append(nameFor(edge.to()))
+                    .append(" [")
+                    .append("label=")
+                    .append(edge.idx());
 
             if (edge.from() instanceof Block b) {
                 this.builder.append(", ")
-                    .append("ltail=")
-                    .append("cluster_")
-                    .append(idFor(b));
+                        .append("ltail=")
+                        .append("cluster_")
+                        .append(idFor(b));
             }
             if (edge.to() instanceof Block b) {
                 this.builder.append(", ")
-                    .append("lhead=")
-                    .append("cluster_")
-                    .append(idFor(b));
+                        .append("lhead=")
+                        .append("cluster_")
+                        .append(idFor(b));
             }
 
             this.builder.append("];\n");

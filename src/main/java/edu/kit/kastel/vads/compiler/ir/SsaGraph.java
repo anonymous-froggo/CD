@@ -11,7 +11,7 @@ import java.util.Set;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
-public class IrGraph {
+public class SsaGraph {
 
     private final Map<Node, SequencedSet<Node>> successors = new IdentityHashMap<>();
 
@@ -21,7 +21,7 @@ public class IrGraph {
 
     private final String name;
 
-    public IrGraph(String name) {
+    public SsaGraph(String name) {
         this.startBlock = new Block(this);
         this.endBlock = new Block(this);
 

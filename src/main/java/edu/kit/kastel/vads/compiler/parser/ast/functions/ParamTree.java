@@ -15,8 +15,7 @@ public final record ParamTree(TypeTree type, NameTree name) implements Tree {
 
     @Override
     public <T, R> R accept(Visitor<T, R> visitor, T data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accept'");
+        return visitor.visit(this, data);
     }
 
 }

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.Main;
-import edu.kit.kastel.vads.compiler.ir.IrGraph;
+import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
@@ -24,7 +24,7 @@ import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
 
 public class LivenessAnalysis {
 
-    private final IrGraph graph;
+    private final SsaGraph graph;
 
     private final Map<Node, Set<Node>> def = new HashMap<>();
     private final Map<Node, Set<Node>> use = new HashMap<>();
@@ -33,7 +33,7 @@ public class LivenessAnalysis {
     private final Map<Node, Set<Node>> live = new HashMap<>();
     private boolean liveChanged;
 
-    public LivenessAnalysis(IrGraph graph) {
+    public LivenessAnalysis(SsaGraph graph) {
         this.graph = graph;
     }
 

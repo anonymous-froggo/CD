@@ -1,7 +1,7 @@
 package edu.kit.kastel.vads.compiler.semantic.variable;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.lvalues.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
@@ -18,7 +18,7 @@ public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper>
     // Expression trees
 
     @Override
-    public Unit visit(IdentTree identExpressionTree, VariableStatusScoper data) {
+    public Unit visit(IdentExpressionTree identExpressionTree, VariableStatusScoper data) {
         data.checkInitialized(identExpressionTree.name());
         return NoOpVisitor.super.visit(identExpressionTree, data);
     }

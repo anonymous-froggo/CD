@@ -4,7 +4,7 @@ import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 
-public record IdentTree(NameTree name) implements ExpressionTree {
+public record IdentExpressionTree(NameTree name) implements ExpressionTree {
 
     @Override
     public Span span() {

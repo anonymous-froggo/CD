@@ -6,7 +6,7 @@ import java.util.Map;
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.codegen.CodeGenerator;
 import edu.kit.kastel.vads.compiler.codegen.Register;
-import edu.kit.kastel.vads.compiler.ir.IrGraph;
+import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
@@ -45,20 +45,20 @@ import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipPr
 
 public final class X8664CodeGenerator implements CodeGenerator {
 
-    private final List<IrGraph> graphs;
+    private final List<SsaGraph> graphs;
 
     private final StringBuilder builder = new StringBuilder();
 
     private Map<Node, Register> registers;
     private int nStackRegisters;
 
-    public X8664CodeGenerator(List<IrGraph> graphs) {
+    public X8664CodeGenerator(List<SsaGraph> graphs) {
         this.graphs = graphs;
     }
 
     @Override
     public String generateCode() {
-        for (IrGraph graph : this.graphs) {
+        for (SsaGraph graph : this.graphs) {
             X8664RegisterAllocator allocator = new X8664RegisterAllocator(graph);
             this.registers = allocator.allocateRegisters();
             this.nStackRegisters = allocator.numberOfStackRegisters();
@@ -90,7 +90,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         return "$0x" + (value ? 1 : 0);
     }
 
-    private void generateForGraph(IrGraph graph) {
+    private void generateForGraph(SsaGraph graph) {
         for (Block block : graph.blocks()) {
             generateForBlock(block);
         }
@@ -98,7 +98,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     private void generateForBlock(Block block) {
         this.builder.append(block.label())
-            .append(":\n");
+                .append(":\n");
 
         for (Node node : block.schedule()) {
             // Generate block-local code
@@ -151,8 +151,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
                 // do nothing
             }
             default -> throw new UnsupportedOperationException(
-                "code generation for " + node.getClass() + " not yet implemented"
-            );
+                    "code generation for " + node.getClass() + " not yet implemented");
         }
     }
 
@@ -204,20 +203,20 @@ public final class X8664CodeGenerator implements CodeGenerator {
         // Logical not is implemented using xor
         if (opcode.equals("xorl")) {
             this.builder.repeat(" ", 2)
-                .append(opcode)
-                .append(" ")
-                .append(fromBoolean(true))
-                .append(", ")
-                .append(dest)
-                .append("\n");
+                    .append(opcode)
+                    .append(" ")
+                    .append(fromBoolean(true))
+                    .append(", ")
+                    .append(dest)
+                    .append("\n");
             return;
         }
 
         this.builder.repeat(" ", 2)
-            .append(opcode)
-            .append(" ")
-            .append(dest)
-            .append("\n");
+                .append(opcode)
+                .append(" ")
+                .append(dest)
+                .append("\n");
     }
 
     private void shift(BinaryOperationNode node, String opcode) {
@@ -231,12 +230,12 @@ public final class X8664CodeGenerator implements CodeGenerator {
             move(src, X8664Register.RAX);
 
             this.builder.repeat(" ", 2)
-                .append(opcode)
-                .append(" ")
-                .append(X8664Register.RCX.name(8))
-                .append(", ")
-                .append(X8664Register.RAX.name(32))
-                .append("\n");
+                    .append(opcode)
+                    .append(" ")
+                    .append(X8664Register.RCX.name(8))
+                    .append(", ")
+                    .append(X8664Register.RAX.name(32))
+                    .append("\n");
 
             move(X8664Register.RAX, dest);
             return;
@@ -247,12 +246,12 @@ public final class X8664CodeGenerator implements CodeGenerator {
         }
 
         this.builder.repeat(" ", 2)
-            .append(opcode)
-            .append(" ")
-            .append(X8664Register.RCX.name(8))
-            .append(", ")
-            .append(dest.name(32))
-            .append("\n");
+                .append(opcode)
+                .append(" ")
+                .append(X8664Register.RCX.name(8))
+                .append(", ")
+                .append(dest.name(32))
+                .append("\n");
     }
 
     private void compare(BinaryOperationNode node, String opcode) {
@@ -272,17 +271,17 @@ public final class X8664CodeGenerator implements CodeGenerator {
     private void printCompare(String left, String right, String dest, String opcode) {
         // Compare operands are switched in at&t for some reason
         this.builder.repeat(" ", 2)
-            .append("cmp ")
-            .append(right)
-            .append(", ")
-            .append(left)
-            .append("\n");
+                .append("cmp ")
+                .append(right)
+                .append(", ")
+                .append(left)
+                .append("\n");
 
         this.builder.repeat(" ", 2)
-            .append(opcode)
-            .append(" ")
-            .append(dest)
-            .append("\n");
+                .append(opcode)
+                .append(" ")
+                .append(dest)
+                .append("\n");
     }
 
     private void specialSub(Register src, Register dest) {
@@ -306,20 +305,19 @@ public final class X8664CodeGenerator implements CodeGenerator {
         move(left, X8664Register.RAX);
 
         this.builder.repeat(" ", 2)
-            .append("cdq")
-            .append("\n");
+                .append("cdq")
+                .append("\n");
 
         this.builder.repeat(" ", 2)
-            .append("idivl ")
-            .append(right.name(32))
-            .append("\n");
+                .append("idivl ")
+                .append(right.name(32))
+                .append("\n");
 
         // The quotient (needed for division) is in rax,
         // the remainder (needed for modulo) is in rdx
         move(
-            node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX,
-            dest
-        );
+                node instanceof DivNode ? X8664Register.RAX : X8664Register.RDX,
+                dest);
     }
 
     // Control flow
@@ -331,53 +329,52 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
             // Sets ZF to 0 if condition == false
             this.builder.repeat(" ", 2)
-                .append("test ")
-                .append(X8664Register.RAX.name(8))
-                .append(", ")
-                .append(X8664Register.RAX.name(8))
-                .append("\n");
+                    .append("test ")
+                    .append(X8664Register.RAX.name(8))
+                    .append(", ")
+                    .append(X8664Register.RAX.name(8))
+                    .append("\n");
         } else {
             // Sets ZF to 0 if condition == false
             this.builder.repeat(" ", 2)
-                .append("test ")
-                .append(condition.name(8))
-                .append(", ")
-                .append(condition.name(8)).append("\n");
+                    .append("test ")
+                    .append(condition.name(8))
+                    .append(", ")
+                    .append(condition.name(8)).append("\n");
         }
 
         // Activated when ZF != 0 (condition == true)
         this.builder.repeat(" ", 2)
-            .append("jne ")
-            .append(node.target(ConditionalJumpNode.TRUE_TARGET).label())
-            .append("\n");
+                .append("jne ")
+                .append(node.target(ConditionalJumpNode.TRUE_TARGET).label())
+                .append("\n");
 
         // Activated when ZF == 0 (condition == false)
         this.builder.repeat(" ", 2)
-            .append("jmp ")
-            .append(node.target(ConditionalJumpNode.FALSE_TARGET).label())
-            .append("\n");
+                .append("jmp ")
+                .append(node.target(ConditionalJumpNode.FALSE_TARGET).label())
+                .append("\n");
     }
 
     private void jump(JumpNode jump) {
         this.builder.repeat(" ", 2)
-            .append("jmp ")
-            .append(jump.target(JumpNode.TARGET).label())
-            .append("\n");
+                .append("jmp ")
+                .append(jump.target(JumpNode.TARGET).label())
+                .append("\n");
     }
 
     private void ret(ReturnNode node) {
         move(
-            this.registers.get(predecessorSkipProj(node, ReturnNode.RESULT)),
-            X8664Register.RAX
-        );
+                this.registers.get(predecessorSkipProj(node, ReturnNode.RESULT)),
+                X8664Register.RAX);
 
         if (this.nStackRegisters > 0) {
             moveStackPointer(this.nStackRegisters * 8);
         }
 
         this.builder.repeat(" ", 2)
-            .append("ret")
-            .append("\n");
+                .append("ret")
+                .append("\n");
     }
 
     private void move(Register src, Register dest) {
@@ -394,38 +391,38 @@ public final class X8664CodeGenerator implements CodeGenerator {
         }
 
         this.builder.repeat(" ", 2)
-            .append("movl ")
-            .append(src.name(32))
-            .append(", ")
-            .append(dest.name(32))
-            .append("\n");
+                .append("movl ")
+                .append(src.name(32))
+                .append(", ")
+                .append(dest.name(32))
+                .append("\n");
     }
 
     private void constant(String constant, Register dest) {
         this.builder.repeat(" ", 2)
-            .append("movl ")
-            .append(constant)
-            .append(", ")
-            .append(dest.name(32))
-            .append("\n");
+                .append("movl ")
+                .append(constant)
+                .append(", ")
+                .append(dest.name(32))
+                .append("\n");
     }
 
     private void sourceDest(String opcode, Register src, Register dest) {
         this.builder.repeat(" ", 2)
-            .append(opcode)
-            .append(" ")
-            .append(src.name(32))
-            .append(", ")
-            .append(dest.name(32))
-            .append("\n");
+                .append(opcode)
+                .append(" ")
+                .append(src.name(32))
+                .append(", ")
+                .append(dest.name(32))
+                .append("\n");
     }
 
     private void moveStackPointer(int offset) {
         this.builder.repeat(" ", 2)
-            .append("add $")
-            .append(offset)
-            .append(", ")
-            .append(X8664Register.RSP.name(64))
-            .append("\n");
+                .append("add $")
+                .append(offset)
+                .append(", ")
+                .append(X8664Register.RSP.name(64))
+                .append("\n");
     }
 }

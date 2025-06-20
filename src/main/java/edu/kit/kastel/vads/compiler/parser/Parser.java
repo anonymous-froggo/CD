@@ -28,7 +28,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
@@ -445,7 +445,7 @@ public class Parser {
                     yield parseCall(name(ident));
                 }
                 // ident
-                yield new IdentTree(name(ident));
+                yield new IdentExpressionTree(name(ident));
             }
             // ⟨call⟩
             case LibFunctionKeyword keyword -> parseCall(name(keyword));

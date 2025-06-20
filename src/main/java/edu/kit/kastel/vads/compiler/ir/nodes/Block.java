@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import edu.kit.kastel.vads.compiler.ir.IrGraph;
+import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 
 public final class Block extends Node {
@@ -24,7 +24,7 @@ public final class Block extends Node {
     // mapped to the control flow index this block leads into
     private Map<Phi, Integer> phiIndices = new LinkedHashMap<>();
 
-    public Block(IrGraph graph) {
+    public Block(SsaGraph graph) {
         super(graph);
 
         this.id = idCounter++;
@@ -82,8 +82,7 @@ public final class Block extends Node {
     public void setControlFlowExit(ControlFlowNode controlFlowExit) {
         if (this.controlFlowExit != null) {
             throw new IllegalArgumentException(
-                label() + " already has a control flow exit. '" + controlFlowExit + "' shouldn't be here."
-            );
+                    label() + " already has a control flow exit. '" + controlFlowExit + "' shouldn't be here.");
         }
 
         this.controlFlowExit = controlFlowExit;

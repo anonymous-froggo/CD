@@ -46,7 +46,7 @@ import java.util.Set;
 class GraphConstructor {
 
     private final Optimizer optimizer;
-    private final IrGraph graph;
+    private final SsaGraph graph;
 
     private final Map<Name, Map<Block, Node>> currentDef = new HashMap<>();
 
@@ -62,7 +62,7 @@ class GraphConstructor {
 
     public GraphConstructor(Optimizer optimizer, String name) {
         this.optimizer = optimizer;
-        this.graph = new IrGraph(name);
+        this.graph = new SsaGraph(name);
         this.currentBlock = graph().startBlock();
 
         // The start block never gets any more predecessors
@@ -90,7 +90,7 @@ class GraphConstructor {
         // Go through all of [block]'s control flow inputs
         for (Node controlFlowInput : predecessorsSkipProj(block)) {
             assert controlFlowInput instanceof ControlFlowNode
-                : "Node " + controlFlowInput + " should be a control flow node";
+                    : "Node " + controlFlowInput + " should be a control flow node";
 
             // Recursively collect [controlFlowInput]
             if (collected.add(controlFlowInput)) {
@@ -479,7 +479,7 @@ class GraphConstructor {
         return this.currentBlock;
     }
 
-    public IrGraph graph() {
+    public SsaGraph graph() {
         return this.graph;
     }
 

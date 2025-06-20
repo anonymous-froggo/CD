@@ -1,7 +1,7 @@
 package edu.kit.kastel.vads.compiler.ir.nodes;
 
 import edu.kit.kastel.vads.compiler.ir.util.DebugInfo;
-import edu.kit.kastel.vads.compiler.ir.IrGraph;
+import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.BinaryOperationNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.control.ControlFlowNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
@@ -12,17 +12,16 @@ import java.util.List;
 
 /// The base class for all nodes.
 public sealed abstract class Node permits
-    BinaryOperationNode,
-    Block,
-    BoolNode,
-    ControlFlowNode,
-    ConstIntNode,
-    Phi,
-    ProjNode,
-    UnaryOperationNode
-{
+        BinaryOperationNode,
+        Block,
+        BoolNode,
+        ControlFlowNode,
+        ConstIntNode,
+        Phi,
+        ProjNode,
+        UnaryOperationNode {
 
-    private final IrGraph graph;
+    private final SsaGraph graph;
     private final Block block;
     private final List<Node> predecessors = new ArrayList<>();
     private final DebugInfo debugInfo;
@@ -39,14 +38,14 @@ public sealed abstract class Node permits
         block.setNotEmpty();
     }
 
-    protected Node(IrGraph graph) {
+    protected Node(SsaGraph graph) {
         assert this.getClass() == Block.class : "must be used by Block only";
         this.graph = graph;
         this.block = (Block) this;
         this.debugInfo = DebugInfo.NoInfo.INSTANCE;
     }
 
-    public final IrGraph graph() {
+    public final SsaGraph graph() {
         return this.graph;
     }
 

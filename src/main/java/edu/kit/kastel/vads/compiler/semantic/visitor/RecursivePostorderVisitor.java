@@ -6,11 +6,14 @@ import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.CallTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.ast.lvalues.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -52,9 +55,9 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     @Override
-    public R visit(IdentTree indentifierTree, T data) {
-        R r = indentifierTree.name().accept(this, data);
-        r = this.visitor.visit(indentifierTree, accumulate(data, r));
+    public R visit(IdentExpressionTree identExpressionTree, T data) {
+        R r = identExpressionTree.name().accept(this, data);
+        r = this.visitor.visit(identExpressionTree, accumulate(data, r));
         return r;
     }
 
@@ -77,6 +80,47 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     public R visit(UnaryOperationTree unaryOperationTree, T data) {
         R r = unaryOperationTree.operand().accept(this, data);
         r = this.visitor.visit(unaryOperationTree, accumulate(data, r));
+        return r;
+    }
+
+    // Functions
+
+    @Override
+    public R visit(CallTree callTree, T data) {
+        R r = callTree.functionName().accept(this, data);
+        for (ExpressionTree arg : callTree.args()) {
+            r = arg.accept(this, accumulate(data, r));
+        }
+        r = this.visitor.visit(callTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(FunctionTree functionTree, T data) {
+        R r = functionTree.returnType().accept(this, data);
+        r = functionTree.name().accept(this, accumulate(data, r));
+        for (ParamTree param : functionTree.params()) {
+            r = param.accept(this, accumulate(data, r));
+        }
+        r = functionTree.body().accept(this, accumulate(data, r));
+        r = this.visitor.visit(functionTree, accumulate(data, r));
+        return r;
+    }
+
+    @Override
+    public R visit(ParamTree paramTree, T data) {
+        R r = paramTree.type().accept(this, data);
+        r = paramTree.name().accept(this, accumulate(data, r));
+        r = this.visitor.visit(paramTree, accumulate(data, r));
+        return r;
+    }
+
+    // LValue trees
+    
+    @Override
+    public R visit(LValueIdentTree lValueIdentTree, T data) {
+        R r = lValueIdentTree.name().accept(this, data);
+        r = this.visitor.visit(lValueIdentTree, accumulate(data, r));
         return r;
     }
 
@@ -174,22 +218,6 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     // Other trees
-
-    @Override
-    public R visit(FunctionTree functionTree, T data) {
-        R r = functionTree.returnType().accept(this, data);
-        r = functionTree.name().accept(this, accumulate(data, r));
-        r = functionTree.body().accept(this, accumulate(data, r));
-        r = this.visitor.visit(functionTree, accumulate(data, r));
-        return r;
-    }
-
-    @Override
-    public R visit(LValueIdentTree lValueIdentTree, T data) {
-        R r = lValueIdentTree.name().accept(this, data);
-        r = this.visitor.visit(lValueIdentTree, accumulate(data, r));
-        return r;
-    }
 
     @Override
     public R visit(NameTree nameTree, T data) {

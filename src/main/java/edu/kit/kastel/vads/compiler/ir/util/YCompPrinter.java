@@ -1,6 +1,6 @@
 package edu.kit.kastel.vads.compiler.ir.util;
 
-import edu.kit.kastel.vads.compiler.ir.IrGraph;
+import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
@@ -32,10 +32,10 @@ public class YCompPrinter {
 
     private final Map<Block, Set<Node>> clusters = new HashMap<>();
     private final Map<Node, Integer> ids = new HashMap<>();
-    private final IrGraph graph;
+    private final SsaGraph graph;
     private int nodeCounter = 0;
 
-    public YCompPrinter(IrGraph graph) {
+    public YCompPrinter(SsaGraph graph) {
         this.graph = graph;
     }
 
@@ -46,10 +46,9 @@ public class YCompPrinter {
 
         if (!(node instanceof Block)) {
             this.clusters.computeIfAbsent(
-                node.block(),
-                _ -> Collections.newSetFromMap(new IdentityHashMap<>())
-            )
-                .add(node);
+                    node.block(),
+                    _ -> Collections.newSetFromMap(new IdentityHashMap<>()))
+                    .add(node);
             prepare(node.block(), seen);
         }
         for (Node predecessor : node.predecessors()) {
@@ -60,7 +59,7 @@ public class YCompPrinter {
         }
     }
 
-    public static String print(IrGraph graph) {
+    public static String print(SsaGraph graph) {
         YCompPrinter printer = new YCompPrinter(graph);
         printer.prepare(graph.endBlock(), new HashSet<>());
         return printer.dumpGraphAsString();
@@ -74,12 +73,12 @@ public class YCompPrinter {
         result.append("\n  title: ").append('"').append(graphName).append('"').append("\n");
 
         result.append("""
-            display_edge_labels: yes
-            layoutalgorithm: mindepth //$ "Compilergraph"
-            manhattan_edges: yes
-            port_sharing: no
-            orientation: top_to_bottom
-            """.indent(2));
+                display_edge_labels: yes
+                layoutalgorithm: mindepth //$ "Compilergraph"
+                manhattan_edges: yes
+                port_sharing: no
+                orientation: top_to_bottom
+                """.indent(2));
 
         for (VcgColor color : VcgColor.values()) {
             result.append("\n  colorentry ").append(color.id()).append(": ").append(color.getRgb());
@@ -147,12 +146,10 @@ public class YCompPrinter {
 
     private String formatInputEdges(Node node) {
         var edges = IntStream.range(0, node.predecessors().size())
-            .mapToObj(
-                idx -> new Edge(
-                    node.predecessor(idx), node, idx, edgeColor(node.predecessor(idx), node)
-                )
-            )
-            .toList();
+                .mapToObj(
+                        idx -> new Edge(
+                                node.predecessor(idx), node, idx, edgeColor(node.predecessor(idx), node)))
+                .toList();
         return formatEdges(edges, "\n  priority: 50");
     }
 
@@ -169,7 +166,7 @@ public class YCompPrinter {
     private String formatControlflowEdges(Block block) {
         StringJoiner result = new StringJoiner("\n");
         List<? extends Node> parents = block.predecessors();
-        for (int index = 0; index< parents.size(); index++) {
+        for (int index = 0; index < parents.size(); index++) {
             Node parent = parents.get(index);
             if (parent instanceof ReturnNode || parent instanceof ProjNode || parent instanceof JumpNode) {
                 // Return needs no label

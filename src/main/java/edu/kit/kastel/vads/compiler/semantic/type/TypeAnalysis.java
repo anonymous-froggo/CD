@@ -4,7 +4,7 @@ import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.Assignmen
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
@@ -58,9 +58,9 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
     }
 
     @Override
-    public Unit visit(IdentTree identTree, TypeScoper data) {
-        data.setType(identTree, data.getType(identTree.name()));
-        return NoOpVisitor.super.visit(identTree, data);
+    public Unit visit(IdentExpressionTree identExpressionTree, TypeScoper data) {
+        data.setType(identExpressionTree, data.getType(identExpressionTree.name()));
+        return NoOpVisitor.super.visit(identExpressionTree, data);
     }
 
     @Override

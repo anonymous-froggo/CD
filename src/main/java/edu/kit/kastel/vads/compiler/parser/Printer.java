@@ -4,7 +4,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
@@ -74,7 +74,7 @@ public class Printer {
                 printList(args, ", ");
                 print(")");
             }
-            case IdentTree(var name) -> printTree(name);
+            case IdentExpressionTree(var name) -> printTree(name);
             case NumberLiteralTree(var value, _, _) -> this.builder.append(value);
             case TernaryTree(var condition, var thenExpression, var elseExpression) -> {
                 print("(");

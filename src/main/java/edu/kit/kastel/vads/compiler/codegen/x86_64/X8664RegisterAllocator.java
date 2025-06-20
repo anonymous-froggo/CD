@@ -10,17 +10,17 @@ import edu.kit.kastel.vads.compiler.codegen.Register;
 import edu.kit.kastel.vads.compiler.codegen.RegisterAllocator;
 import edu.kit.kastel.vads.compiler.codegen.InterferenceGraph;
 import edu.kit.kastel.vads.compiler.codegen.LivenessAnalysis;
-import edu.kit.kastel.vads.compiler.ir.IrGraph;
+import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 
 public class X8664RegisterAllocator implements RegisterAllocator {
 
     private List<Register> registers;
-    private final IrGraph graph;
+    private final SsaGraph graph;
     private final Map<Node, Register> registerAllocation = new HashMap<>();
     private int numberOfStackRegisters;
 
-    public X8664RegisterAllocator(IrGraph graph) {
+    public X8664RegisterAllocator(SsaGraph graph) {
         this.registers = new ArrayList<>(Arrays.asList(X8664Register.getGeneralPurposeRegisters()));
         this.graph = graph;
     }

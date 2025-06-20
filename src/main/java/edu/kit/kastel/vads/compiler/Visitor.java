@@ -5,11 +5,13 @@ import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
-import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentTree;
+import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.NumberLiteralTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.TernaryTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.UnaryOperationTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.CallTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.ast.lvalues.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -24,13 +26,13 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 
 public interface Visitor<T, R> {
 
-    // Expressions
+    // Expression trees
 
     R visit(BinaryOperationTree binaryOperationTree, T data);
 
     R visit(BoolTree trueTree, T data);
 
-    R visit(IdentTree identExpressionTree, T data);
+    R visit(IdentExpressionTree identExpressionTree, T data);
 
     R visit(NumberLiteralTree literalTree, T data);
 
@@ -38,7 +40,15 @@ public interface Visitor<T, R> {
 
     R visit(UnaryOperationTree unaryOperationTree, T data);
 
-    // Statments
+    // Functions
+
+    R visit(CallTree callTree, T data);
+
+    R visit(FunctionTree functionTree, T data);
+
+    R visit(ParamTree paramTree, T data);
+
+    // Statement trees
 
     R visit(AssignmentTree assignmentTree, T data);
 
@@ -60,9 +70,7 @@ public interface Visitor<T, R> {
 
     R visit(WhileTree whileTree, T data);
 
-    // Others
-
-    R visit(FunctionTree functionTree, T data);
+    // Other trees
 
     R visit(LValueIdentTree lValueIdentTree, T data);
 
