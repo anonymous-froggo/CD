@@ -26,7 +26,7 @@ public class Main {
     public static boolean DEBUG = false;
 
     public static final Path OUTPUT_FOLDER = Path.of("output");
-    private static final Path ASSEMBLY_FILE = OUTPUT_FOLDER.toAbsolutePath().resolve("assembly.S");
+    private static final Path ASSEMBLY_FILE = Path.of("assembly.S");
     private static final Path GRAPHS_FOLDER = OUTPUT_FOLDER.toAbsolutePath().resolve("graphs");
 
     public static void main(String[] args) throws IOException {
@@ -93,8 +93,11 @@ public class Main {
     }
 
     private static void assembleAndLink(String generatedCode, Path output) throws IOException {
+        Path assemblyPath = output.toAbsolutePath().resolveSibling(ASSEMBLY_FILE);
+
         Files.writeString(
-                ASSEMBLY_FILE, ".global main\n" +
+            assemblyPath,
+                ".global main\n" +
                         ".global _main\n" +
                         ".text\n" +
                         "main:\n" +
@@ -107,7 +110,7 @@ public class Main {
 
         try {
             Process gccProcess = Runtime.getRuntime().exec(new String[] {
-                    "gcc", ASSEMBLY_FILE.toString(), "-o", output.toString()
+                    "gcc", assemblyPath.toString(), "-o", output.toString()
             });
             gccProcess.waitFor();
 
