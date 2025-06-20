@@ -54,6 +54,8 @@ import edu.kit.kastel.vads.compiler.parser.type.BasicType;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 public class Parser {
 
     private final TokenSource tokenSource;
@@ -177,11 +179,21 @@ public class Parser {
             case TypeKeyword _ -> parseDeclaration();
 
             // ⟨call⟩
-            case Ident ident -> parseCall(name(ident));
             case LibFunctionKeyword keyword -> parseCall(name(keyword));
 
+            // ⟨call⟩ | ⟨lvalue⟩ ⟨asnop⟩ ⟨exp⟩
+            case Ident ident -> {
+                this.tokenSource.consume();
+                if (this.tokenSource.peek().isSeparator(SeparatorType.PAREN_OPEN)) {
+                    // ⟨call⟩
+                    yield parseCall(name(ident));
+                }
+                // ⟨lvalue⟩ ⟨asnop⟩ ⟨exp⟩
+                yield parseAssignment(ident);
+            }
+
             // ⟨lvalue⟩ ⟨asnop⟩ ⟨exp⟩
-            default -> parseAssignment();
+            default -> parseAssignment(null);
         };
     }
 
@@ -199,27 +211,20 @@ public class Parser {
         return new DeclTree(type, name(ident), expr);
     }
 
-    private StatementTree parseAssignment() {
+    private StatementTree parseAssignment(Ident ident) {
         // ⟨lvalue⟩
-        LValueTree lValue = parseLValue();
+        LValueTree lValue = parseLValue(ident);
 
         // ⟨asnop⟩
-        AssignmentOperator assignmentOperator = parseAssignmentOperator();
+        Operator operator = this.tokenSource.expectOperator();
+        if (!(operator instanceof AssignmentOperator assignmentOperator)) {
+            throw new ParseException("expected assignment operator but got " + operator);
+        }
 
         // ⟨exp⟩
         ExpressionTree expression = parseExpression();
 
         return new AssignmentTree(lValue, assignmentOperator.type(), expression);
-    }
-
-    private AssignmentOperator parseAssignmentOperator() {
-        Token token = this.tokenSource.consume();
-
-        if (token instanceof AssignmentOperator assignmentOperator) {
-            return assignmentOperator;
-        }
-
-        throw new ParseException("expected assignment but got " + token);
     }
 
     private StatementTree parseControl() {
@@ -341,19 +346,23 @@ public class Parser {
     }
 
     // LValues
-    
-    private LValueTree parseLValue() {
+
+    // [ident] is used to pass a already parsed [Ident] when parsing function calls.
+    private LValueTree parseLValue(@Nullable Ident ident) {
+        if (ident != null) {
+            return new LValueIdentTree(name(ident));
+        }
+
         if (this.tokenSource.peek().isSeparator(SeparatorType.PAREN_OPEN)) {
             // LValue is surrounded by parantheses, remove them recursively
             this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
-            LValueTree inner = parseLValue();
+            LValueTree inner = parseLValue(null);
             this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
             return inner;
         }
 
         // LValue is not surrounded by parantheses
-        Ident ident = this.tokenSource.expectIdent();
-        return new LValueIdentTree(name(ident));
+        return new LValueIdentTree(name(this.tokenSource.expectIdent()));
     }
 
     // Expressions
@@ -457,7 +466,7 @@ public class Parser {
         return atom;
     }
 
-    // Other trees
+    // Other stuff
 
     private TypeTree parseType() {
         Keyword type = this.tokenSource.expectKeyword();
