@@ -2,6 +2,7 @@ package edu.kit.kastel.vads.compiler.semantic.visitor;
 
 import java.util.Stack;
 
+import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 
@@ -48,4 +49,6 @@ public abstract class Scoper<S> {
     public abstract void mergeScopeToCurrent(Namespace<S> scope);
 
     public abstract Namespace<S> intersectScopes(Namespace<S> scope1, Namespace<S> scope2);
+
+    public abstract void registerCurrentFunction(FunctionTree function);
 }

@@ -1,6 +1,7 @@
 package edu.kit.kastel.vads.compiler.semantic.visitor;
 
 import edu.kit.kastel.vads.compiler.Visitor;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
@@ -24,6 +25,16 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
         nextBlockConditional = true;
         data.enterNewScope();
     }
+
+    // Functions
+    
+    @Override
+    public R visit(FunctionTree functionTree, T data) {
+        data.registerCurrentFunction(functionTree);
+        return super.visit(functionTree, data);
+    }
+
+    // Statement trees
 
     @Override
     public R visit(BlockTree blockTree, T data) {

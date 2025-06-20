@@ -5,9 +5,9 @@ import java.util.Map;
 
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
+import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.type.Type;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
@@ -15,7 +15,9 @@ import edu.kit.kastel.vads.compiler.semantic.visitor.Scoper;
 
 public class TypeScoper extends Scoper<Type> {
 
-    Map<ExpressionTree, Type> inferredTypes = new IdentityHashMap<>();
+    private Map<ExpressionTree, Type> inferredTypes = new IdentityHashMap<>();
+
+    private FunctionTree currentFunction = null;
 
     @Override
     protected Type cloneEntry(Type t) {
@@ -33,11 +35,16 @@ public class TypeScoper extends Scoper<Type> {
         return null;
     }
 
+    @Override
+    public void registerCurrentFunction(FunctionTree function) {
+        currentFunction = function;
+    }
+
     public Type getType(Tree tree) {
         return switch (tree) {
             case ExpressionTree expression -> this.inferredTypes.get(expression);
             case NameTree name -> currentScope().get(name);
-            case ParamTree param -> param.type().type();
+            case TypeTree type -> type.type();
             default -> throw new IllegalArgumentException(tree + " cannot have a type associated to it.");
         };
     }
@@ -77,5 +84,9 @@ public class TypeScoper extends Scoper<Type> {
                 );
             }
         }
+    }
+
+    public FunctionTree currentFunction() {
+        return this.currentFunction;
     }
 }
