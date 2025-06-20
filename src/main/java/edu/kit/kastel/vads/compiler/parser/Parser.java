@@ -83,12 +83,14 @@ public class Parser {
 
         // ⟨arg-list⟩
         List<ExpressionTree> args = new ArrayList<>();
-        while (!this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
+        // head
+        if (!this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
             args.add(parseExpression());
-
-            if (this.tokenSource.peek().isSeparator(SeparatorType.COMMA)) {
-                this.tokenSource.consume();
-            }
+        }
+        // tail
+        while (!this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
+            this.tokenSource.expectSeparator(SeparatorType.COMMA);
+            args.add(parseExpression());
         }
 
         // )
@@ -107,12 +109,14 @@ public class Parser {
         // ⟨param-list⟩
         List<ParamTree> params = new ArrayList<>();
         this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
-        while (!this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
+        // head
+        if (!this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
             params.add(parseParam());
-
-            if (this.tokenSource.peek().isSeparator(SeparatorType.COMMA)) {
-                this.tokenSource.consume();
-            }
+        }
+        // tail
+        while (!this.tokenSource.peek().isSeparator(SeparatorType.PAREN_CLOSE)) {
+            this.tokenSource.expectSeparator(SeparatorType.COMMA);
+            params.add(parseParam());
         }
         this.tokenSource.expectSeparator(SeparatorType.PAREN_CLOSE);
 
