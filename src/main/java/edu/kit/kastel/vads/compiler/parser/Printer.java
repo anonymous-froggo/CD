@@ -192,7 +192,7 @@ public class Printer {
                 space();
                 printTree(name);
             }
-            case ProgramTree(var topLevelTrees, _) -> {
+            case ProgramTree(var topLevelTrees) -> {
                 for (FunctionTree function : topLevelTrees) {
                     printTree(function);
                     lineBreak();
