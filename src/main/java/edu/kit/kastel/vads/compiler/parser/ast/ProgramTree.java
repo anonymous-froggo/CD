@@ -6,7 +6,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 
 import java.util.List;
 
-public record ProgramTree(List<FunctionTree> topLevelTrees, FunctionTree mainFunction) implements Tree {
+public record ProgramTree(List<FunctionTree> topLevelTrees) implements Tree {
 
     public ProgramTree {
         assert !topLevelTrees.isEmpty() : "must be non-empty";

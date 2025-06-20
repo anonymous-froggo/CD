@@ -183,14 +183,4 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
         data.checkTypesMatch(BasicType.BOOL, whileTree.condition());
         return NoOpVisitor.super.visit(whileTree, data);
     }
-
-    // Other trees
-
-    @Override
-    public Unit visit(ProgramTree programTree, TypeScoper data) {
-        if (programTree.mainFunction().returnType().type() != BasicType.INT) {
-            throw new SemanticException("main function must return int");
-        }
-        return NoOpVisitor.super.visit(programTree, data);
-    }
 }

@@ -9,6 +9,10 @@ public sealed interface Name permits IdentName, LibFunctionName {
         return new IdentName(ident.value());
     }
 
+    public static Name forIdentString(String ident) {
+        return new IdentName(ident);
+    }
+
     public static Name forLibFunctionKeyword(LibFunctionKeyword keyword) {
         return new LibFunctionName(keyword);
     }

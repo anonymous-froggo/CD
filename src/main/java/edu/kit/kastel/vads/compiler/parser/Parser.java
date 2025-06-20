@@ -71,16 +71,7 @@ public class Parser {
         while (this.tokenSource.hasMore()) {
             functions.add(parseFunction());
         }
-
-        // Find main function
-        for (FunctionTree function : functions) {
-            if (function.name().name().asString().equals("main")) {
-                FunctionTree mainFunction = function;
-                return new ProgramTree(functions, mainFunction);
-            }
-        }
-
-        throw new ParseException("No main method provided");
+        return new ProgramTree(functions);
     }
 
     // Functions
