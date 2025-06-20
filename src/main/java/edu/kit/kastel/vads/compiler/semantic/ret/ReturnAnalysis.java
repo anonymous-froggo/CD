@@ -1,5 +1,6 @@
 package edu.kit.kastel.vads.compiler.semantic.ret;
 
+import edu.kit.kastel.vads.compiler.parser.ast.functions.CallTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
@@ -18,6 +19,14 @@ import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 
 /// Checks that functions return.
 public class ReturnAnalysis implements NoOpVisitor<ReturnState> {
+
+    // Functions
+
+    @Override
+    public Unit visit(CallTree callTree, ReturnState data) {
+        data.setReturns(callTree, false);
+        return NoOpVisitor.super.visit(callTree, data);
+    }
 
     // Statement trees
 
