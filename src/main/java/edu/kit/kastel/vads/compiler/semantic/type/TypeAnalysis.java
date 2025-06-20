@@ -3,6 +3,7 @@ package edu.kit.kastel.vads.compiler.semantic.type;
 import java.util.List;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
+import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
@@ -181,5 +182,15 @@ public class TypeAnalysis implements NoOpVisitor<TypeScoper> {
     public Unit visit(WhileTree whileTree, TypeScoper data) {
         data.checkTypesMatch(BasicType.BOOL, whileTree.condition());
         return NoOpVisitor.super.visit(whileTree, data);
+    }
+
+    // Other trees
+
+    @Override
+    public Unit visit(ProgramTree programTree, TypeScoper data) {
+        if (programTree.mainFunction().returnType().type() != BasicType.INT) {
+            throw new SemanticException("main function must return int");
+        }
+        return NoOpVisitor.super.visit(programTree, data);
     }
 }
