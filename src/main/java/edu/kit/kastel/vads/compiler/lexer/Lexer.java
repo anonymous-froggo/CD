@@ -61,12 +61,12 @@ public class Lexer {
             case '?' -> new BinaryOperator(BinaryOperatorType.TERNARY_OPEN, buildSpan(1));
             case ':' -> new BinaryOperator(BinaryOperatorType.TERNARY_CLOSE, buildSpan(1));
             default -> {
-                if (isIdentifierChar(peek())) {
+                if (isIdentChar(peek())) {
                     if (isNumeric(peek())) {
                         yield lexNumber();
                     }
 
-                    yield lexIdentifierOrKeyword();
+                    yield lexIdentOrKeyword();
 
                 }
                 yield new ErrorToken(String.valueOf(peek()), buildSpan(1));
@@ -152,9 +152,9 @@ public class Lexer {
         return new Separator(parenOpen, buildSpan(1));
     }
 
-    private Token lexIdentifierOrKeyword() {
+    private Token lexIdentOrKeyword() {
         int off = 1;
-        while (hasMore(off) && isIdentifierChar(peek(off))) {
+        while (hasMore(off) && isIdentChar(peek(off))) {
             off++;
         }
         String id = this.source.substring(this.pos, this.pos + off);
@@ -166,7 +166,7 @@ public class Lexer {
             return keyword;
         }
 
-        // id is an identifier
+        // id is an ident
         return new Ident(id, span);
     }
 
@@ -197,11 +197,11 @@ public class Lexer {
         return peek() == '0' && hasMore(1) && (peek(1) == 'x' || peek(1) == 'X');
     }
 
-    private boolean isIdentifierChar(char c) {
+    private boolean isIdentChar(char c) {
         return c == '_'
-            || c >= 'a' && c <= 'z'
-            || c >= 'A' && c <= 'Z'
-            || c >= '0' && c <= '9';
+                || c >= 'a' && c <= 'z'
+                || c >= 'A' && c <= 'Z'
+                || c >= '0' && c <= '9';
     }
 
     private boolean isNumeric(char c) {

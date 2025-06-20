@@ -13,13 +13,8 @@ public record TypeKeyword(TypeKeywordType type, Span span) implements Keyword {
         CHAR("char"),
         STRING("string"),
 
-        // TODO Temporarily stored in here until they are actually used
-        NULL("NULL"),
-        ALLOC("alloc"),
-        ALLOC_ARRAY("alloc_array"),
-        ASSERT("assert"),
-        PRINT("print"),
-        READ("read");
+        // TODO Temporarily stored in here until it is actually used
+        NULL("NULL");
 
         private final String keyword;
 

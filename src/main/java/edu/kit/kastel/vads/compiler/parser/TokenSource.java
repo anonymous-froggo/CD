@@ -21,9 +21,9 @@ public class TokenSource {
 
     public TokenSource(Lexer lexer) {
         this.tokens = Stream.generate(lexer::nextToken)
-            .takeWhile(Optional::isPresent)
-            .map(Optional::orElseThrow)
-            .toList();
+                .takeWhile(Optional::isPresent)
+                .map(Optional::orElseThrow)
+                .toList();
     }
 
     TokenSource(List<Token> tokens) {
@@ -89,10 +89,10 @@ public class TokenSource {
         return op;
     }
 
-    public Ident expectIdentifier() {
+    public Ident expectIdent() {
         Token token = peek();
         if (!(token instanceof Ident ident)) {
-            throw new ParseException("expected identifier but got " + token);
+            throw new ParseException("expected ident but got " + token);
         }
         this.idx++;
         return ident;

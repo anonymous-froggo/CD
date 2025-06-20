@@ -52,7 +52,6 @@ public class Main {
             return;
         }
 
-        // TODO this is only temporary, because breaks and continues are checked for during SSA translation
         List<IrGraph> graphs = new ArrayList<>();
         try {
             for (FunctionTree function : programTree.topLevelTrees()) {
@@ -60,6 +59,7 @@ public class Main {
                 graphs.add(ssaTranslation.translate());
             }
         } catch (SemanticException e) {
+            // TODO this is only temporary, because breaks and continues are checked for during SSA translation
             e.printStackTrace();
             System.exit(7);
             return;

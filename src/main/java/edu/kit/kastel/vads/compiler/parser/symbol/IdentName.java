@@ -1,9 +1,8 @@
 package edu.kit.kastel.vads.compiler.parser.symbol;
-
-record IdentifierName(String identifier) implements Name {
+public record IdentName(String ident) implements Name {
 
     @Override
     public String asString() {
-        return identifier();
+        return ident();
     }
 }

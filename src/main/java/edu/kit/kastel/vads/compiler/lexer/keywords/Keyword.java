@@ -4,11 +4,16 @@ import edu.kit.kastel.vads.compiler.Span;
 import edu.kit.kastel.vads.compiler.lexer.Token;
 import edu.kit.kastel.vads.compiler.lexer.keywords.BoolKeyword.BoolKeywordType;
 import edu.kit.kastel.vads.compiler.lexer.keywords.ControlKeyword.ControlKeywordType;
+import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword.LibFunctionKeywordType;
 import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
 
-public sealed interface Keyword extends Token permits BoolKeyword, ControlKeyword, TypeKeyword {
+public sealed interface Keyword extends Token permits
+        BoolKeyword,
+        ControlKeyword,
+        LibFunctionKeyword,
+        TypeKeyword {
 
-    static Keyword fromString(String string, Span span) {
+    public static Keyword fromString(String string, Span span) {
         for (BoolKeywordType value : BoolKeywordType.values()) {
             if (value.keyword().equals(string)) {
                 return new BoolKeyword(value, span);
@@ -17,7 +22,11 @@ public sealed interface Keyword extends Token permits BoolKeyword, ControlKeywor
         for (ControlKeywordType value : ControlKeywordType.values()) {
             if (value.keyword().equals(string)) {
                 return new ControlKeyword(value, span);
-
+            }
+        }
+        for (LibFunctionKeywordType value : LibFunctionKeywordType.values()) {
+            if (value.keyword().equals(string)) {
+                return new LibFunctionKeyword(value, span);
             }
         }
         for (TypeKeywordType value : TypeKeywordType.values()) {
@@ -41,7 +50,7 @@ public sealed interface Keyword extends Token permits BoolKeyword, ControlKeywor
         return type().toString();
     }
 
-    sealed interface KeywordType permits BoolKeywordType, ControlKeywordType, TypeKeywordType {
+    sealed interface KeywordType permits BoolKeywordType, ControlKeywordType, LibFunctionKeywordType, TypeKeywordType {
 
         public String keyword();
     }

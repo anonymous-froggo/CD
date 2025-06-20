@@ -6,6 +6,7 @@ import edu.kit.kastel.vads.compiler.lexer.Separator;
 import edu.kit.kastel.vads.compiler.lexer.Separator.SeparatorType;
 import edu.kit.kastel.vads.compiler.lexer.keywords.BoolKeyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.ControlKeyword;
+import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.ControlKeyword.ControlKeywordType;
@@ -87,7 +88,7 @@ public class Parser {
         TypeTree returnType = parseType();
 
         // ident
-        Ident identifier = this.tokenSource.expectIdentifier();
+        Ident ident = this.tokenSource.expectIdent();
 
         // ⟨param-list⟩
         List<ParamTree> params = new ArrayList<>();
@@ -105,16 +106,15 @@ public class Parser {
         BlockTree body = parseBlock();
 
         return new FunctionTree(
-            returnType,
-            name(identifier),
-            params,
-            body
-        );
+                returnType,
+                name(ident),
+                params,
+                body);
     }
 
     private ParamTree parseParam() {
         TypeTree type = parseType();
-        NameTree name = name(this.tokenSource.expectIdentifier());
+        NameTree name = name(this.tokenSource.expectIdent());
 
         return new ParamTree(type, name);
     }
@@ -164,7 +164,7 @@ public class Parser {
 
     private StatementTree parseDeclaration() {
         TypeTree type = parseType();
-        Ident ident = this.tokenSource.expectIdentifier();
+        Ident ident = this.tokenSource.expectIdent();
         ExpressionTree expr = null;
 
         if (this.tokenSource.peek().isOperator(AssignmentOperatorType.ASSIGN)) {
@@ -199,8 +199,8 @@ public class Parser {
         }
 
         // LValue is not surrounded by parantheses
-        Ident identifier = this.tokenSource.expectIdentifier();
-        return new LValueIdentTree(name(identifier));
+        Ident ident = this.tokenSource.expectIdent();
+        return new LValueIdentTree(name(ident));
     }
 
     private AssignmentOperator parseAssignmentOperator() {
@@ -345,13 +345,11 @@ public class Parser {
 
         int nextMinPrecedence;
 
-        while (
-            this.tokenSource.peek() instanceof BinaryOperator operator
+        while (this.tokenSource.peek() instanceof BinaryOperator operator
                 // This marks the end of the ternary middle block.
                 // Treat it like it's not a binary operator.
                 && operator.type() != BinaryOperatorType.TERNARY_CLOSE
-                && operator.type().precedence() >= minPrecedence
-        ) {
+                && operator.type().precedence() >= minPrecedence) {
             operator = parseBinaryOperator(operator);
 
             precedence = operator.type().precedence();
@@ -369,8 +367,8 @@ public class Parser {
             ExpressionTree rhs = precedenceClimbing(nextMinPrecedence);
 
             result = operator instanceof TernaryMiddle ternaryMiddle
-                ? new TernaryTree(result, ternaryMiddle.expression(), rhs)
-                : new BinaryOperationTree(result, rhs, operator);
+                    ? new TernaryTree(result, ternaryMiddle.expression(), rhs)
+                    : new BinaryOperationTree(result, rhs, operator);
         }
 
         return result;
@@ -410,16 +408,17 @@ public class Parser {
             case Ident ident -> {
                 if (this.tokenSource.peek().isSeparator(SeparatorType.PAREN_OPEN)) {
                     // ⟨call⟩
-                    yield parseCall(ident);
+                    yield parseCall(name(ident));
                 }
                 // ident
                 yield new IdentTree(name(ident));
             }
+            // ⟨call⟩
+            case LibFunctionKeyword keyword -> parseCall(name(keyword));
 
             // ⟨intconst⟩
             case NumberLiteral numberLiteral -> new NumberLiteralTree(
-                numberLiteral.value(), numberLiteral.base(), numberLiteral.span()
-            );
+                    numberLiteral.value(), numberLiteral.base(), numberLiteral.span());
 
             // ⟨unop⟩ ⟨exp⟩
             case UnaryOperator operator -> new UnaryOperationTree(operator, parseAtom());
@@ -433,10 +432,10 @@ public class Parser {
         return atom;
     }
 
-    // Don't mind me passing the ident as an argument. It's easiest that way.
-    private CallTree parseCall(Ident ident) {
+    // Don't mind me passing the name as an argument. It's easiest that way.
+    private CallTree parseCall(NameTree name) {
         // (
-        this.tokenSource.consume();
+        this.tokenSource.expectSeparator(SeparatorType.PAREN_OPEN);
 
         // ⟨arg-list⟩
         List<ExpressionTree> args = new ArrayList<>();
@@ -451,7 +450,7 @@ public class Parser {
         // )
         this.tokenSource.consume();
 
-        return new CallTree(name(ident), args);
+        return new CallTree(name, args);
     }
 
     // Other stuff
@@ -464,6 +463,10 @@ public class Parser {
     // Helper methods
 
     private static NameTree name(Ident ident) {
-        return new NameTree(Name.forIdentifier(ident), ident.span());
+        return new NameTree(Name.forIdent(ident), ident.span());
+    }
+
+    private static NameTree name(LibFunctionKeyword keyword) {
+        return new NameTree(Name.forLibFunctionKeyword(keyword), keyword.span());
     }
 }
