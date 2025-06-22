@@ -105,7 +105,6 @@ public class Main {
                         "movq %rax, %rdi\n" +
                         "movq $0x3C, %rax\n" +
                         "syscall\n" +
-                        "_main:\n" +
                         generatedCode);
 
         try {

@@ -4,14 +4,12 @@ import edu.kit.kastel.vads.compiler.codegen.Register;
 
 public final class X8664StackRegister implements Register {
 
-    public static final int N_BYTES = 8;
+    public static final int SLOT_SIZE_BYTES = 8;
 
-    private int offset;
     private String id;
 
-    public X8664StackRegister(int offset) {
-        this.offset = offset;
-        this.id = this.offset + "(" + X8664Register.RSP.name(N_BYTES * 8) + ")";
+    public X8664StackRegister(X8664Register base, int offset) {
+        this.id = offset * SLOT_SIZE_BYTES + "(" + base.name(64) + ")";
     }
 
     @Override
@@ -24,9 +22,5 @@ public final class X8664StackRegister implements Register {
         throw new UnsupportedOperationException(
             "toString() used for a register - you must use name(int bitlength) instead"
         );
-    }
-
-    public int getOffset() {
-        return this.offset;
     }
 }

@@ -13,6 +13,7 @@ import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.CallNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
@@ -43,9 +44,9 @@ public class LivenessAnalysis {
         }
 
         // if (Main.DEBUG) {
-        // System.out.println("def: " + def);
-        // System.out.println("use: " + use);
-        // System.out.println("succ: " + succ);
+        //     System.out.println("def: " + def);
+        //     System.out.println("use: " + use);
+        //     System.out.println("succ: " + succ);
         // }
 
         for (Node l : use.keySet()) {
@@ -81,6 +82,7 @@ public class LivenessAnalysis {
                 case ConstIntNode _,BoolNode _ -> J3(l, nodes.get(index + 1));
                 case JumpNode jump -> J4(jump);
                 case ConditionalJumpNode conditionalJump -> J5(conditionalJump);
+                case CallNode call -> J6(call, nodes.get(index + 1));
                 default -> {
                     continue;
                 }
@@ -145,6 +147,18 @@ public class LivenessAnalysis {
 
         addFact(use, l, x);
         addFact(succ, l, lPrime);
+        addFact(succ, l, lPlusOne);
+    }
+
+    // x <- f(y1, ...)
+    private void J6(CallNode l, Node lPlusOne) {
+        Node x = l;
+
+        addFact(def, l, x);
+        for (int i = CallNode.ARGS_START; i < l.predecessors().size(); i++) {
+            Node yi = x.predecessor(i);
+            addFact(use, l, yi);
+        }
         addFact(succ, l, lPlusOne);
     }
 

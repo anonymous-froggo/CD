@@ -49,6 +49,7 @@ class GraphConstructor {
 
     private final Optimizer optimizer;
     private final SsaGraph graph;
+    private StartNode startNode;
     private int currentParamId;
 
     private final Map<Name, Map<Block, Node>> currentDef = new HashMap<>();
@@ -300,7 +301,9 @@ class GraphConstructor {
     }
 
     public Node newParam() {
-        return new ParamNode(currentBlock(), currentParamId++);
+        ParamNode param = new ParamNode(currentBlock(), this.startNode, currentParamId++);
+        graph().addParam(param);
+        return param;
     }
 
     public ProjNode newResultProj(Node node) {
@@ -325,7 +328,8 @@ class GraphConstructor {
 
     public StartNode newStart() {
         assert currentBlock() == this.graph.startBlock() : "start must be in start block";
-        return new StartNode(currentBlock());
+        this.startNode = new StartNode(currentBlock());
+        return this.startNode;
     }
 
     // Control flow

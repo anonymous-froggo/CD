@@ -10,9 +10,12 @@ import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.ParamNode;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 
 public class SsaGraph {
+
+    private final Name name;
 
     private final Map<Node, SequencedSet<Node>> successors = new IdentityHashMap<>();
 
@@ -20,13 +23,13 @@ public class SsaGraph {
     private final Block startBlock;
     private final Block endBlock;
 
-    private final Name name;
+    private final List<ParamNode> params = new ArrayList<>();
 
     public SsaGraph(Name name) {
+        this.name = name;
+        
         this.startBlock = new Block(this);
         this.endBlock = new Block(this);
-
-        this.name = name;
     }
 
     public void registerSuccessor(Node node, Node successor) {
@@ -60,6 +63,14 @@ public class SsaGraph {
 
     public Block endBlock() {
         return this.endBlock;
+    }
+
+    public void addParam(ParamNode param) {
+        this.params.add(param);
+    }
+
+    public List<ParamNode> params() {
+        return List.copyOf(this.params);
     }
 
     /// {@return the name of this graph}

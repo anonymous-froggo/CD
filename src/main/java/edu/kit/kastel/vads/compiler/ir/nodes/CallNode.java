@@ -12,16 +12,26 @@ public final class CallNode extends Node {
     public static final int ARGS_START = 1;
 
     private final Name calledFunctionName;
+    private final List<Node> args;
 
     public CallNode(Name calledFunctionName, Block block, Node sideEffect, Node[] args) {
         super(block, mergePredecessors(sideEffect, args));
 
         this.calledFunctionName = calledFunctionName;
+        this.args = List.of(args);
     }
 
     @Override
     protected String info() {
         return this.calledFunctionName.asString();
+    }
+
+    public Name calledFunctioName() {
+        return this.calledFunctionName;
+    }
+
+    public List<Node> args() {
+        return List.copyOf(this.args);
     }
 
     private static List<Node> mergePredecessors(Node sideEffect, Node[] args) {
