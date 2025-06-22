@@ -1,9 +1,2 @@
-int main() {
-  int var = 69;
-  foo(var);
-  return var;
-}
-int foo(int a) {
-  a = 420;
-  return 0;
-}
+int main() { return add(5, 7); }
+int add(int a, int b) { return a + b; }

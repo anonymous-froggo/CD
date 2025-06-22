@@ -407,10 +407,10 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(call.calledFunctioName().asString())
             .append("\n");
 
+        callerLoad();
+
         // Load result
         move(X8664Register.RAX, register(call));
-
-        callerLoad();
     }
 
     private void loadParams(List<ParamNode> params) {
