@@ -2,6 +2,7 @@ package edu.kit.kastel.vads.compiler.semantic.variable;
 
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
@@ -50,6 +51,9 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
 
     @Override
     public void registerCurrentFunction(FunctionTree function) {
+        for (ParamTree param : function.params()) {
+            initialize(param.name());
+        }
         return;
     }
 

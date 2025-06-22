@@ -15,8 +15,10 @@ public sealed abstract class Node permits
         BinaryOperationNode,
         Block,
         BoolNode,
+        CallNode,
         ControlFlowNode,
         ConstIntNode,
+        ParamNode,
         Phi,
         ProjNode,
         UnaryOperationNode {
@@ -27,9 +29,13 @@ public sealed abstract class Node permits
     private final DebugInfo debugInfo;
 
     protected Node(Block block, Node... predecessors) {
+        this(block, List.of(predecessors));
+    }
+
+    protected Node(Block block, List<Node> predecessors) {
         this.graph = block.graph();
         this.block = block;
-        this.predecessors.addAll(List.of(predecessors));
+        this.predecessors.addAll(predecessors);
         for (Node predecessor : predecessors) {
             graph.registerSuccessor(predecessor, this);
         }

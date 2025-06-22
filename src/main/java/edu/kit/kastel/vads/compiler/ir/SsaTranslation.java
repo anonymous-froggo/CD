@@ -73,7 +73,7 @@ public class SsaTranslation {
 
     public SsaTranslation(FunctionTree functionTree, Optimizer optimizer) {
         this.functionTree = functionTree;
-        this.graphConstructor = new GraphConstructor(optimizer, functionTree.name().name().asString());
+        this.graphConstructor = new GraphConstructor(optimizer, functionTree.name().name());
     }
 
     public SsaGraph translate() {
@@ -184,7 +184,8 @@ public class SsaTranslation {
 
                 default -> {
                     throw new IllegalArgumentException(
-                            "Unexpected binary operator '" + binaryOperationTree.operator() + "'");
+                        "Unexpected binary operator '" + binaryOperationTree.operator() + "'"
+                    );
                 }
             };
 
@@ -203,7 +204,8 @@ public class SsaTranslation {
 
             // If lhs is true, also check rhs
             Block rhsBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkForShortCircuit, projTrue, ConditionalJumpNode.TRUE_TARGET);
+                checkForShortCircuit, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
             data.graphConstructor.sealBlock(rhsBlock);
             Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
             Node fullResult = data.graphConstructor.newLogicalAnd(lhs, rhs);
@@ -211,7 +213,8 @@ public class SsaTranslation {
             Block followBlock = data.graphConstructor.jumpToNewBlock();
             // If lhs is false, skip rhs
             data.graphConstructor.linkBranch(
-                    checkForShortCircuit, projFalse, ConditionalJumpNode.FALSE_TARGET, followBlock);
+                checkForShortCircuit, projFalse, ConditionalJumpNode.FALSE_TARGET, followBlock
+            );
             data.graphConstructor.sealBlock(followBlock);
 
             // Merge results in the same order their exit jumps were linked
@@ -229,7 +232,8 @@ public class SsaTranslation {
 
             // If lhs is true, also check rhs
             Block rhsBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkForShortCircuit, projFalse, ConditionalJumpNode.FALSE_TARGET);
+                checkForShortCircuit, projFalse, ConditionalJumpNode.FALSE_TARGET
+            );
             data.graphConstructor.sealBlock(rhsBlock);
             Node rhs = binaryOperationTree.rhs().accept(this, data).orElseThrow();
             Node fullResult = data.graphConstructor.newLogicalOr(lhs, rhs);
@@ -237,7 +241,8 @@ public class SsaTranslation {
             Block followBlock = data.graphConstructor.jumpToNewBlock();
             // If lhs is false, skip rhs
             data.graphConstructor.linkBranch(
-                    checkForShortCircuit, projTrue, ConditionalJumpNode.TRUE_TARGET, followBlock);
+                checkForShortCircuit, projTrue, ConditionalJumpNode.TRUE_TARGET, followBlock
+            );
             data.graphConstructor.sealBlock(followBlock);
 
             // Merge results in the same order their exit jumps were linked
@@ -279,13 +284,15 @@ public class SsaTranslation {
             ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
             Block thenBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
+                checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
             data.graphConstructor.sealBlock(thenBlock);
             Node thenResult = ternaryTree.thenExpression().accept(this, data).orElseThrow();
             JumpNode exitThen = data.graphConstructor.newJump();
 
             Block elseBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET);
+                checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
+            );
             data.graphConstructor.sealBlock(elseBlock);
             Node elseResult = ternaryTree.elseExpression().accept(this, data).orElseThrow();
 
@@ -321,8 +328,23 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(CallTree callTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            return Optional.empty();
+            pushSpan(callTree);
+
+            Node[] args = new Node[callTree.args().size()];
+            for (int i = 0; i < callTree.args().size(); i++) {
+                args[i] = callTree.args().get(i).accept(this, data).orElseThrow();
+            }
+
+            Node call = data.graphConstructor.newCall(callTree.functionName().name(), args);
+
+            ProjNode sideEffect = data.graphConstructor.newSideEffectProj(call);
+            data.graphConstructor.writeCurrentSideEffect(sideEffect);
+
+            ProjNode result = data.graphConstructor.newResultProj(call);
+
+            popSpan();
+
+            return Optional.of(result);
         }
 
         // Entry point
@@ -332,6 +354,11 @@ public class SsaTranslation {
 
             Node start = data.graphConstructor.newStart();
             data.graphConstructor.writeCurrentSideEffect(data.graphConstructor.newSideEffectProj(start));
+
+            for (ParamTree param : functionTree.params()) {
+                param.accept(this, data);
+            }
+
             functionTree.body().accept(this, data);
 
             popSpan();
@@ -341,8 +368,19 @@ public class SsaTranslation {
 
         @Override
         public Optional<Node> visit(ParamTree paramTree, SsaTranslation data) {
-            // TODO Auto-generated method stub
-            return Optional.empty();
+            pushSpan(paramTree);
+
+            Node param = data.graphConstructor.newParam();
+
+            data.graphConstructor.writeVariable(
+                paramTree.name().name(),
+                data.currentBlock(),
+                param
+            );
+
+            popSpan();
+
+            return NOT_AN_EXPRESSION;
         }
 
         // LValue trees
@@ -489,7 +527,8 @@ public class SsaTranslation {
             ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
             Block bodyBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
+                checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
             data.graphConstructor.sealBlock(bodyBlock);
             forTree.body().accept(this, data);
 
@@ -507,7 +546,8 @@ public class SsaTranslation {
             data.graphConstructor.sealBlock(conditionBlock);
 
             Block followBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET);
+                checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
+            );
             data.linkBreakNodes(followBlock);
             data.graphConstructor.sealBlock(followBlock);
 
@@ -527,7 +567,8 @@ public class SsaTranslation {
             ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
             Block thenBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
+                checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
             data.graphConstructor.sealBlock(thenBlock);
             ifTree.thenStatement().accept(this, data);
 
@@ -536,7 +577,8 @@ public class SsaTranslation {
                 JumpNode exitThen = thenNeedsExit ? data.graphConstructor.newJump() : null;
 
                 Block elseBlock = data.graphConstructor.linkBranchToNewBlock(
-                        checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET);
+                    checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
+                );
                 data.graphConstructor.sealBlock(elseBlock);
                 ifTree.elseOpt().accept(this, data);
 
@@ -549,7 +591,8 @@ public class SsaTranslation {
             } else {
                 Block followBlock = data.graphConstructor.jumpToNewBlock();
                 data.graphConstructor.linkBranch(
-                        checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET, followBlock);
+                    checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET, followBlock
+                );
                 data.graphConstructor.sealBlock(followBlock);
             }
 
@@ -595,7 +638,8 @@ public class SsaTranslation {
             ProjNode projFalse = data.graphConstructor.newFalseProj(checkCondition);
 
             Block bodyBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET);
+                checkCondition, projTrue, ConditionalJumpNode.TRUE_TARGET
+            );
             data.graphConstructor.sealBlock(bodyBlock);
             whileTree.body().accept(this, data);
 
@@ -604,7 +648,8 @@ public class SsaTranslation {
             data.graphConstructor.sealBlock(conditionBlock);
 
             Block followBlock = data.graphConstructor.linkBranchToNewBlock(
-                    checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET);
+                checkCondition, projFalse, ConditionalJumpNode.FALSE_TARGET
+            );
             data.linkBreakNodes(followBlock);
             data.graphConstructor.sealBlock(followBlock);
 

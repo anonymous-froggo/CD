@@ -3,8 +3,10 @@ package edu.kit.kastel.vads.compiler.ir.util;
 import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.CallNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.ParamNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode.SimpleProjectionInfo;
@@ -219,9 +221,11 @@ public class YCompPrinter {
             case BinaryOperationNode _ -> VcgColor.NORMAL;
             case Block _ -> VcgColor.NORMAL;
             case BoolNode _ -> VcgColor.NORMAL;
+            case CallNode _ -> VcgColor.SPECIAL;
             case ConditionalJumpNode _ -> VcgColor.CONTROL_FLOW;
             case ConstIntNode _ -> VcgColor.NORMAL;
             case JumpNode _ -> VcgColor.CONTROL_FLOW;
+            case ParamNode _ -> VcgColor.SPECIAL;
             case Phi phi -> {
                 if (phi.isSideEffectPhi()) {
                     yield VcgColor.MEMORY;

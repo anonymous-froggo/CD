@@ -2,8 +2,10 @@ package edu.kit.kastel.vads.compiler.ir;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
+import edu.kit.kastel.vads.compiler.ir.nodes.CallNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.ConstIntNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.ir.nodes.ParamNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
 import edu.kit.kastel.vads.compiler.ir.nodes.ProjNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.binary.AddNode;
@@ -47,6 +49,7 @@ class GraphConstructor {
 
     private final Optimizer optimizer;
     private final SsaGraph graph;
+    private int currentParamId;
 
     private final Map<Name, Map<Block, Node>> currentDef = new HashMap<>();
 
@@ -60,7 +63,7 @@ class GraphConstructor {
 
     private final Map<Block, Set<Node>> nodes = new HashMap<>();
 
-    public GraphConstructor(Optimizer optimizer, String name) {
+    public GraphConstructor(Optimizer optimizer, Name name) {
         this.optimizer = optimizer;
         this.graph = new SsaGraph(name);
         this.currentBlock = graph().startBlock();
@@ -90,7 +93,7 @@ class GraphConstructor {
         // Go through all of [block]'s control flow inputs
         for (Node controlFlowInput : predecessorsSkipProj(block)) {
             assert controlFlowInput instanceof ControlFlowNode
-                    : "Node " + controlFlowInput + " should be a control flow node";
+                : "Node " + controlFlowInput + " should be a control flow node";
 
             // Recursively collect [controlFlowInput]
             if (collected.add(controlFlowInput)) {
@@ -261,16 +264,16 @@ class GraphConstructor {
 
     // Other nodes
 
-    public Node newConstInt(int value) {
-        // always move const into start block, this allows better deduplication
-        // and resultingly in better value numbering
-        return this.optimizer.transform(new ConstIntNode(graph().startBlock(), value));
-    }
-
     public Node newBoolNode(boolean value) {
         // always move const into start block, this allows better deduplication
         // and resultingly in better value numbering
         return this.optimizer.transform(new BoolNode(graph().startBlock(), value));
+    }
+
+    public Node newConstInt(int value) {
+        // always move const into start block, this allows better deduplication
+        // and resultingly in better value numbering
+        return this.optimizer.transform(new ConstIntNode(graph().startBlock(), value));
     }
 
     public Block newBlock() {
@@ -290,6 +293,14 @@ class GraphConstructor {
     public Phi newPhi() {
         // don't transform phi directly, it is not ready yet
         return new Phi(currentBlock());
+    }
+
+    public Node newCall(Name calledFunctionName, Node... args) {
+        return new CallNode(calledFunctionName, currentBlock(), readCurrentSideEffect(), args);
+    }
+
+    public Node newParam() {
+        return new ParamNode(currentBlock(), currentParamId++);
     }
 
     public ProjNode newResultProj(Node node) {
@@ -466,7 +477,7 @@ class GraphConstructor {
         return val;
     }
 
-    Node addPhiOperands(Phi phi) {
+    public Node addPhiOperands(Phi phi) {
         for (Node pred : phi.block().predecessors()) {
             phi.appendOperand(readSideEffect(pred.block()));
         }

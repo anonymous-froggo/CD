@@ -8,6 +8,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.Tree;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
 import edu.kit.kastel.vads.compiler.parser.type.Type;
 import edu.kit.kastel.vads.compiler.semantic.Namespace;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
@@ -38,6 +39,10 @@ public class TypeScoper extends Scoper<Type> {
     @Override
     public void registerCurrentFunction(FunctionTree function) {
         currentFunction = function;
+
+        for (ParamTree param : function.params()) {
+            setType(param.name(), param.type().type());
+        }
     }
 
     public Type getType(Tree tree) {

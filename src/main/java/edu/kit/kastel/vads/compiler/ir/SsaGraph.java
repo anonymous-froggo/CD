@@ -10,6 +10,7 @@ import java.util.Set;
 
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
+import edu.kit.kastel.vads.compiler.parser.symbol.Name;
 
 public class SsaGraph {
 
@@ -19,9 +20,9 @@ public class SsaGraph {
     private final Block startBlock;
     private final Block endBlock;
 
-    private final String name;
+    private final Name name;
 
-    public SsaGraph(String name) {
+    public SsaGraph(Name name) {
         this.startBlock = new Block(this);
         this.endBlock = new Block(this);
 
@@ -63,6 +64,6 @@ public class SsaGraph {
 
     /// {@return the name of this graph}
     public String name() {
-        return name;
+        return this.name.asString();
     }
 }

@@ -27,11 +27,19 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
     }
 
     // Functions
-    
+
     @Override
     public R visit(FunctionTree functionTree, T data) {
+        // TODO we don't actually need a separate scope, maybe refactor this similarly
+        // to how for if's etc., no new block scopes are created
+        data.enterNewScope();
+
         data.registerCurrentFunction(functionTree);
-        return super.visit(functionTree, data);
+        R r = super.visit(functionTree, data);
+
+        data.exitScope();
+
+        return r;
     }
 
     // Statement trees
