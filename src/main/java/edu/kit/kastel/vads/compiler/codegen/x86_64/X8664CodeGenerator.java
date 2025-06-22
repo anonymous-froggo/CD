@@ -517,6 +517,14 @@ public final class X8664CodeGenerator implements CodeGenerator {
     }
 
     private void move(Register src, Register dest) {
+        if (dest == null) {
+            // TODO this is wonky
+            // Unused result
+            if (Main.DEBUG) {
+                System.out.println("Unused dest: " + dest);
+            }
+            return;
+        }
         if (src == dest) {
             // Unnecessary move
             return;
