@@ -486,6 +486,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
         }
     }
 
+    // TODO eliminate unnecessary saves/loads
+
     private void calleeSave() {
         for (Register register : X8664Register.calleeSavedRegisters()) {
             push(register);

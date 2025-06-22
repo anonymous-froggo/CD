@@ -141,7 +141,7 @@ public class LivenessAnalysis {
     }
 
     private void J5(ConditionalJumpNode l) {
-        Node x = l.predecessor(ConditionalJumpNode.CONDITION);
+        Node x = predecessorSkipProj(l, ConditionalJumpNode.CONDITION);
         Node lPrime = l.target(ConditionalJumpNode.TRUE_TARGET).schedule().get(0);
         Node lPlusOne = l.target(ConditionalJumpNode.FALSE_TARGET).schedule().get(0);
 

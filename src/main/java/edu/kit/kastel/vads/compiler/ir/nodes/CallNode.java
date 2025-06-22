@@ -19,6 +19,9 @@ public final class CallNode extends Node {
         super(block, mergePredecessors(sideEffect, args));
 
         this.calledFunctionName = calledFunctionName;
+        if (sideEffect instanceof Phi phi) {
+            phi.setSideEffectPhi();
+        }
     }
 
     @Override
