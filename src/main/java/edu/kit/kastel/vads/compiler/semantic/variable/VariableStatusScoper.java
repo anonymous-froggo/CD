@@ -52,6 +52,7 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
     @Override
     public void registerCurrentFunction(FunctionTree function) {
         for (ParamTree param : function.params()) {
+            checkUndeclared(param.name());
             initialize(param.name());
         }
         return;
@@ -80,7 +81,7 @@ public class VariableStatusScoper extends Scoper<VariableStatus> {
     public void checkDeclared(NameTree name) {
         VariableStatus variableStatus = currentScope().get(name);
         if (variableStatus == null) {
-            throw new SemanticException("Variable " + name + " must be declared before assignment");
+            throw new SemanticException("Variable " + name + " must be declared before assignment.");
         }
     }
 

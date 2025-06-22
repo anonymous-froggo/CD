@@ -2,7 +2,6 @@ package edu.kit.kastel.vads.compiler.semantic;
 
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
-import edu.kit.kastel.vads.compiler.parser.type.Type;
 import edu.kit.kastel.vads.compiler.semantic.ret.ReturnAnalysis;
 import edu.kit.kastel.vads.compiler.semantic.ret.ReturnState;
 import edu.kit.kastel.vads.compiler.semantic.type.TypeAnalysis;
@@ -26,8 +25,10 @@ public class SemanticAnalysis {
         Namespace<FunctionTree> functions = new Namespace<>();
         this.program.accept(new RecursivePostorderVisitor<>(new FunctionAnalysis()), functions);
 
-        this.program.accept(new ScopedRecursivePostorderVisitor<>(new VariableStatusAnalysis()),
-                new VariableStatusScoper());
+        this.program.accept(
+            new ScopedRecursivePostorderVisitor<>(new VariableStatusAnalysis(functions)),
+            new VariableStatusScoper()
+        );
 
         this.program.accept(new ScopedRecursivePostorderVisitor<>(new TypeAnalysis(functions)), new TypeScoper());
 

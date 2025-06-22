@@ -2,6 +2,8 @@ package edu.kit.kastel.vads.compiler.semantic.variable;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.AssignmentOperatorType;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.IdentExpressionTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.CallTree;
+import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.lvalues.LValueIdentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.AssignmentTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BreakTree;
@@ -9,11 +11,20 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.ContinueTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.DeclTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ForTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ReturnTree;
+import edu.kit.kastel.vads.compiler.semantic.Namespace;
 import edu.kit.kastel.vads.compiler.semantic.SemanticException;
 import edu.kit.kastel.vads.compiler.semantic.visitor.NoOpVisitor;
 import edu.kit.kastel.vads.compiler.semantic.visitor.Unit;
 
 public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper> {
+
+    private final Namespace<FunctionTree> functions;
+
+    public VariableStatusAnalysis(Namespace<FunctionTree> functions) {
+        super();
+
+        this.functions = functions;
+    }
 
     // Expression trees
 
@@ -21,6 +32,18 @@ public class VariableStatusAnalysis implements NoOpVisitor<VariableStatusScoper>
     public Unit visit(IdentExpressionTree identExpressionTree, VariableStatusScoper data) {
         data.checkInitialized(identExpressionTree.name());
         return NoOpVisitor.super.visit(identExpressionTree, data);
+    }
+
+    // Functions
+
+    // This checks whether a called function exists. There was no better place to
+    // put it.
+    @Override
+    public Unit visit(CallTree callTree, VariableStatusScoper data) {
+        if (!this.functions.containsKey(callTree.functionName().name())) {
+            throw new SemanticException("Function " + callTree.functionName() + " is undefined.");
+        }
+        return NoOpVisitor.super.visit(callTree, data);
     }
 
     // Statement trees

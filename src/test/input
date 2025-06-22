@@ -1,11 +1,2 @@
-int main() {
-  int x = 0;
-  int y = 0;
-  while (lessTen(x)) {
-    y = 9 / x;
-    x = x + 1;
-  }
-  return x;
-}
-
-bool lessTen(int x) { return x < 10; }
+int main() { return foo(1, 0, true); }
+int foo(int l, int o, bool l) { return o; }
