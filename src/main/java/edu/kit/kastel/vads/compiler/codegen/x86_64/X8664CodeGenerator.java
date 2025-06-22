@@ -65,10 +65,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
             this.allocator = new X8664RegisterAllocator(graph);
             allocator.allocate();
             this.nStackRegisters = allocator.numberOfStackRegisters();
-
-            if (this.nStackRegisters > 0) {
-                moveStackPointer(-this.nStackRegisters * X8664StackRegister.SLOT_SIZE_BYTES);
-            }
             generateForGraph(graph);
         }
 
@@ -93,6 +89,11 @@ public final class X8664CodeGenerator implements CodeGenerator {
         this.builder.append(graph.name()).append(":\n");
 
         calleeSave();
+
+        if (this.nStackRegisters > 0) {
+            moveStackPointer(-this.nStackRegisters * X8664StackRegister.SLOT_SIZE_BYTES);
+        }
+        
         loadParams(graph.params());
 
         for (Block block : graph.blocks()) {
@@ -382,7 +383,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         );
 
         if (this.nStackRegisters > 0) {
-            moveStackPointer(this.nStackRegisters * 8);
+            moveStackPointer(this.nStackRegisters * X8664StackRegister.SLOT_SIZE_BYTES);
         }
 
         calleeLoad();
@@ -538,20 +539,20 @@ public final class X8664CodeGenerator implements CodeGenerator {
     }
 
     private void calleeSave() {
-        this.builder.append("# callee save\n");
+        this.builder.append("  #callee save\n");
     }
 
     private void calleeLoad() {
-        this.builder.append("# callee load\n");
+        this.builder.append("  #callee load\n");
     }
 
     private void callerSave() {
-        this.builder.append("# caller save\n");
+        this.builder.append("  #caller save\n");
     }
 
     private void callerLoad() {
         // TODO don't load %rax, as the result will be stored in here
-        this.builder.append("# caller load\n");
+        this.builder.append("  #caller load\n");
     }
 
     // Helper methods
