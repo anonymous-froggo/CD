@@ -1,5 +1,7 @@
 package edu.kit.kastel.vads.compiler.ir.nodes;
 
+import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,13 +14,11 @@ public final class CallNode extends Node {
     public static final int ARGS_START = 1;
 
     private final Name calledFunctionName;
-    private final List<Node> args;
 
     public CallNode(Name calledFunctionName, Block block, Node sideEffect, Node[] args) {
         super(block, mergePredecessors(sideEffect, args));
 
         this.calledFunctionName = calledFunctionName;
-        this.args = List.of(args);
     }
 
     @Override
@@ -31,7 +31,11 @@ public final class CallNode extends Node {
     }
 
     public List<Node> args() {
-        return List.copyOf(this.args);
+        List<Node> args = new ArrayList<>();
+        for (int idx = ARGS_START; idx < predecessors().size(); idx++) {
+            args.add(predecessorSkipProj(this, idx));
+        }
+        return args;
     }
 
     private static List<Node> mergePredecessors(Node sideEffect, Node[] args) {

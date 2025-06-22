@@ -156,7 +156,7 @@ public class LivenessAnalysis {
 
         addFact(def, l, x);
         for (int i = CallNode.ARGS_START; i < l.predecessors().size(); i++) {
-            Node yi = x.predecessor(i);
+            Node yi = predecessorSkipProj(x, i);
             addFact(use, l, yi);
         }
         addFact(succ, l, lPlusOne);

@@ -515,11 +515,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
     }
 
     private void move(Register src, Register dest) {
-        if (dest == null) {
-            // TODO this is kinda wonky
-            // Result isn't used
-            return;
-        }
         if (src == dest) {
             // Unnecessary move
             return;
