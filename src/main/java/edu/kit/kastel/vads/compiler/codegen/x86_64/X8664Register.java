@@ -34,12 +34,12 @@ public enum X8664Register implements Register {
     private static final Register[] PARAM_REGISTERS = new Register[] {
         RDI, RSI, RDX, RCX, R8, R9,
     };
-    private static final Register[] CALLEE_SAVED = new Register[] {
+    private static final Register[] CALLEE_SAVED_REGISTERS = new Register[] {
         RBX, RSP, RBP, R12, R13, R14, R15,
     };
     // RAX would be caller saved, but as it contains the result of a function call,
     // we don't actually save/load it
-    private static final Register[] CALLER_SAVED = new Register[] {
+    private static final Register[] CALLER_SAVED_REGISTERS = new Register[] {
         /*RAX, */RCX, RDX, RSI, RDI, R8, R9, R10, R11,
     };
 
@@ -76,5 +76,13 @@ public enum X8664Register implements Register {
 
     public static Register[] paramRegisters() {
         return PARAM_REGISTERS.clone();
+    }
+
+    public static Register[] calleeSavedRegisters() {
+        return CALLEE_SAVED_REGISTERS.clone();
+    }
+
+    public static Register[] callerSavedRegisters() {
+        return CALLER_SAVED_REGISTERS.clone();
     }
 }

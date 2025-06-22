@@ -1,14 +1,9 @@
 int main() {
-  int n = 31;
-  int prevFib = 1;
-  int fib = 1;
-  for (int i = 3; i <= n; i += 1) {
-    int temp = fib;
-    fib += prevFib;
-    prevFib = temp;
-  }
-  if (fib == 1346269)
-    return 0;
-  else
-    return 1;
+  int var = 69;
+  foo(var);
+  return var;
+}
+int foo(int a) {
+  a = 420;
+  return 0;
 }

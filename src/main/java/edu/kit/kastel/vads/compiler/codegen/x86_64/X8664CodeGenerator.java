@@ -1,5 +1,7 @@
 package edu.kit.kastel.vads.compiler.codegen.x86_64;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +95,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         if (this.nStackRegisters > 0) {
             moveStackPointer(-this.nStackRegisters * X8664StackRegister.SLOT_SIZE_BYTES);
         }
-        
+
         loadParams(graph.params());
 
         for (Block block : graph.blocks()) {
@@ -484,6 +486,34 @@ public final class X8664CodeGenerator implements CodeGenerator {
         }
     }
 
+    private void calleeSave() {
+        for (Register register : X8664Register.calleeSavedRegisters()) {
+            push(register);
+        }
+    }
+
+    private void calleeLoad() {
+        // Need to pop in reverse order
+        Register[] calleeSavedRegisters = X8664Register.calleeSavedRegisters();
+        for (int i = calleeSavedRegisters.length - 1; i >= 0; i--) {
+            pop(calleeSavedRegisters[i]);
+        }
+    }
+
+    private void callerSave() {
+        for (Register register : X8664Register.callerSavedRegisters()) {
+            push(register);
+        }
+    }
+
+    private void callerLoad() {
+        // Need to pop in reverse order
+        Register[] callerSavedRegisters = X8664Register.callerSavedRegisters();
+        for (int i = callerSavedRegisters.length - 1; i >= 0; i--) {
+            pop(callerSavedRegisters[i]);
+        }
+    }
+
     private void move(Register src, Register dest) {
         if (dest == null) {
             // TODO this is kinda wonky
@@ -507,6 +537,20 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(src.name(32))
             .append(", ")
             .append(dest.name(32))
+            .append("\n");
+    }
+
+    private void push(Register src) {
+        this.builder.repeat(" ", 2)
+            .append("pushq ")
+            .append(src.name(64))
+            .append("\n");
+    }
+
+    private void pop(Register dest) {
+        this.builder.repeat(" ", 2)
+            .append("popq ")
+            .append(dest.name(64))
             .append("\n");
     }
 
@@ -536,23 +580,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(", ")
             .append(X8664Register.RSP.name(64))
             .append("\n");
-    }
-
-    private void calleeSave() {
-        this.builder.append("  #callee save\n");
-    }
-
-    private void calleeLoad() {
-        this.builder.append("  #callee load\n");
-    }
-
-    private void callerSave() {
-        this.builder.append("  #caller save\n");
-    }
-
-    private void callerLoad() {
-        // TODO don't load %rax, as the result will be stored in here
-        this.builder.append("  #caller load\n");
     }
 
     // Helper methods
