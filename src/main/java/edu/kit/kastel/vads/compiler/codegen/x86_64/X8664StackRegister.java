@@ -6,7 +6,6 @@ public final class X8664StackRegister implements Register {
 
     public static final int SLOT_SIZE = 8;
 
-    // The stack pointer's offset relative to its position at the start of the corresponding function.
     private static int currentStackPointerOffset;
 
     private int offsetAtCreation;

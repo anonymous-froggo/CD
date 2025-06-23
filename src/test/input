@@ -1,15 +1,5 @@
-int malloc() { return 42; }
-
-int _main() { return 120; }
-
-int printf() { return 180; }
-
-int getchar() { return 21; }
-
-int putchar() { return 43; }
-
-int fflush() { return 103; }
-
 int main() {
-  return -malloc() * putchar() + fflush() * getchar() - printf() - _main();
+    print(69);
+    flush();
+    return 0;
 }

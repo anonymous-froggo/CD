@@ -66,6 +66,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
         for (SsaGraph graph : this.graphs) {
             generateForGraph(graph);
         }
+        
+        libFunctions();
 
         return this.builder.toString();
     }
@@ -86,8 +88,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(graph.name())
             .append(":\n");
         calleeSave();
-
         X8664StackRegister.resetCurrentStackPointerOffset();
+
         this.allocator = new X8664RegisterAllocator(graph);
         this.allocator.allocate();
         this.nStackRegisters = this.allocator.numberOfStackRegisters();
@@ -392,7 +394,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
             moveStackPointer(this.nStackRegisters * X8664StackRegister.SLOT_SIZE);
         }
 
-        calleeLoad();
+        calleeRestore();
 
         this.builder.repeat(" ", 2)
             .append("ret")
@@ -416,7 +418,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
         unloadArgs(call.args());
 
-        callerLoad();
+        callerRestore();
 
         // Load result
         move(X8664Register.RAX, register(call));
@@ -446,7 +448,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         }
     }
 
-    private void calleeLoad() {
+    private void calleeRestore() {
         // Need to pop in reverse order
         Register[] calleeSavedRegisters = X8664Register.calleeSavedRegisters();
         for (int i = calleeSavedRegisters.length - 1; i >= 0; i--) {
@@ -460,7 +462,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         }
     }
 
-    private void callerLoad() {
+    private void callerRestore() {
         // Need to pop in reverse order
         Register[] callerSavedRegisters = X8664Register.callerSavedRegisters();
         for (int i = callerSavedRegisters.length - 1; i >= 0; i--) {
@@ -543,6 +545,23 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append("\n");
 
         X8664StackRegister.moveStackPointer(offset);
+    }
+
+    private void libFunctions() {
+        this.builder.append("_print:\n");
+        calleeSave();
+        X8664StackRegister.resetCurrentStackPointerOffset();
+        move(paramRegister(0), X8664Register.RDI);
+        this.builder.append("  call putchar\n");
+        calleeRestore();
+
+        this.builder.append("_flush:\n");
+        calleeSave();
+        X8664StackRegister.resetCurrentStackPointerOffset();
+        this.builder.append("  call get_stdout\n");
+        move(X8664Register.RDI, X8664Register.RAX);
+        this.builder.append("  call fflush\n");
+        calleeRestore();
     }
 
     // Helper methods

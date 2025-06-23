@@ -94,22 +94,12 @@ public class Main {
 
     private static void assembleAndLink(String generatedCode, Path output) throws IOException {
         Path assemblyPath = output.toAbsolutePath().resolveSibling(ASSEMBLY_FILE);
-
-        Files.writeString(
-            assemblyPath,
-                ".global main\n" +
-                        ".global _main\n" +
-                        ".text\n" +
-                        "main:\n" +
-                        "call _main\n" +
-                        "movq %rax, %rdi\n" +
-                        "movq $0x3C, %rax\n" +
-                        "syscall\n" +
-                        generatedCode);
+        String header = Files.readString(Path.of("src/res/header.S"));
+        Files.writeString(assemblyPath, header + generatedCode);
 
         try {
             Process gccProcess = Runtime.getRuntime().exec(new String[] {
-                    "gcc", assemblyPath.toString(), "-o", output.toString()
+                "gcc", assemblyPath.toString(), "-o", output.toString()
             });
             gccProcess.waitFor();
 
@@ -117,7 +107,7 @@ public class Main {
                 System.out.println("gcc exited with code " + gccProcess.exitValue());
 
                 Process outputProcess = Runtime.getRuntime().exec(new String[] {
-                        "./" + output.toString()
+                    "./" + output.toString()
                 });
                 outputProcess.waitFor();
 
@@ -130,7 +120,8 @@ public class Main {
 
     private static void dumpGraph(SsaGraph graph, String key) throws IOException {
         Files.writeString(
-                GRAPHS_FOLDER.toAbsolutePath().resolve(graph.name() + "-" + key + ".vcg"),
-                YCompPrinter.print(graph));
+            GRAPHS_FOLDER.toAbsolutePath().resolve(graph.name() + "-" + key + ".vcg"),
+            YCompPrinter.print(graph)
+        );
     }
 }
