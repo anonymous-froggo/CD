@@ -37,9 +37,7 @@ public class X8664RegisterAllocator implements RegisterAllocator {
         int numberOfColors = interferenceGraph.getNumberOfColors();
         this.nStackRegisters = Math.max(0, numberOfColors - this.registers.size());
         for (int i = 0; i < this.nStackRegisters; i++) {
-            // Stack pointer will be moved to allocate the stack registers later on, so we
-            // need to compensate for this by offsetting the slot
-            Register stackRegister = new X8664StackRegister(i - this.nStackRegisters);
+            Register stackRegister = new X8664StackRegister(i);
             this.registers.add(stackRegister);
         }
         for (Node node : nodeColors.keySet()) {

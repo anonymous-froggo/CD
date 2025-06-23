@@ -92,14 +92,18 @@ public final class X8664CodeGenerator implements CodeGenerator {
         this.allocator = new X8664RegisterAllocator(graph);
         this.allocator.allocate();
         this.nStackRegisters = this.allocator.numberOfStackRegisters();
-        if (this.nStackRegisters > 0) {
-            moveStackPointer(-this.nStackRegisters * X8664StackRegister.SLOT_SIZE);
-        }
         if (Main.DEBUG) {
             this.allocator.printAllocation();
         }
+        if (this.nStackRegisters > 0) {
+            // Allocate space for stack registers
+            moveStackPointer(-this.nStackRegisters * X8664StackRegister.SLOT_SIZE);
+            // This is the baseline stack pointer offset for the starting block, so reset
+            X8664StackRegister.resetCurrentStackPointerOffset();
+        }
 
         loadParams(graph.params());
+
         for (Block block : graph.blocks()) {
             if (block != graph.endBlock()) {
                 generateForBlock(block);
@@ -395,6 +399,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
         this.builder.repeat(" ", 2)
             .append("ret")
             .append("\n");
+
+        X8664StackRegister.resetCurrentStackPointerOffset();
     }
 
     // Functions
