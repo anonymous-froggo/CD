@@ -81,11 +81,10 @@ public final class X8664CodeGenerator implements CodeGenerator {
     }
 
     private void generateForGraph(SsaGraph graph) {
-        if (graph.name().equals("main")) {
-            // main needs to be printed as _main
-            this.builder.append('_');
-        }
-        this.builder.append(graph.name()).append(":\n");
+        // Mangle function names
+        this.builder.append('_')
+            .append(graph.name())
+            .append(":\n");
         calleeSave();
 
         X8664StackRegister.resetCurrentStackPointerOffset();
@@ -101,7 +100,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
             // This is the baseline stack pointer offset for the starting block, so reset
             X8664StackRegister.resetCurrentStackPointerOffset();
         }
-
         loadParams(graph.params());
 
         for (Block block : graph.blocks()) {
@@ -411,7 +409,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
         loadArgs(call.args());
 
         this.builder.repeat(" ", 2)
-            .append("call ")
+            // Mangle function names
+            .append("call _")
             .append(call.calledFunctioName().asString())
             .append("\n");
 
