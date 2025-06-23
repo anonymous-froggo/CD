@@ -74,6 +74,11 @@ class GraphConstructor {
     }
 
     public void calculateSchedule() {
+        // Add params right at the front
+        for (ParamNode param : graph().params()) {
+            graph().startBlock().addToSchedule(param);
+        }
+
         // Collect nodes
         Set<Node> collected = new HashSet<>();
         collected.add(graph().endBlock());
@@ -154,8 +159,11 @@ class GraphConstructor {
         // Schedule node
         switch (node) {
             case StartNode _,ProjNode _,Block _ -> {
-                // Do nothing
+                // Does not need to be scheduled
                 break;
+            }
+            case ParamNode _ -> {
+                // Has already been scheduled at the benignin
             }
             case Phi phi -> {
                 if (phi.isSideEffectPhi()) {

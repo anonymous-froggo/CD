@@ -64,9 +64,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
     @Override
     public String generateCode() {
         for (SsaGraph graph : this.graphs) {
-            this.allocator = new X8664RegisterAllocator(graph);
-            allocator.allocate();
-            this.nStackRegisters = allocator.numberOfStackRegisters();
             generateForGraph(graph);
         }
 
@@ -89,15 +86,20 @@ public final class X8664CodeGenerator implements CodeGenerator {
             this.builder.append('_');
         }
         this.builder.append(graph.name()).append(":\n");
-
         calleeSave();
 
+        X8664StackRegister.resetCurrentStackPointerOffset();
+        this.allocator = new X8664RegisterAllocator(graph);
+        this.allocator.allocate();
+        this.nStackRegisters = this.allocator.numberOfStackRegisters();
         if (this.nStackRegisters > 0) {
-            moveStackPointer(-this.nStackRegisters * X8664StackRegister.SLOT_SIZE_BYTES);
+            moveStackPointer(-this.nStackRegisters * X8664StackRegister.SLOT_SIZE);
+        }
+        if (Main.DEBUG) {
+            this.allocator.printAllocation();
         }
 
         loadParams(graph.params());
-
         for (Block block : graph.blocks()) {
             if (block != graph.endBlock()) {
                 generateForBlock(block);
@@ -385,7 +387,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
         );
 
         if (this.nStackRegisters > 0) {
-            moveStackPointer(this.nStackRegisters * X8664StackRegister.SLOT_SIZE_BYTES);
+            moveStackPointer(this.nStackRegisters * X8664StackRegister.SLOT_SIZE);
         }
 
         calleeLoad();
@@ -407,6 +409,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(call.calledFunctioName().asString())
             .append("\n");
 
+        unloadArgs(call.args());
+
         callerLoad();
 
         // Load result
@@ -414,76 +418,19 @@ public final class X8664CodeGenerator implements CodeGenerator {
     }
 
     private void loadParams(List<ParamNode> params) {
-        // TODO this is wonky
-
-        if (params.size() >= 5) {
-            // The 4th param (0-indexed) is stored in %r8. Move it beforehand so it doesn't
-            // get overwritten.
-            Register src4 = paramRegister(4);
-            Register dest4 = register(params.get(4));
-            if (params.size() >= 6) {
-                // The 5th param (0-indexed) is stored in %r8. Move it beforehand so it doesn't
-                // get overwritten.
-                Register src5 = paramRegister(5);
-                Register dest5 = register(params.get(5));
-
-                if (dest4 == X8664Register.R9) {
-                    // Need to temporarily store %r8 in %rax
-                    move(src4, X8664Register.RAX);
-                    move(src5, dest5);
-                    move(X8664Register.RAX, dest4);
-                } else {
-                    move(src4, dest4);
-                    move(src5, dest5);
-                }
-            } else {
-                move(src4, dest4);
-            }
-        }
-
         for (int id = 0; id < params.size(); id++) {
-            if (id == 4 || id == 5) {
-                // The 4th and 5th params have already been moved
-                continue;
-            }
-
             move(paramRegister(id), register(params.get(id)));
         }
     }
 
     private void loadArgs(List<Node> args) {
-        // TODO this is wonky
-
-        if (args.size() >= 5) {
-            Register src4 = register(args.get(4));
-            Register dest4 = paramRegister(4);
-
-            if (args.size() >= 6) {
-                Register src5 = register(args.get(5));
-                Register dest5 = paramRegister(5);
-
-                if (dest4 == X8664Register.R9) {
-                    // Need to temporarily store %r8 in %rax
-                    move(src4, X8664Register.RAX);
-                    move(src5, dest5);
-                    move(X8664Register.RAX, dest4);
-                } else {
-                    move(src4, dest4);
-                    move(src5, dest5);
-                }
-            } else {
-                move(src4, dest4);
-            }
+        for (int id = args.size() - 1; id >= 0; id--) {
+            push(register(args.get(id)));
         }
+    }
 
-        for (int id = 0; id < args.size(); id++) {
-            if (id == 4 || id == 5) {
-                // The 4th and 5th args have already been moved
-                continue;
-            }
-
-            move(register(args.get(id)), paramRegister(id));
-        }
+    private void unloadArgs(List<Node> args) {
+        moveStackPointer(X8664StackRegister.SLOT_SIZE * args.size());
     }
 
     // TODO eliminate unnecessary saves/loads
@@ -550,6 +497,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append("pushq ")
             .append(src.name(64))
             .append("\n");
+
+        X8664StackRegister.moveStackPointer(-X8664StackRegister.SLOT_SIZE);
     }
 
     private void pop(Register dest) {
@@ -557,6 +506,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append("popq ")
             .append(dest.name(64))
             .append("\n");
+
+        X8664StackRegister.moveStackPointer(X8664StackRegister.SLOT_SIZE);
     }
 
     private void constant(String constant, Register dest) {
@@ -585,6 +536,8 @@ public final class X8664CodeGenerator implements CodeGenerator {
             .append(", ")
             .append(X8664Register.RSP.name(64))
             .append("\n");
+
+        X8664StackRegister.moveStackPointer(offset);
     }
 
     // Helper methods

@@ -37,19 +37,13 @@ public class X8664RegisterAllocator implements RegisterAllocator {
         int numberOfColors = interferenceGraph.getNumberOfColors();
         this.nStackRegisters = Math.max(0, numberOfColors - this.registers.size());
         for (int i = 0; i < this.nStackRegisters; i++) {
-            Register stackRegister = new X8664StackRegister(X8664Register.RSP, i);
+            // Stack pointer will be moved to allocate the stack registers later on, so we
+            // need to compensate for this by offsetting the slot
+            Register stackRegister = new X8664StackRegister(i - this.nStackRegisters);
             this.registers.add(stackRegister);
         }
         for (Node node : nodeColors.keySet()) {
             this.registerAllocation.put(node, registers.get(nodeColors.get(node)));
-        }
-
-        if (Main.DEBUG) {
-            System.out.println("\nRegister allocation:");
-            for (Node node : this.registerAllocation.keySet()) {
-                System.out.println(node + " = " + this.registerAllocation.get(node).name(64));
-            }
-            System.out.println();
         }
     }
 
@@ -60,17 +54,18 @@ public class X8664RegisterAllocator implements RegisterAllocator {
 
     @Override
     public Register paramRegister(int id) {
-        Register[] paramRegisters = X8664Register.paramRegisters();
-
-        if (id < paramRegisters.length) {
-            return paramRegisters[id];
-        }
-
-        int offset = id - paramRegisters.length;
-        return new X8664StackRegister(X8664Register.RBP, offset);
+        return new X8664StackRegister(1 + id + numberOfStackRegisters() + X8664Register.calleeSavedRegisters().length);
     }
 
     public int numberOfStackRegisters() {
         return this.nStackRegisters;
+    }
+
+    public void printAllocation() {
+        System.out.println("\nRegister allocation:");
+        for (Node node : this.registerAllocation.keySet()) {
+            System.out.println(node + " = " + this.registerAllocation.get(node).name(64));
+        }
+        System.out.println();
     }
 }

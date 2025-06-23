@@ -20,18 +20,30 @@ public class SemanticAnalysis {
     }
 
     public void analyze() {
-        this.program.accept(new RecursivePostorderVisitor<>(new IntegerLiteralRangeAnalysis()), new Namespace<>());
+        this.program.accept(
+            new RecursivePostorderVisitor<>(new IntegerLiteralRangeAnalysis()),
+            new Namespace<>()
+        );
 
         Namespace<FunctionTree> functions = new Namespace<>();
-        this.program.accept(new RecursivePostorderVisitor<>(new FunctionAnalysis()), functions);
+        this.program.accept(
+            new RecursivePostorderVisitor<>(new FunctionAnalysis()),
+            functions
+        );
 
         this.program.accept(
             new ScopedRecursivePostorderVisitor<>(new VariableStatusAnalysis(functions)),
             new VariableStatusScoper()
         );
 
-        this.program.accept(new ScopedRecursivePostorderVisitor<>(new TypeAnalysis(functions)), new TypeScoper());
+        this.program.accept(
+            new ScopedRecursivePostorderVisitor<>(new TypeAnalysis(functions)),
+            new TypeScoper()
+        );
 
-        this.program.accept(new RecursivePostorderVisitor<>(new ReturnAnalysis()), new ReturnState());
+        this.program.accept(
+            new RecursivePostorderVisitor<>(new ReturnAnalysis()),
+            new ReturnState()
+        );
     }
 }
