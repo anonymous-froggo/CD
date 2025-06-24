@@ -45,6 +45,9 @@ import edu.kit.kastel.vads.compiler.ir.nodes.unary.BitwiseNotNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.LogicalNotNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
+import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword;
+import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword.LibFunctionKeywordType;
+import edu.kit.kastel.vads.compiler.parser.symbol.LibFunctionName;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
 
@@ -66,9 +69,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
         for (SsaGraph graph : this.graphs) {
             generateForGraph(graph);
         }
-        
-        libFunctions();
-
         return this.builder.toString();
     }
 
@@ -407,17 +407,19 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     private void call(CallNode call) {
         callerSave();
-
         loadArgs(call.args());
 
-        this.builder.repeat(" ", 2)
-            // Mangle function names
-            .append("call _")
-            .append(call.calledFunctioName().asString())
-            .append("\n");
+        if (call.calledFunctioName() instanceof LibFunctionName name) {
+            libFunction(name);
+        } else {
+            this.builder.repeat(" ", 2)
+                // Mangle function names
+                .append("call _")
+                .append(call.calledFunctioName().asString())
+                .append("\n");
+        }
 
         unloadArgs(call.args());
-
         callerRestore();
 
         // Load result
@@ -475,7 +477,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
             // TODO this is wonky
             // Unused result
             if (Main.DEBUG) {
-                System.out.println("Unused dest: " + dest);
+                System.out.println("Unused dest from src: " + src.name(64));
             }
             return;
         }
@@ -501,7 +503,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     private void push(Register src) {
         this.builder.repeat(" ", 2)
-            .append("pushq ")
+            .append("push ")
             .append(src.name(64))
             .append("\n");
 
@@ -510,7 +512,7 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     private void pop(Register dest) {
         this.builder.repeat(" ", 2)
-            .append("popq ")
+            .append("pop ")
             .append(dest.name(64))
             .append("\n");
 
@@ -547,21 +549,39 @@ public final class X8664CodeGenerator implements CodeGenerator {
         X8664StackRegister.moveStackPointer(offset);
     }
 
-    private void libFunctions() {
-        this.builder.append("_print:\n");
-        calleeSave();
-        X8664StackRegister.resetCurrentStackPointerOffset();
-        move(paramRegister(0), X8664Register.RDI);
-        this.builder.append("  call putchar\n");
-        calleeRestore();
-
-        this.builder.append("_flush:\n");
-        calleeSave();
-        X8664StackRegister.resetCurrentStackPointerOffset();
-        this.builder.append("  call get_stdout\n");
-        move(X8664Register.RDI, X8664Register.RAX);
-        this.builder.append("  call fflush\n");
-        calleeRestore();
+    // TODO maybe use wrapper functions instead of inline
+    private void libFunction(LibFunctionName name) {
+        switch (name.keyword().type()) {
+            case PRINT -> {
+                this.builder.repeat(" ", 2)
+                    .append("mov ")
+                    .append("0(")
+                    .append(X8664Register.RSP.name(64))
+                    .append("), ")
+                    .append(X8664Register.RDI.name(64))
+                    .append("\n");
+                this.builder.repeat(" ", 2)
+                    .append("call putchar")
+                    .append("\n");
+                constant(fromInt(0), X8664Register.RAX);
+            }
+            case READ -> {
+                this.builder.repeat(" ", 2)
+                    .append("call getchar")
+                    .append("\n");
+            }
+            case FLUSH -> {
+                this.builder.repeat(" ", 2)
+                    .append("mov stdout(%rip), ")
+                    .append(X8664Register.RDI.name(64))
+                    .append("\n");
+                this.builder.repeat(" ", 2)
+                    .append("call fflush")
+                    .append("\n");
+                constant(fromInt(0), X8664Register.RAX);
+            }
+            default -> throw new UnsupportedOperationException("Not yet implemented: " + name);
+        }
     }
 
     // Helper methods
