@@ -2,7 +2,7 @@ package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
 import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.Visitor;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 
 // TODO check if I wanna implement this as a regular StatementTree or smth
 public record ElseOptTree(StatementTree elseStatement, Position start) implements StatementTree {
@@ -13,7 +13,7 @@ public record ElseOptTree(StatementTree elseStatement, Position start) implement
     }
 
     @Override
-    public <T, R> R accept(Visitor<T, R> visitor, T data) {
+    public <T, R> R accept(TreeVisitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
 

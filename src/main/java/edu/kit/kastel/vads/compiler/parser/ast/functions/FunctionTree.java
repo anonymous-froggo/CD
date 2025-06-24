@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword.LibFunctionKeywordType;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.symbol.Name;
@@ -33,11 +33,13 @@ public record FunctionTree(TypeTree returnType, NameTree name, List<ParamTree> p
     }
 
     @Override
-    public <T, R> R accept(Visitor<T, R> visitor, T data) {
+    public <T, R> R accept(TreeVisitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
 
-    private static FunctionTree libFunction(Type returnType, LibFunctionKeywordType keywordType, List<Type> paramTypes) {
+    private static FunctionTree libFunction(
+        Type returnType, LibFunctionKeywordType keywordType, List<Type> paramTypes
+    ) {
         TypeTree returnTypeTree = new TypeTree(returnType, Span.NULL_SPAN);
 
         Name name = Name.forLibFunctionKeyword(new LibFunctionKeyword(keywordType, Span.NULL_SPAN));

@@ -1,6 +1,5 @@
 package edu.kit.kastel.vads.compiler.ir;
 
-import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.Node;
 import edu.kit.kastel.vads.compiler.ir.nodes.Phi;
@@ -17,6 +16,7 @@ import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperato
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
 import edu.kit.kastel.vads.compiler.parser.ast.Tree;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
@@ -121,7 +121,7 @@ public class SsaTranslation {
         }
     }
 
-    private static class SsaTranslationVisitor implements Visitor<SsaTranslation, Optional<Node>> {
+    private static class SsaTranslationVisitor implements TreeVisitor<SsaTranslation, Optional<Node>> {
 
         @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
         private static final Optional<Node> NOT_AN_EXPRESSION = Optional.empty();

@@ -1,8 +1,8 @@
 package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.Visitor;
 
 public record BinaryOperationTree(ExpressionTree lhs, ExpressionTree rhs, BinaryOperator operator)
     implements ExpressionTree
@@ -14,7 +14,7 @@ public record BinaryOperationTree(ExpressionTree lhs, ExpressionTree rhs, Binary
     }
 
     @Override
-    public <T, R> R accept(Visitor<T, R> visitor, T data) {
+    public <T, R> R accept(TreeVisitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
 }

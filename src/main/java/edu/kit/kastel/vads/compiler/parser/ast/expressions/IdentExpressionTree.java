@@ -1,8 +1,8 @@
 package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 
 public record IdentExpressionTree(NameTree name) implements ExpressionTree {
 
@@ -12,7 +12,7 @@ public record IdentExpressionTree(NameTree name) implements ExpressionTree {
     }
 
     @Override
-    public <T, R> R accept(Visitor<T, R> visitor, T data) {
+    public <T, R> R accept(TreeVisitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
 }

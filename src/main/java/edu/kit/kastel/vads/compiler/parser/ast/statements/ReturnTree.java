@@ -2,7 +2,7 @@ package edu.kit.kastel.vads.compiler.parser.ast.statements;
 
 import edu.kit.kastel.vads.compiler.Position;
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.Visitor;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 
 public record ReturnTree(ExpressionTree expression, Position start) implements StatementTree {
@@ -13,7 +13,7 @@ public record ReturnTree(ExpressionTree expression, Position start) implements S
     }
 
     @Override
-    public <T, R> R accept(Visitor<T, R> visitor, T data) {
+    public <T, R> R accept(TreeVisitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
 }

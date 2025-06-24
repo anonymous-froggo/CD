@@ -8,7 +8,6 @@ import java.util.Map;
 
 import edu.kit.kastel.vads.compiler.codegen.Register;
 import edu.kit.kastel.vads.compiler.codegen.RegisterAllocator;
-import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.codegen.InterferenceGraph;
 import edu.kit.kastel.vads.compiler.codegen.LivenessAnalysis;
 import edu.kit.kastel.vads.compiler.ir.SsaGraph;

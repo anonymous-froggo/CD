@@ -1,6 +1,6 @@
 package edu.kit.kastel.vads.compiler.semantic.visitor;
 
-import edu.kit.kastel.vads.compiler.Visitor;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.BlockTree;
 import edu.kit.kastel.vads.compiler.parser.ast.statements.ElseOptTree;
@@ -14,7 +14,7 @@ public class ScopedRecursivePostorderVisitor<S, T extends Scoper<S>, R> extends 
 
     private boolean nextBlockConditional = false;
 
-    public ScopedRecursivePostorderVisitor(Visitor<T, R> visitor) {
+    public ScopedRecursivePostorderVisitor(TreeVisitor<T, R> visitor) {
         super(visitor);
     }
 

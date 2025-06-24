@@ -1,7 +1,6 @@
 package edu.kit.kastel.vads.compiler.parser.ast;
 
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.ExpressionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.FunctionTree;
 import edu.kit.kastel.vads.compiler.parser.ast.functions.ParamTree;
@@ -21,5 +20,5 @@ public sealed interface Tree permits
 
     Span span();
 
-    <T, R> R accept(Visitor<T, R> visitor, T data);
+    <T, R> R accept(TreeVisitor<T, R> visitor, T data);
 }

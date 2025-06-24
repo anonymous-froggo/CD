@@ -10,7 +10,6 @@ import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.Keyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword;
 import edu.kit.kastel.vads.compiler.lexer.keywords.ControlKeyword.ControlKeywordType;
-import edu.kit.kastel.vads.compiler.lexer.keywords.TypeKeyword.TypeKeywordType;
 import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator;
 import edu.kit.kastel.vads.compiler.lexer.operators.Operator;
@@ -20,7 +19,6 @@ import edu.kit.kastel.vads.compiler.lexer.operators.AssignmentOperator.Assignmen
 import edu.kit.kastel.vads.compiler.lexer.operators.BinaryOperator.BinaryOperatorType;
 import edu.kit.kastel.vads.compiler.lexer.operators.Operator.Associativity;
 import edu.kit.kastel.vads.compiler.lexer.operators.UnaryOperator.UnaryOperatorType;
-import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.lexer.Token;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;

@@ -1,8 +1,8 @@
 package edu.kit.kastel.vads.compiler.semantic.visitor;
 
-import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
@@ -27,7 +27,7 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 
 /// A visitor that does nothing and returns [Unit#INSTANCE] by default.
 /// This can be used to implement operations only for specific tree types.
-public interface NoOpVisitor<T> extends Visitor<T, Unit> {
+public interface NoOpVisitor<T> extends TreeVisitor<T, Unit> {
 
     // Expression trees
 

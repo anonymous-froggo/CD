@@ -1,7 +1,7 @@
 package edu.kit.kastel.vads.compiler.parser.ast.expressions;
 
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.Visitor;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 
 public record TernaryTree(ExpressionTree condition, ExpressionTree thenExpression, ExpressionTree elseExpression)
     implements ExpressionTree
@@ -13,7 +13,7 @@ public record TernaryTree(ExpressionTree condition, ExpressionTree thenExpressio
     }
 
     @Override
-    public <T, R> R accept(Visitor<T, R> visitor, T data) {
+    public <T, R> R accept(TreeVisitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
 }

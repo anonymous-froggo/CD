@@ -1,14 +1,10 @@
 package edu.kit.kastel.vads.compiler.codegen.x86_64;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import edu.kit.kastel.vads.compiler.Main;
 import edu.kit.kastel.vads.compiler.codegen.CodeGenerator;
 import edu.kit.kastel.vads.compiler.codegen.Register;
-import edu.kit.kastel.vads.compiler.codegen.RegisterAllocator;
 import edu.kit.kastel.vads.compiler.ir.SsaGraph;
 import edu.kit.kastel.vads.compiler.ir.nodes.Block;
 import edu.kit.kastel.vads.compiler.ir.nodes.BoolNode;
@@ -45,11 +41,20 @@ import edu.kit.kastel.vads.compiler.ir.nodes.unary.BitwiseNotNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.LogicalNotNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.NegateNode;
 import edu.kit.kastel.vads.compiler.ir.nodes.unary.UnaryOperationNode;
-import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword;
-import edu.kit.kastel.vads.compiler.lexer.keywords.LibFunctionKeyword.LibFunctionKeywordType;
 import edu.kit.kastel.vads.compiler.parser.symbol.LibFunctionName;
 
 import static edu.kit.kastel.vads.compiler.ir.util.NodeSupport.predecessorSkipProj;
+
+/*
+ * Refactoring
+ * TODO Intel syntax
+ * TODO Instruction interface/classes
+ * TODO visitor pattern
+ * TODO Parameterized instructions (bitlength of registers etc.)
+ * TODO Better stack handling
+ * TODO Eliminate unnecessary saves/restores
+ * TODO Wrapper functions for libc instead of inline
+ */
 
 public final class X8664CodeGenerator implements CodeGenerator {
 
@@ -442,8 +447,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
         moveStackPointer(X8664StackRegister.SLOT_SIZE * args.size());
     }
 
-    // TODO eliminate unnecessary saves/loads
-
     private void calleeSave() {
         for (Register register : X8664Register.calleeSavedRegisters()) {
             push(register);
@@ -474,7 +477,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
 
     private void move(Register src, Register dest) {
         if (dest == null) {
-            // TODO this is wonky
             // Unused result
             if (Main.DEBUG) {
                 System.out.println("Unused dest from src: " + src.name(64));
@@ -549,7 +551,6 @@ public final class X8664CodeGenerator implements CodeGenerator {
         X8664StackRegister.moveStackPointer(offset);
     }
 
-    // TODO maybe use wrapper functions instead of inline
     private void libFunction(LibFunctionName name) {
         switch (name.keyword().type()) {
             case PRINT -> {

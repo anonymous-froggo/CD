@@ -1,8 +1,8 @@
 package edu.kit.kastel.vads.compiler.semantic.visitor;
 
-import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
 import edu.kit.kastel.vads.compiler.parser.ast.ProgramTree;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 import edu.kit.kastel.vads.compiler.parser.ast.TypeTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BinaryOperationTree;
 import edu.kit.kastel.vads.compiler.parser.ast.expressions.BoolTree;
@@ -30,11 +30,11 @@ import edu.kit.kastel.vads.compiler.parser.ast.statements.WhileTree;
 /// A visitor that traverses a tree in postorder and lets [this{@link #visitor}] visit each node
 /// @param <T> a type for additional data
 /// @param <R> a type for a return type
-public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
+public class RecursivePostorderVisitor<T, R> implements TreeVisitor<T, R> {
 
-    protected final Visitor<T, R> visitor;
+    protected final TreeVisitor<T, R> visitor;
 
-    public RecursivePostorderVisitor(Visitor<T, R> visitor) {
+    public RecursivePostorderVisitor(TreeVisitor<T, R> visitor) {
         this.visitor = visitor;
     }
 
@@ -116,7 +116,7 @@ public class RecursivePostorderVisitor<T, R> implements Visitor<T, R> {
     }
 
     // LValue trees
-    
+
     @Override
     public R visit(LValueIdentTree lValueIdentTree, T data) {
         R r = lValueIdentTree.name().accept(this, data);

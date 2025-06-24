@@ -1,8 +1,8 @@
 package edu.kit.kastel.vads.compiler.parser.ast.lvalues;
 
 import edu.kit.kastel.vads.compiler.Span;
-import edu.kit.kastel.vads.compiler.Visitor;
 import edu.kit.kastel.vads.compiler.parser.ast.NameTree;
+import edu.kit.kastel.vads.compiler.parser.ast.TreeVisitor;
 
 public record LValueIdentTree(NameTree name) implements LValueTree {
 
@@ -12,7 +12,7 @@ public record LValueIdentTree(NameTree name) implements LValueTree {
     }
 
     @Override
-    public <T, R> R accept(Visitor<T, R> visitor, T data) {
+    public <T, R> R accept(TreeVisitor<T, R> visitor, T data) {
         return visitor.visit(this, data);
     }
 }
